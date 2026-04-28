@@ -19,13 +19,15 @@ const zones = [
     {
         name: 'Zone C',
         availableLocations: [
-            { name: 'glove-side-up',   type: 'strike'    },
-            { name: 'glove-side-down', type: 'strike'    },
-            { name: 'arm-side-up',     type: 'strike'    },
-            { name: 'arm-side-down',   type: 'strike'    },
-            { name: 'mid-mid',         type: 'strike'    },
-            { name: 'up-out',          type: 'chase'     },
-            { name: 'down-out',        type: 'chase'     },
+            { name: 'glove-side-up',   type: 'strike' },
+            { name: 'glove-side-down', type: 'strike' },
+            { name: 'arm-side-up',     type: 'strike' },
+            { name: 'arm-side-down',   type: 'strike' },
+            { name: 'mid-mid',         type: 'strike' },
+            { name: 'up-out',          type: 'chase'  },
+            { name: 'down-out',        type: 'chase'  },
+            { name: 'glove-out',       type: 'chase'  },
+            { name: 'arm-out',         type: 'chase'  },
         ]
     },
     {
