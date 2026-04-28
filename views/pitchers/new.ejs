@@ -1,0 +1,128 @@
+<%- layout('layouts/boilerplate') %>
+
+    <div class="page-header">
+        <h1><i class="bi bi-person-plus"></i> Add Pitcher</h1>
+    </div>
+
+    <div class="card">
+        <div class="card-body p-4">
+            <form action="/teams/<%= team._id %>/pitchers" method="POST">
+
+                <!-- Basic Info -->
+                <h5 class="fw-bold mb-3">Basic Info</h5>
+                <div class="row mb-3">
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        <label for="name" class="form-label fw-bold">Name</label>
+                        <input type="text" class="form-control form-control-lg" id="name" name="pitcher[name]" required>
+                    </div>
+                    <div class="col-md-3 mb-3 mb-md-0">
+                        <label for="number" class="form-label fw-bold">Jersey #</label>
+                        <input type="number" class="form-control form-control-lg" id="number" name="pitcher[number]">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="throws" class="form-label fw-bold">Throws</label>
+                        <select class="form-select form-select-lg" id="throws" name="pitcher[throws]">
+                            <option value="R">Right</option>
+                            <option value="L">Left</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Zone Selection -->
+                <h5 class="fw-bold mb-3 mt-4">Strike Zone</h5>
+                <div class="mb-4">
+                    <div class="row row-cols-1 row-cols-md-2 g-3">
+                        <% for (let zone of zones) { %>
+                            <div class="col">
+                                <input type="radio" class="btn-check" name="pitcher[zone]" id="zone-<%= zone._id %>"
+                                    value="<%= zone._id %>" required>
+                                <label class="btn btn-outline-primary w-100 text-start p-3" for="zone-<%= zone._id %>">
+                                    <strong>
+                                        <%= zone.name %>
+                                    </strong>
+                                    <br>
+                                    <small class="text-muted">
+                                        <%= zone.availableLocations.length %> locations
+                                    </small>
+                                </label>
+                            </div>
+                            <% } %>
+                    </div>
+                </div>
+
+                <!-- Pitch Types -->
+                <h5 class="fw-bold mb-3 mt-4">Pitch Types</h5>
+                <div id="pitchTypes">
+                    <div class="pitch-type-row card mb-3">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-2 mb-md-0">
+                                    <label class="form-label fw-bold">Pitch Name</label>
+                                    <input type="text" class="form-control" name="pitcher[pitchTypes][0][name]"
+                                        placeholder="e.g. Fastball">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">Abbreviation</label>
+                                    <input type="text" class="form-control" name="pitcher[pitchTypes][0][abbreviation]"
+                                        placeholder="e.g. FB">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" class="btn btn-outline-secondary mb-4" id="addPitch">
+                    <i class="bi bi-plus-circle"></i> Add Another Pitch
+                </button>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="bi bi-check-circle"></i> Save Pitcher
+                    </button>
+                    <a href="/teams/<%= team._id %>" class="btn btn-outline-secondary btn-lg">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let pitchCount = 1;
+        document.getElementById('addPitch').addEventListener('click', () => {
+            const container = document.getElementById('pitchTypes');
+            const div = document.createElement('div');
+            div.classList.add('pitch-type-row', 'card', 'mb-3');
+            div.innerHTML = `
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-2 mb-md-0">
+                        <label class="form-label fw-bold">Pitch Name</label>
+                        <input type="text" class="form-control" 
+                            name="pitcher[pitchTypes][${pitchCount}][name]" 
+                            placeholder="e.g. Curveball">
+                    </div>
+                    <div class="col-md-4 mb-2 mb-md-0">
+                        <label class="form-label fw-bold">Abbreviation</label>
+                        <input type="text" class="form-control" 
+                            name="pitcher[pitchTypes][${pitchCount}][abbreviation]" 
+                            placeholder="e.g. CB">
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="button" class="btn btn-outline-danger w-100 remove-pitch">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+            container.appendChild(div);
+            pitchCount++;
+        });
+
+        document.getElementById('pitchTypes').addEventListener('click', (e) => {
+            if (e.target.closest('.remove-pitch')) {
+                e.target.closest('.pitch-type-row').remove();
+            }
+        });
+    </script>

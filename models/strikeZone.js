@@ -4,7 +4,7 @@ const LocationSchema = new mongoose.Schema({
     name: { type: String, required: true },
     type: { 
         type: String, 
-        enum: ['strike', 'chase', 'emergency'],
+        enum: ['strike', 'chase'],
         required: true 
     }
 });

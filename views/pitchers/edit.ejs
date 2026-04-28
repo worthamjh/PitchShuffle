@@ -1,0 +1,304 @@
+<%- layout('layouts/boilerplate') %>
+
+    <style>
+        /* View toggle */
+        .view-toggle {
+            margin-bottom: 1.5rem;
+        }
+
+        /* Zone grid */
+        .zone-grid {
+            display: inline-grid;
+            gap: 6px;
+            margin: 0 auto;
+        }
+
+        .zone-grid.cols-1 {
+            grid-template-columns: repeat(1, 1fr);
+        }
+
+        .zone-grid.cols-2 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .zone-grid.cols-3 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .zone-grid.cols-5 {
+            grid-template-columns: repeat(5, 1fr);
+        }
+
+        .loc-box {
+            width: 70px;
+            height: 70px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.6rem;
+            font-weight: 700;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 2px solid transparent;
+            transition: all 0.15s ease;
+            user-select: none;
+            padding: 4px;
+        }
+
+        /* Tablet */
+        @media (min-width: 576px) {
+            .loc-box {
+                width: 90px;
+                height: 90px;
+                font-size: 0.65rem;
+            }
+        }
+
+        /* Desktop */
+        @media (min-width: 992px) {
+            .loc-box {
+                width: 110px;
+                height: 110px;
+                font-size: 0.75rem;
+            }
+        }
+
+        /* States */
+        .loc-box.strike {
+            background-color: #d4edda;
+            border-color: #2e7d4f;
+            color: #155724;
+        }
+
+        .loc-box.chase {
+            background-color: #fff3cd;
+            border-color: #d4a017;
+            color: #856404;
+        }
+
+        .loc-box.mid-mid {
+            background-color: #fff3cd;
+            border-color: #d4a017;
+            color: #856404;
+        }
+
+        .loc-box.disabled {
+            background-color: #e9ecef;
+            border-color: #ced4da;
+            color: #adb5bd;
+            text-decoration: line-through;
+        }
+
+        .loc-box:hover {
+            opacity: 0.85;
+            transform: scale(1.05);
+        }
+
+        /* Zone container */
+        .zone-container {
+            display: flex;
+            justify-content: center;
+            padding: 1rem 0;
+        }
+
+        /* Pitch section */
+        .pitch-section {
+            border: 1px solid #dee2e6;
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+            background: #fff;
+        }
+
+        .pitch-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+    </style>
+
+    <div class="page-header">
+        <h1><i class="bi bi-pencil"></i> Edit <%= pitcher.name %>
+        </h1>
+    </div>
+
+    <div class="card">
+        <div class="card-body p-4">
+            <form action="/teams/<%= team._id %>/pitchers/<%= pitcher._id %>?_method=PUT" method="POST"
+                id="pitcherForm">
+
+                <!-- Basic Info -->
+                <h5 class="fw-bold mb-3">Basic Info</h5>
+                <div class="row mb-3">
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        <label for="name" class="form-label fw-bold">Name</label>
+                        <input type="text" class="form-control form-control-lg" id="name" name="pitcher[name]"
+                            value="<%= pitcher.name %>" required>
+                    </div>
+                    <div class="col-md-3 mb-3 mb-md-0">
+                        <label for="number" class="form-label fw-bold">Jersey #</label>
+                        <input type="number" class="form-control form-control-lg" id="number" name="pitcher[number]"
+                            value="<%= pitcher.number %>">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="throws" class="form-label fw-bold">Throws</label>
+                        <select class="form-select form-select-lg" id="throws" name="pitcher[throws]">
+                            <option value="R" <%=pitcher.throws==='R' ? 'selected' : '' %>>Right</option>
+                            <option value="L" <%=pitcher.throws==='L' ? 'selected' : '' %>>Left</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Zone Selection -->
+                <h5 class="fw-bold mb-3 mt-4">Strike Zone</h5>
+                <div class="mb-4">
+                    <div class="row row-cols-1 row-cols-md-2 g-3">
+                        <% for (let zone of zones) { %>
+                            <div class="col">
+                                <input type="radio" class="btn-check" name="pitcher[zone]" id="zone-<%= zone._id %>"
+                                    value="<%= zone._id %>" <%=pitcher.zone && pitcher.zone._id.equals(zone._id)
+                                    ? 'checked' : '' %> required>
+                                <label class="btn btn-outline-primary w-100 text-start p-3" for="zone-<%= zone._id %>">
+                                    <strong>
+                                        <%= zone.name %>
+                                    </strong>
+                                    <br>
+                                    <small class="text-muted">
+                                        <%= zone.availableLocations.length %> locations
+                                    </small>
+                                </label>
+                            </div>
+                            <% } %>
+                    </div>
+                </div>
+
+                <!-- Pitch Types Header + View Toggle -->
+                <div class="d-flex justify-content-between align-items-center mb-3 mt-4">
+                    <h5 class="fw-bold mb-0">Pitch Types & Locations</h5>
+                    <div class="btn-group view-toggle" role="group">
+                        <input type="radio" class="btn-check" name="viewMode" id="visualMode" checked>
+                        <label class="btn btn-outline-primary btn-sm" for="visualMode">
+                            <i class="bi bi-grid-3x3"></i> Visual
+                        </label>
+                        <input type="radio" class="btn-check" name="viewMode" id="listMode">
+                        <label class="btn btn-outline-primary btn-sm" for="listMode">
+                            <i class="bi bi-list-check"></i> List
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Pitch Type Sections -->
+                <div id="pitchTypes">
+                    <% for (let i=0; i < pitcher.pitchTypes.length; i++) { %>
+                        <% let pitch=pitcher.pitchTypes[i]; %>
+                            <div class="pitch-section pitch-type-row">
+                                <div class="pitch-section-header">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <input type="text" class="form-control fw-bold"
+                                            name="pitcher[pitchTypes][<%= i %>][name]" value="<%= pitch.name %>"
+                                            placeholder="Pitch name" style="max-width: 160px;">
+                                        <input type="text" class="form-control"
+                                            name="pitcher[pitchTypes][<%= i %>][abbreviation]"
+                                            value="<%= pitch.abbreviation %>" placeholder="Abbr."
+                                            style="max-width: 80px;">
+                                    </div>
+                                    <button type="button" class="btn btn-outline-danger btn-sm remove-pitch">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+
+                                <!-- VISUAL MODE -->
+                                <div class="visual-view">
+                                    <% // figure out grid columns based on location count let cols=2; if
+                                        (pitch.locations.length <=2) cols=2; else if (pitch.locations.length <=7)
+                                        cols=3; else cols=5; %>
+                                        <div class="zone-container">
+                                            <div class="zone-grid cols-<%= cols %>">
+                                                <% for (let j=0; j < pitch.locations.length; j++) { %>
+                                                    <% let loc=pitch.locations[j]; %>
+                                                        <% let boxClass='strike' ; if (!loc.enabled) boxClass='disabled'
+                                                            ; else if (loc.name==='mid-mid' ) boxClass='mid-mid' ; else
+                                                            if (loc.type==='chase' ) boxClass='chase' ; %>
+                                                            <div class="loc-box <%= boxClass %>" data-pitch="<%= i %>"
+                                                                data-loc="<%= j %>" data-enabled="<%= loc.enabled %>">
+                                                                <%= loc.name %>
+                                                            </div>
+                                                            <!-- Hidden inputs synced by JS -->
+                                                            <input type="hidden"
+                                                                name="pitcher[pitchTypes][<%= i %>][locations][<%= j %>][name]"
+                                                                value="<%= loc.name %>">
+                                                            <input type="hidden"
+                                                                name="pitcher[pitchTypes][<%= i %>][locations][<%= j %>][type]"
+                                                                value="<%= loc.type %>">
+                                                            <input type="hidden" class="loc-enabled-input"
+                                                                name="pitcher[pitchTypes][<%= i %>][locations][<%= j %>][enabled]"
+                                                                value="<%= loc.enabled %>"
+                                                                id="enabled-<%= i %>-<%= j %>">
+                                                            <% } %>
+                                            </div>
+                                        </div>
+                                </div>
+
+                                <!-- LIST MODE -->
+                                <div class="list-view" style="display:none;">
+                                    <div class="d-flex flex-wrap gap-2 mt-2">
+                                        <% for (let j=0; j < pitch.locations.length; j++) { %>
+                                            <% let loc=pitch.locations[j]; %>
+                                                <div class="form-check form-check-inline">
+                                                    <input class="form-check-input list-checkbox" type="checkbox"
+                                                        id="list-loc-<%= i %>-<%= j %>" data-pitch="<%= i %>"
+                                                        data-loc="<%= j %>" <%=loc.enabled ? 'checked' : '' %>>
+                                                    <label
+                                                        class="form-check-label badge p-2
+                                            <%= loc.name === 'mid-mid' ? 'bg-warning text-dark' : loc.type === 'chase' ? 'bg-warning text-dark' : 'bg-success' %>"
+                                                        for="list-loc-<%= i %>-<%= j %>">
+                                                        <%= loc.name %>
+                                                    </label>
+                                                </div>
+                                                <% } %>
+                                    </div>
+                                </div>
+
+                            </div>
+                            <% } %>
+                </div>
+
+                <button type="button" class="btn btn-outline-secondary mb-4" id="addPitch">
+                    <i class="bi bi-plus-circle"></i> Add Another Pitch
+                </button>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="bi bi-check-circle"></i> Save Changes
+                    </button>
+                    <a href="/teams/<%= team._id %>/pitchers/<%= pitcher._id %>"
+                        class="btn btn-outline-secondary btn-lg">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    <!-- Legend -->
+    <div class="d-flex gap-3 mt-3 flex-wrap">
+        <span class="d-flex align-items-center gap-2">
+            <span
+                style="width:20px;height:20px;border-radius:4px;background:#d4edda;border:2px solid #2e7d4f;display:inline-block;"></span>
+            <small>Strike location</small>
+        </span>
+        <span class="d-flex align-items-center gap-2">
+            <span
+                style="width:20px;height:20px;border-radius:4px;background:#fff3cd;border:2px solid #d4a017;display:inline-block;"></span>
+            <small>Chase / mid-mid</small>
+        </span>
+        <span class="d-flex align-items-center gap-2">
+            <span
+                style="width:20px;height:20px;border-radius:4px;background:#e9ecef;border:2px solid #ced4da;display:inline-block;"></span>
+            <small>Disabled</s
