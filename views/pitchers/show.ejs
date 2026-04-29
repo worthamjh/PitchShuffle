@@ -2,25 +2,9 @@
 
     <style>
         .zone-grid {
-            display: inline-grid;
+            display: grid;
             gap: 6px;
             margin: 0 auto;
-        }
-
-        .zone-grid.cols-1 {
-            grid-template-columns: repeat(1, 1fr);
-        }
-
-        .zone-grid.cols-2 {
-            grid-template-columns: repeat(2, 1fr);
-        }
-
-        .zone-grid.cols-3 {
-            grid-template-columns: repeat(3, 1fr);
-        }
-
-        .zone-grid.cols-5 {
-            grid-template-columns: repeat(5, 1fr);
         }
 
         .loc-box {
@@ -79,6 +63,12 @@
             border-color: #ced4da;
             color: #adb5bd;
             text-decoration: line-through;
+        }
+
+        .loc-box.empty {
+            background: transparent;
+            border-color: transparent;
+            pointer-events: none;
         }
 
         .zone-container {
@@ -160,87 +150,167 @@
             </div>
         </div>
         <% } else { %>
-            <% for (let pitch of pitcher.pitchTypes) { %>
-                <div class="pitch-section">
-                    <div class="d-flex align-items-center gap-2 mb-2">
-                        <h5 class="fw-bold mb-0">
-                            <%= pitch.name %>
-                        </h5>
-                        <span class="badge bg-secondary">
-                            <%= pitch.abbreviation %>
-                        </span>
-                    </div>
+            <% for (var i=0; i < pitcher.pitchTypes.length; i++) { %>
+                <% var pitch=pitcher.pitchTypes[i]; %>
+                    <div class="pitch-section">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <h5 class="fw-bold mb-0">
+                                <%= pitch.name %>
+                            </h5>
+                            <span class="badge bg-secondary">
+                                <%= pitch.abbreviation %>
+                            </span>
+                        </div>
 
-                    <!-- Visual view -->
-                    <div class="visual-view">
-                        <% let cols=2; if (pitch.locations.length <=2) cols=2; else if (pitch.locations.length <=7)
-                            cols=3; else cols=5; %>
+                        <!-- Visual view -->
+                        <div class="visual-view">
                             <div class="zone-container">
-                                <div class="zone-grid cols-<%= cols %>">
-                                    <% for (let loc of pitch.locations) { %>
-                                        <% let boxClass='strike' ; if (!loc.enabled) boxClass='disabled' ; else if
-                                            (loc.name==='mid-mid' ) boxClass='mid-mid' ; else if (loc.type==='chase' )
-                                            boxClass='chase' ; %>
-                                            <div class="loc-box <%= boxClass %>">
-                                                <%= loc.name %>
-                                            </div>
-                                            <% } %>
-                                </div>
+                                <div class="zone-grid" id="grid-<%= i %>"></div>
                             </div>
-                    </div>
+                        </div>
 
-                    <!-- List view -->
-                    <div class="list-view" style="display:none;">
-                        <div class="d-flex flex-wrap gap-2 mt-2">
-                            <% for (let loc of pitch.locations) { %>
-                                <span class="badge p-2
+                        <!-- List view -->
+                        <div class="list-view" style="display:none;">
+                            <div class="d-flex flex-wrap gap-2 mt-2">
+                                <% for (var loc of pitch.locations) { %>
+                                    <span class="badge p-2
                             <% if (!loc.enabled) { %>bg-secondary
                             <% } else if (loc.name === 'mid-mid') { %>bg-warning text-dark
                             <% } else if (loc.type === 'chase') { %>bg-warning text-dark
                             <% } else { %>bg-success<% } %>">
-                                    <%= loc.enabled ? '' : '✕ ' %>
-                                        <%= loc.name %>
-                                </span>
-                                <% } %>
+                                        <%= loc.enabled ? '' : '✕ ' %>
+                                            <%= loc.name %>
+                                    </span>
+                                    <% } %>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <% } %>
                     <% } %>
+                        <% } %>
 
-                        <!-- Legend -->
-                        <div class="d-flex gap-3 mb-4 flex-wrap">
-                            <span class="d-flex align-items-center gap-2">
-                                <span
-                                    style="width:20px;height:20px;border-radius:4px;background:#d4edda;border:2px solid #2e7d4f;display:inline-block;"></span>
-                                <small>Strike location</small>
-                            </span>
-                            <span class="d-flex align-items-center gap-2">
-                                <span
-                                    style="width:20px;height:20px;border-radius:4px;background:#fff3cd;border:2px solid #d4a017;display:inline-block;"></span>
-                                <small>Chase / mid-mid</small>
-                            </span>
-                            <span class="d-flex align-items-center gap-2">
-                                <span
-                                    style="width:20px;height:20px;border-radius:4px;background:#e9ecef;border:2px solid #ced4da;display:inline-block;"></span>
-                                <small>Disabled</small>
-                            </span>
-                        </div>
+                            <!-- Legend -->
+                            <div class="d-flex gap-3 mb-4 flex-wrap">
+                                <span class="d-flex align-items-center gap-2">
+                                    <span
+                                        style="width:20px;height:20px;border-radius:4px;background:#d4edda;border:2px solid #2e7d4f;display:inline-block;"></span>
+                                    <small>Strike location</small>
+                                </span>
+                                <span class="d-flex align-items-center gap-2">
+                                    <span
+                                        style="width:20px;height:20px;border-radius:4px;background:#fff3cd;border:2px solid #d4a017;display:inline-block;"></span>
+                                    <small>Chase / mid-mid</small>
+                                </span>
+                                <span class="d-flex align-items-center gap-2">
+                                    <span
+                                        style="width:20px;height:20px;border-radius:4px;background:#e9ecef;border:2px solid #ced4da;display:inline-block;"></span>
+                                    <small>Disabled</small>
+                                </span>
+                            </div>
 
-                        <a href="/teams/<%= team._id %>" class="btn btn-outline-secondary">
-                            <i class="bi bi-arrow-left"></i> Back to Team
-                        </a>
+                            <a href="/teams/<%= team._id %>" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Back to Team
+                            </a>
 
-                        <script>
-                            document.querySelectorAll('input[name="viewMode"]').forEach(radio => {
-                                radio.addEventListener('change', () => {
-                                    const isVisual = document.getElementById('visualMode').checked;
-                                    document.querySelectorAll('.visual-view').forEach(el => {
-                                        el.style.display = isVisual ? 'block' : 'none';
+                            <script>
+                                const throws = '<%= pitcher.throws %>';
+                                const isRHP = throws === 'R';
+
+                                const ZONE_LAYOUTS = {
+                                    // Zone A
+                                    'arm-side': { row: 1, col: isRHP ? 2 : 1 },
+                                    'glove-side': { row: 1, col: isRHP ? 1 : 2 },
+                                    // Zone B
+                                    'up': { row: 1, col: 1 },
+                                    'down': { row: 2, col: 1 },
+                                    // Zone C
+                                    'up-out': { row: 1, col: 2 },
+                                    'glove-side-up': { row: 2, col: isRHP ? 1 : 3 },
+                                    'mid-mid': { row: 2, col: 2 },
+                                    'arm-side-up': { row: 2, col: isRHP ? 3 : 1 },
+                                    'glove-side-down': { row: 3, col: isRHP ? 1 : 3 },
+                                    'arm-side-down': { row: 3, col: isRHP ? 3 : 1 },
+                                    'glove-out': { row: 4, col: isRHP ? 1 : 3 },
+                                    'arm-out': { row: 4, col: isRHP ? 3 : 1 },
+                                    'down-out': { row: 4, col: 2 },
+                                    // Zone D
+                                    'glove-out-up': { row: 1, col: isRHP ? 1 : 3 },
+                                    'mid-out-up': { row: 1, col: 2 },
+                                    'arm-out-up': { row: 1, col: isRHP ? 3 : 1 },
+                                    'glove-up': { row: 2, col: isRHP ? 1 : 3 },
+                                    'mid-up': { row: 2, col: 2 },
+                                    'arm-up': { row: 2, col: isRHP ? 3 : 1 },
+                                    'glove-mid': { row: 3, col: isRHP ? 1 : 3 },
+                                    'arm-mid': { row: 3, col: isRHP ? 3 : 1 },
+                                    'glove-down': { row: 4, col: isRHP ? 1 : 3 },
+                                    'mid-down': { row: 4, col: 2 },
+                                    'arm-down': { row: 4, col: isRHP ? 3 : 1 },
+                                    'glove-out-down': { row: 5, col: isRHP ? 1 : 3 },
+                                    'mid-out-down': { row: 5, col: 2 },
+                                    'arm-out-down': { row: 5, col: isRHP ? 3 : 1 },
+                                };
+                            </script>
+
+                                <script>
+                                    const pitchData = <%- JSON.stringify(pitcher.pitchTypes) %>;
+
+                                    function getBoxClass(loc) {
+                                        if (!loc.enabled) return 'disabled';
+                                        if (loc.name === 'mid-mid') return 'mid-mid';
+                                        if (loc.type === 'chase') return 'chase';
+                                        return 'strike';
+                                    }
+
+                                    function buildGrid(pitchIndex) {
+                                        const pitch = pitchData[pitchIndex];
+                                        const grid = document.getElementById('grid-' + pitchIndex);
+                                        if (!grid) return;
+
+                                        let maxRow = 1, maxCol = 1;
+                                        pitch.locations.forEach(loc => {
+                                            const pos = ZONE_LAYOUTS[loc.name];
+                                            if (pos) {
+                                                maxRow = Math.max(maxRow, pos.row);
+                                                maxCol = Math.max(maxCol, pos.col);
+                                            }
+                                        });
+
+                                        grid.style.gridTemplateColumns = `repeat(${maxCol}, auto)`;
+                                        grid.style.gridTemplateRows = `repeat(${maxRow}, auto)`;
+
+                                        const cells = {};
+                                        pitch.locations.forEach((loc, j) => {
+                                            const pos = ZONE_LAYOUTS[loc.name];
+                                            if (pos) cells[`${pos.row}-${pos.col}`] = { loc, j };
+                                        });
+
+                                        for (let r = 1; r <= maxRow; r++) {
+                                            for (let c = 1; c <= maxCol; c++) {
+                                                const key = `${r}-${c}`;
+                                                const box = document.createElement('div');
+                                                box.classList.add('loc-box');
+
+                                                if (cells[key]) {
+                                                    const { loc } = cells[key];
+                                                    box.classList.add(getBoxClass(loc));
+                                                    box.textContent = loc.name.replace(/-/g, ' ');
+                                                } else {
+                                                    box.classList.add('empty');
+                                                }
+
+                                                grid.appendChild(box);
+                                            }
+                                        }
+                                    }
+
+                                    pitchData.forEach((pitch, i) => buildGrid(i));
+
+                                    // View toggle
+                                    document.getElementById('visualMode').addEventListener('change', () => {
+                                        document.querySelectorAll('.visual-view').forEach(el => el.style.display = 'block');
+                                        document.querySelectorAll('.list-view').forEach(el => el.style.display = 'none');
                                     });
-                                    document.querySelectorAll('.list-view').forEach(el => {
-                                        el.style.display = isVisual ? 'none' : 'block';
+                                    document.getElementById('listMode').addEventListener('change', () => {
+                                        document.querySelectorAll('.visual-view').forEach(el => el.style.display = 'none');
+                                        document.querySelectorAll('.list-view').forEach(el => el.style.display = 'block');
                                     });
-                                });
-                            });
-                        </script>
+                                </script>
