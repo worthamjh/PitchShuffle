@@ -51,20 +51,40 @@
                 </div>
 
                 <!-- Pitch Types -->
+                <!-- Pitch Types -->
                 <h5 class="fw-bold mb-3 mt-4">Pitch Types</h5>
                 <div id="pitchTypes">
                     <div class="pitch-type-row card mb-3">
                         <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-6 mb-2 mb-md-0">
-                                    <label class="form-label fw-bold">Pitch Name</label>
-                                    <input type="text" class="form-control" name="pitcher[pitchTypes][0][name]"
-                                        placeholder="e.g. Fastball">
+                            <div class="row align-items-end">
+                                <div class="col-md-4 mb-2 mb-md-0">
+                                    <label class="form-label fw-bold">Preset</label>
+                                    <select class="form-select pitch-preset">
+                                        <option value="">-- Select a pitch --</option>
+                                        <option value="Fastball|FB">Fastball (FB)</option>
+                                        <option value="Two-Seam Fastball|2FB">Two-Seam Fastball (2FB)</option>
+                                        <option value="Cutter|CUT">Cutter (CUT)</option>
+                                        <option value="Sinker|SIN">Sinker (SIN)</option>
+                                        <option value="Curveball|CB">Curveball (CB)</option>
+                                        <option value="Slider|SL">Slider (SL)</option>
+                                        <option value="Sweeper|SWP">Sweeper (SWP)</option>
+                                        <option value="Slurve|SLV">Slurve (SLV)</option>
+                                        <option value="Changeup|CH">Changeup (CH)</option>
+                                        <option value="Splitter|SPL">Splitter (SPL)</option>
+                                        <option value="Screwball|SCR">Screwball (SCR)</option>
+                                        <option value="Knuckleball|KN">Knuckleball (KN)</option>
+                                        <option value="custom|">Custom</option>
+                                    </select>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-4 mb-2 mb-md-0">
+                                    <label class="form-label fw-bold">Pitch Name</label>
+                                    <input type="text" class="form-control pitch-name"
+                                        name="pitcher[pitchTypes][0][name]" placeholder="e.g. Fastball">
+                                </div>
+                                <div class="col-md-3 mb-2 mb-md-0">
                                     <label class="form-label fw-bold">Abbreviation</label>
-                                    <input type="text" class="form-control" name="pitcher[pitchTypes][0][abbreviation]"
-                                        placeholder="e.g. FB">
+                                    <input type="text" class="form-control pitch-abbr"
+                                        name="pitcher[pitchTypes][0][abbreviation]" placeholder="e.g. FB">
                                 </div>
                             </div>
                         </div>
@@ -75,40 +95,82 @@
                     <i class="bi bi-plus-circle"></i> Add Another Pitch
                 </button>
 
-                <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-primary btn-lg">
-                        <i class="bi bi-check-circle"></i> Save Pitcher
-                    </button>
-                    <a href="/teams/<%= team._id %>" class="btn btn-outline-secondary btn-lg">
-                        <i class="bi bi-x-circle"></i> Cancel
-                    </a>
-                </div>
-            </form>
-        </div>
-    </div>
+                <script>
+                    const PRESETS_HTML = `
+        <option value="">-- Select a pitch --</option>
+        <option value="Fastball|FB">Fastball (FB)</option>
+        <option value="Two-Seam Fastball|2FB">Two-Seam Fastball (2FB)</option>
+        <option value="Cutter|CUT">Cutter (CUT)</option>
+        <option value="Sinker|SIN">Sinker (SIN)</option>
+        <option value="Curveball|CB">Curveball (CB)</option>
+        <option value="Slider|SL">Slider (SL)</option>
+        <option value="Sweeper|SWP">Sweeper (SWP)</option>
+        <option value="Slurve|SLV">Slurve (SLV)</option>
+        <option value="Changeup|CH">Changeup (CH)</option>
+        <option value="Splitter|SPL">Splitter (SPL)</option>
+        <option value="Screwball|SCR">Screwball (SCR)</option>
+        <option value="Knuckleball|KN">Knuckleball (KN)</option>
+        <option value="custom|">Custom</option>
+    `;
 
-    <script>
-        let pitchCount = 1;
-        document.getElementById('addPitch').addEventListener('click', () => {
-            const container = document.getElementById('pitchTypes');
-            const div = document.createElement('div');
-            div.classList.add('pitch-type-row', 'card', 'mb-3');
-            div.innerHTML = `
+                    function applyPreset(select) {
+                        const row = select.closest('.pitch-type-row');
+                        const nameInput = row.querySelector('.pitch-name');
+                        const abbrInput = row.querySelector('.pitch-abbr');
+                        const val = select.value;
+
+                        if (!val) return;
+
+                        if (val === 'custom|') {
+                            nameInput.value = '';
+                            abbrInput.value = '';
+                            nameInput.readOnly = false;
+                            abbrInput.readOnly = false;
+                            nameInput.placeholder = 'Type pitch name';
+                            abbrInput.placeholder = 'Type abbr.';
+                            nameInput.focus();
+                        } else {
+                            const [name, abbr] = val.split('|');
+                            nameInput.value = name;
+                            abbrInput.value = abbr;
+                            nameInput.readOnly = false;
+                            abbrInput.readOnly = false;
+                        }
+                    }
+
+                    document.getElementById('pitchTypes').addEventListener('change', (e) => {
+                        if (e.target.classList.contains('pitch-preset')) {
+                            applyPreset(e.target);
+                        }
+                    });
+
+                    let pitchCount = 1;
+                    document.getElementById('addPitch').addEventListener('click', () => {
+                        const container = document.getElementById('pitchTypes');
+                        const div = document.createElement('div');
+                        div.classList.add('pitch-type-row', 'card', 'mb-3');
+                        div.innerHTML = `
             <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6 mb-2 mb-md-0">
-                        <label class="form-label fw-bold">Pitch Name</label>
-                        <input type="text" class="form-control" 
-                            name="pitcher[pitchTypes][${pitchCount}][name]" 
-                            placeholder="e.g. Curveball">
+                <div class="row align-items-end">
+                    <div class="col-md-4 mb-2 mb-md-0">
+                        <label class="form-label fw-bold">Preset</label>
+                        <select class="form-select pitch-preset">
+                            ${PRESETS_HTML}
+                        </select>
                     </div>
                     <div class="col-md-4 mb-2 mb-md-0">
+                        <label class="form-label fw-bold">Pitch Name</label>
+                        <input type="text" class="form-control pitch-name"
+                            name="pitcher[pitchTypes][${pitchCount}][name]"
+                            placeholder="e.g. Curveball">
+                    </div>
+                    <div class="col-md-3 mb-2 mb-md-0">
                         <label class="form-label fw-bold">Abbreviation</label>
-                        <input type="text" class="form-control" 
-                            name="pitcher[pitchTypes][${pitchCount}][abbreviation]" 
+                        <input type="text" class="form-control pitch-abbr"
+                            name="pitcher[pitchTypes][${pitchCount}][abbreviation]"
                             placeholder="e.g. CB">
                     </div>
-                    <div class="col-md-2 d-flex align-items-end">
+                    <div class="col-md-1 d-flex align-items-end">
                         <button type="button" class="btn btn-outline-danger w-100 remove-pitch">
                             <i class="bi bi-trash"></i>
                         </button>
@@ -116,13 +178,13 @@
                 </div>
             </div>
         `;
-            container.appendChild(div);
-            pitchCount++;
-        });
+                        container.appendChild(div);
+                        pitchCount++;
+                    });
 
-        document.getElementById('pitchTypes').addEventListener('click', (e) => {
-            if (e.target.closest('.remove-pitch')) {
-                e.target.closest('.pitch-type-row').remove();
-            }
-        });
-    </script>
+                    document.getElementById('pitchTypes').addEventListener('click', (e) => {
+                        if (e.target.closest('.remove-pitch')) {
+                            e.target.closest('.pitch-type-row').remove();
+                        }
+                    });
+                </script>

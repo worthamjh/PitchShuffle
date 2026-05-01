@@ -467,6 +467,45 @@
                 }
             }
         });
+        const PRESETS_HTML = `
+    <option value="">-- Select a pitch --</option>
+    <option value="Fastball|FB">Fastball (FB)</option>
+    <option value="Two-Seam Fastball|2FB">Two-Seam Fastball (2FB)</option>
+    <option value="Cutter|CUT">Cutter (CUT)</option>
+    <option value="Sinker|SIN">Sinker (SIN)</option>
+    <option value="Curveball|CB">Curveball (CB)</option>
+    <option value="Slider|SL">Slider (SL)</option>
+    <option value="Sweeper|SWP">Sweeper (SWP)</option>
+    <option value="Slurve|SLV">Slurve (SLV)</option>
+    <option value="Changeup|CH">Changeup (CH)</option>
+    <option value="Splitter|SPL">Splitter (SPL)</option>
+    <option value="Screwball|SCR">Screwball (SCR)</option>
+    <option value="Knuckleball|KN">Knuckleball (KN)</option>
+    <option value="custom|">Custom</option>
+`;
+
+        function applyPreset(select) {
+            const row = select.closest('.pitch-section') || select.closest('.pitch-type-row');
+            const nameInput = row.querySelector('.pitch-name');
+            const abbrInput = row.querySelector('.pitch-abbr');
+            const val = select.value;
+            if (!val) return;
+            if (val === 'custom|') {
+                nameInput.value = '';
+                abbrInput.value = '';
+                nameInput.focus();
+            } else {
+                const [name, abbr] = val.split('|');
+                nameInput.value = name;
+                abbrInput.value = abbr;
+            }
+        }
+
+        document.getElementById('pitchTypes').addEventListener('change', (e) => {
+            if (e.target.classList.contains('pitch-preset')) {
+                applyPreset(e.target);
+            }
+        });
 
         // --- Add pitch ---
         let pitchCount = <%= pitcher.pitchTypes.length %>
