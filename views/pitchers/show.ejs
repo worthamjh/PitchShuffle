@@ -216,42 +216,42 @@
                                 const isRHP = throws === 'R';
 
                                 const ZONE_LAYOUTS_A = {
-                                    'arm-side':   { row: 1, col: isRHP ? 2 : 1 },
+                                    'arm-side': { row: 1, col: isRHP ? 2 : 1 },
                                     'glove-side': { row: 1, col: isRHP ? 1 : 2 },
                                 };
                                 const ZONE_LAYOUTS_B = {
-                                    'up':   { row: 1, col: 1 },
+                                    'up': { row: 1, col: 1 },
                                     'down': { row: 2, col: 1 },
                                 };
                                 const ZONE_LAYOUTS_C = {
-                                    'up-out':          { row: 1, col: 2, colSpan: 3 },
-                                    'glove-out':       { row: 2, col: isRHP ? 1 : 5, rowSpan: 2 },
-                                    'glove-side-up':   { row: 2, col: isRHP ? 2 : 4 },
-                                    'mid-mid':         { row: 2, col: 3, rowSpan: 2 },
-                                    'arm-side-up':     { row: 2, col: isRHP ? 4 : 2 },
-                                    'arm-out':         { row: 2, col: isRHP ? 5 : 1, rowSpan: 2 },
-                                    'glove-side-down': { row: 3, col: isRHP ? 2 : 4 },
-                                    'arm-side-down':   { row: 3, col: isRHP ? 4 : 2 },
-                                    'down-out':        { row: 4, col: 2, colSpan: 3 },
+                                    'up-out': { row: 1, col: 2, colSpan: 2 },
+                                    'glove-out': { row: 2, col: 1, rowSpan: 2 },
+                                    'glove-side-up': { row: 2, col: 2, colSpan: 2 },
+                                    'mid-mid': { row: 2, col: 3, rowSpan: 2, zIndex: 1 },
+                                    'arm-side-up': { row: 2, col: 3, colSpan: 2 },
+                                    'arm-out': { row: 2, col: 5, rowSpan: 2 },
+                                    'glove-side-down': { row: 3, col: 2, colSpan: 2 },
+                                    'arm-side-down': { row: 3, col: 3, colSpan: 2 },
+                                    'down-out': { row: 4, col: 2, colSpan: 2 },
                                 };
                                 const ZONE_LAYOUTS_D = {
-                                    'glove-out-up':   { row: 1, col: isRHP ? 2 : 4 },
-                                    'mid-out-up':     { row: 1, col: 3 },
-                                    'arm-out-up':     { row: 1, col: isRHP ? 4 : 2 },
-                                    'glove-out-mid':  { row: 2, col: isRHP ? 1 : 5, rowSpan: 3 },
-                                    'glove-up':       { row: 2, col: isRHP ? 2 : 4 },
-                                    'mid-up':         { row: 2, col: 3 },
-                                    'arm-up':         { row: 2, col: isRHP ? 4 : 2 },
-                                    'arm-out-mid':    { row: 2, col: isRHP ? 5 : 1, rowSpan: 3 },
-                                    'glove-mid':      { row: 3, col: isRHP ? 2 : 4 },
-                                    'mid-mid':        { row: 3, col: 3 },
-                                    'arm-mid':        { row: 3, col: isRHP ? 4 : 2 },
-                                    'glove-down':     { row: 4, col: isRHP ? 2 : 4 },
-                                    'mid-down':       { row: 4, col: 3 },
-                                    'arm-down':       { row: 4, col: isRHP ? 4 : 2 },
-                                    'glove-out-down': { row: 5, col: isRHP ? 2 : 4 },
-                                    'mid-out-down':   { row: 5, col: 3 },
-                                    'arm-out-down':   { row: 5, col: isRHP ? 4 : 2 },
+                                    'glove-out-up': { row: 1, col: 1 },
+                                    'mid-out-up': { row: 1, col: 2, colSpan: 3 },
+                                    'arm-out-up': { row: 1, col: 5 },
+                                    'glove-out-mid': { row: 2, col: 1, rowSpan: 3 },
+                                    'glove-up': { row: 2, col: 2 },
+                                    'mid-up': { row: 2, col: 3 },
+                                    'arm-up': { row: 2, col: 4 },
+                                    'arm-out-mid': { row: 2, col: 5, rowSpan: 3 },
+                                    'glove-mid': { row: 3, col: 2 },
+                                    'mid-mid': { row: 3, col: 3 },
+                                    'arm-mid': { row: 3, col: 4 },
+                                    'glove-down': { row: 4, col: 2 },
+                                    'mid-down': { row: 4, col: 3 },
+                                    'arm-down': { row: 4, col: 4 },
+                                    'glove-out-down': { row: 5, col: 1 },
+                                    'mid-out-down': { row: 5, col: 2, colSpan: 3 },
+                                    'arm-out-down': { row: 5, col: 5 },
                                 };
                                 function getZoneLayouts(locations) {
                                     const names = new Set(locations.map(l => l.name));
@@ -262,58 +262,58 @@
                                 }
                             </script>
 
-                                <script>
-                                    const pitchData = <%- JSON.stringify(pitcher.pitchTypes) %>;
+                            <script>
+                                const pitchData = <% - JSON.stringify(pitcher.pitchTypes || []) %>;
 
-                                    function getBoxClass(loc) {
-                                        if (!loc.enabled) return 'disabled';
-                                        if (loc.name === 'mid-mid') return 'mid-mid';
-                                        if (loc.type === 'chase') return 'chase';
-                                        return 'strike';
-                                    }
+                                function getBoxClass(loc) {
+                                    if (!loc.enabled) return 'disabled';
+                                    if (loc.name === 'mid-mid') return 'mid-mid';
+                                    if (loc.type === 'chase') return 'chase';
+                                    return 'strike';
+                                }
 
-                                    function buildGrid(pitchIndex) {
-                                        const pitch = pitchData[pitchIndex];
-                                        const grid = document.getElementById('grid-' + pitchIndex);
-                                        if (!grid) return;
+                                function buildGrid(pitchIndex) {
+                                    const pitch = pitchData[pitchIndex];
+                                    const grid = document.getElementById('grid-' + pitchIndex);
+                                    if (!grid) return;
 
-                                        const layouts = getZoneLayouts(pitch.locations);
+                                    const layouts = getZoneLayouts(pitch.locations);
 
-                                        let maxRow = 1, maxCol = 1;
-                                        pitch.locations.forEach(loc => {
-                                            const pos = layouts[loc.name];
-                                            if (pos) {
-                                                maxRow = Math.max(maxRow, pos.row + (pos.rowSpan || 1) - 1);
-                                                maxCol = Math.max(maxCol, pos.col + (pos.colSpan || 1) - 1);
-                                            }
-                                        });
-
-                                        grid.style.gridTemplateColumns = `repeat(${maxCol}, auto)`;
-                                        grid.style.gridTemplateRows = `repeat(${maxRow}, auto)`;
-
-                                        pitch.locations.forEach((loc, j) => {
-                                            const pos = layouts[loc.name];
-                                            if (!pos) return;
-
-                                            const box = document.createElement('div');
-                                            box.classList.add('loc-box', getBoxClass(loc));
-                                            box.textContent = loc.name.replace(/-/g, ' ');
-                                            box.style.gridRow = pos.rowSpan ? `${pos.row} / span ${pos.rowSpan}` : String(pos.row);
-                                            box.style.gridColumn = pos.colSpan ? `${pos.col} / span ${pos.colSpan}` : String(pos.col);
-
-                                            grid.appendChild(box);
-                                        });
-                                    }
-
-                                    pitchData.forEach((pitch, i) => buildGrid(i));
-
-                                    // View toggle
-                                    document.getElementById('visualMode').addEventListener('change', () => {
-                                        document.querySelectorAll('.visual-view').forEach(el => el.style.display = 'block');
-                                        document.querySelectorAll('.list-view').forEach(el => el.style.display = 'none');
+                                    let maxRow = 1, maxCol = 1;
+                                    pitch.locations.forEach(loc => {
+                                        const pos = layouts[loc.name];
+                                        if (pos) {
+                                            maxRow = Math.max(maxRow, pos.row + (pos.rowSpan || 1) - 1);
+                                            maxCol = Math.max(maxCol, pos.col + (pos.colSpan || 1) - 1);
+                                        }
                                     });
-                                    document.getElementById('listMode').addEventListener('change', () => {
-                                        document.querySelectorAll('.visual-view').forEach(el => el.style.display = 'none');
-                                        document.querySelectorAll('.list-view').forEach(el => el.style.display = 'block');
+
+                                    grid.style.gridTemplateColumns = `repeat(${maxCol}, auto)`;
+                                    grid.style.gridTemplateRows = `repeat(${maxRow}, auto)`;
+
+                                    pitch.locations.forEach((loc, j) => {
+                                        const pos = layouts[loc.name];
+                                        if (!pos) return;
+
+                                        const box = document.createElement('div');
+                                        box.classList.add('loc-box', getBoxClass(loc));
+                                        box.textContent = loc.name.replace(/-/g, ' ');
+                                        box.style.gridRow = pos.rowSpan ? `${pos.row} / span ${pos.rowSpan}` : String(pos.row);
+                                        box.style.gridColumn = pos.colSpan ? `${pos.col} / span ${pos.colSpan}` : String(pos.col);
+
+                                        grid.appendChild(box);
                                     });
-                                </script>
+                                }
+
+                                pitchData.forEach((pitch, i) => buildGrid(i));
+
+                                // View toggle
+                                document.getElementById('visualMode').addEventListener('change', () => {
+                                    document.querySelectorAll('.visual-view').forEach(el => el.style.display = 'block');
+                                    document.querySelectorAll('.list-view').forEach(el => el.style.display = 'none');
+                                });
+                                document.getElementById('listMode').addEventListener('change', () => {
+                                    document.querySelectorAll('.visual-view').forEach(el => el.style.display = 'none');
+                                    document.querySelectorAll('.list-view').forEach(el => el.style.display = 'block');
+                                });
+                            </script>
