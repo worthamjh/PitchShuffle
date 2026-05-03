@@ -43,12 +43,12 @@ const zones = [
             { name: 'mid-down',       type: 'strike'    },
             { name: 'arm-down',       type: 'strike'    },
             { name: 'glove-out-up',   type: 'chase'     },
-            { name: 'mid-out-up',     type: 'chase'     },
+            { name: 'up-out',         type: 'chase' },
             { name: 'arm-out-up',     type: 'chase'     },
             { name: 'glove-out-mid',  type: 'chase'     },
             { name: 'arm-out-mid',    type: 'chase'     },
             { name: 'glove-out-down', type: 'chase'     },
-            { name: 'mid-out-down',   type: 'chase'     },
+            { name: 'down-out',        type: 'chase' },
             { name: 'arm-out-down',   type: 'chase'     },
         ]
     }

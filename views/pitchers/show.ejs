@@ -235,23 +235,23 @@
                                     'down-out': { row: 4, col: 2, colSpan: 2 },
                                 };
                                 const ZONE_LAYOUTS_D = {
-                                    'glove-out-up': { row: 1, col: 1 },
-                                    'mid-out-up': { row: 1, col: 2, colSpan: 3 },
-                                    'arm-out-up': { row: 1, col: 5 },
-                                    'glove-out-mid': { row: 2, col: 1, rowSpan: 3 },
-                                    'glove-up': { row: 2, col: 2 },
-                                    'mid-up': { row: 2, col: 3 },
-                                    'arm-up': { row: 2, col: 4 },
-                                    'arm-out-mid': { row: 2, col: 5, rowSpan: 3 },
-                                    'glove-mid': { row: 3, col: 2 },
-                                    'mid-mid': { row: 3, col: 3 },
-                                    'arm-mid': { row: 3, col: 4 },
-                                    'glove-down': { row: 4, col: 2 },
-                                    'mid-down': { row: 4, col: 3 },
-                                    'arm-down': { row: 4, col: 4 },
+                                    'glove-out-up':   { row: 1, col: 1 },
+                                    'up-out':         { row: 1, col: 2, colSpan: 3 },
+                                    'arm-out-up':     { row: 1, col: 5 },
+                                    'glove-out-mid':  { row: 2, col: 1, rowSpan: 3 },
+                                    'glove-up':       { row: 2, col: 2 },
+                                    'mid-up':         { row: 2, col: 3 },
+                                    'arm-up':         { row: 2, col: 4 },
+                                    'arm-out-mid':    { row: 2, col: 5, rowSpan: 3 },
+                                    'glove-mid':      { row: 3, col: 2 },
+                                    'mid-mid':        { row: 3, col: 3 },
+                                    'arm-mid':        { row: 3, col: 4 },
+                                    'glove-down':     { row: 4, col: 2 },
+                                    'mid-down':       { row: 4, col: 3 },
+                                    'arm-down':       { row: 4, col: 4 },
                                     'glove-out-down': { row: 5, col: 1 },
-                                    'mid-out-down': { row: 5, col: 2, colSpan: 3 },
-                                    'arm-out-down': { row: 5, col: 5 },
+                                    'down-out':       { row: 5, col: 2, colSpan: 3 },
+                                    'arm-out-down':   { row: 5, col: 5 },
                                 };
                                 function getZoneLayouts(locations) {
                                     const names = new Set(locations.map(l => l.name));
@@ -262,8 +262,9 @@
                                 }
                             </script>
 
+                            <script type="application/json" id="pitchDataJson"><%- JSON.stringify(pitcher.pitchTypes || []) %></script>
                             <script>
-                                const pitchData = <% - JSON.stringify(pitcher.pitchTypes || []) %>;
+                                const pitchData = JSON.parse(document.getElementById('pitchDataJson').textContent);
 
                                 function getBoxClass(loc) {
                                     if (!loc.enabled) return 'disabled';
