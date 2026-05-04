@@ -32,22 +32,15 @@
                 <h5 class="fw-bold mb-3 mt-4">Strike Zone</h5>
                 <div class="mb-4">
                     <div class="row row-cols-1 row-cols-md-3 g-3">
-                        <%
-                        const zoneImageMap = { 'A': 'zone_a.png', 'B': 'zone_b.png', 'C': 'zone_c.png' };
-                        for (let zone of zones) {
-                            const letter = zone.name.match(/Zone ([A-Z])/)?.[1];
-                            const img = zoneImageMap[letter] || null;
-                        %>
+                        <% for (let zone of zones) { %>
                             <div class="col">
-                                <input type="radio" class="btn-check zone-radio" name="pitcher[zone]"
+                                <input type="radio" class="btn-check" name="pitcher[zone]"
                                     id="zone-<%= zone._id %>" value="<%= zone._id %>" required>
                                 <label class="zone-image-card" for="zone-<%= zone._id %>">
-                                    <% if (img) { %>
-                                        <img src="/images/<%= img %>" alt="<%= zone.name %>" class="zone-img">
-                                    <% } %>
-                                    <div class="zone-label">
-                                        <strong><%= zone.name %></strong>
-                                        <small class="text-muted d-block"><%= zone.availableLocations.length %> locations</small>
+                                    <%- include('../../views/partials/_zone_mini', { zone }) %>
+                                    <div class="zone-card-label">
+                                        <%= zone.name %>
+                                        <small><%= zone.availableLocations.length %> locations</small>
                                     </div>
                                 </label>
                             </div>
@@ -116,15 +109,12 @@
         <option value="Knuckleball|KN">Knuckleball (KN)</option>
         <option value="custom|">Custom</option>
     `;
-
                     function applyPreset(select) {
                         const row = select.closest('.pitch-type-row');
                         const nameInput = row.querySelector('.pitch-name');
                         const abbrInput = row.querySelector('.pitch-abbr');
                         const val = select.value;
-
                         if (!val) return;
-
                         if (val === 'custom|') {
                             nameInput.value = '';
                             abbrInput.value = '';
@@ -141,13 +131,9 @@
                             abbrInput.readOnly = false;
                         }
                     }
-
                     document.getElementById('pitchTypes').addEventListener('change', (e) => {
-                        if (e.target.classList.contains('pitch-preset')) {
-                            applyPreset(e.target);
-                        }
+                        if (e.target.classList.contains('pitch-preset')) applyPreset(e.target);
                     });
-
                     let pitchCount = 1;
                     document.getElementById('addPitch').addEventListener('click', () => {
                         const container = document.getElementById('pitchTypes');
@@ -158,21 +144,17 @@
                 <div class="row align-items-end">
                     <div class="col-md-4 mb-2 mb-md-0">
                         <label class="form-label fw-bold">Preset</label>
-                        <select class="form-select pitch-preset">
-                            ${PRESETS_HTML}
-                        </select>
+                        <select class="form-select pitch-preset">${PRESETS_HTML}</select>
                     </div>
                     <div class="col-md-4 mb-2 mb-md-0">
                         <label class="form-label fw-bold">Pitch Name</label>
                         <input type="text" class="form-control pitch-name"
-                            name="pitcher[pitchTypes][${pitchCount}][name]"
-                            placeholder="e.g. Curveball">
+                            name="pitcher[pitchTypes][${pitchCount}][name]" placeholder="e.g. Curveball">
                     </div>
                     <div class="col-md-3 mb-2 mb-md-0">
                         <label class="form-label fw-bold">Abbreviation</label>
                         <input type="text" class="form-control pitch-abbr"
-                            name="pitcher[pitchTypes][${pitchCount}][abbreviation]"
-                            placeholder="e.g. CB">
+                            name="pitcher[pitchTypes][${pitchCount}][abbreviation]" placeholder="e.g. CB">
                     </div>
                     <div class="col-md-1 d-flex align-items-end">
                         <button type="button" class="btn btn-outline-danger w-100 remove-pitch">
@@ -180,16 +162,12 @@
                         </button>
                     </div>
                 </div>
-            </div>
-        `;
+            </div>`;
                         container.appendChild(div);
                         pitchCount++;
                     });
-
                     document.getElementById('pitchTypes').addEventListener('click', (e) => {
-                        if (e.target.closest('.remove-pitch')) {
-                            e.target.closest('.pitch-type-row').remove();
-                        }
+                        if (e.target.closest('.remove-pitch')) e.target.closest('.pitch-type-row').remove();
                     });
                 </script>
 
