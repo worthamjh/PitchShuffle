@@ -107,8 +107,7 @@
     </style>
 
     <div class="page-header">
-        <h1><i class="bi bi-pencil"></i> Edit <%= pitcher.name %>
-        </h1>
+        <h1><i class="bi bi-pencil"></i> Edit <%= pitcher.name %> #<%= pitcher.number %></h1>
     </div>
 
     <div class="card">
@@ -141,22 +140,28 @@
                 <!-- Zone Selection -->
                 <h5 class="fw-bold mb-3 mt-4">Strike Zone</h5>
                 <div class="mb-4">
-                    <div class="row row-cols-1 row-cols-md-2 g-3">
-                        <% for (let zone of zones) { %>
+                    <div class="row row-cols-1 row-cols-md-3 g-3">
+                        <%
+                        const zoneImageMap = { 'A': 'zone_a.png', 'B': 'zone_b.png', 'C': 'zone_c.png' };
+                        for (let zone of zones) {
+                            const letter = zone.name.match(/Zone ([A-Z])/)?.[1];
+                            const img = zoneImageMap[letter] || null;
+                        %>
                             <div class="col">
-                                <input type="radio" class="btn-check" name="pitcher[zone]" id="zone-<%= zone._id %>"
-                                    value="<%= zone._id %>" <%=pitcher.zone && pitcher.zone._id.equals(zone._id)
-                                    ? 'checked' : '' %> required>
-                                <label class="btn btn-outline-primary w-100 text-start p-3" for="zone-<%= zone._id %>">
-                                    <strong>
-                                        <%= zone.name %>
-                                    </strong><br>
-                                    <small class="text-muted">
-                                        <%= zone.availableLocations.length %> locations
-                                    </small>
+                                <input type="radio" class="btn-check zone-radio" name="pitcher[zone]"
+                                    id="zone-<%= zone._id %>" value="<%= zone._id %>"
+                                    <%= pitcher.zone && pitcher.zone._id.equals(zone._id) ? 'checked' : '' %>>
+                                <label class="zone-image-card" for="zone-<%= zone._id %>">
+                                    <% if (img) { %>
+                                        <img src="/images/<%= img %>" alt="<%= zone.name %>" class="zone-img">
+                                    <% } %>
+                                    <div class="zone-label">
+                                        <strong><%= zone.name %></strong>
+                                        <small class="text-muted d-block"><%= zone.availableLocations.length %> locations</small>
+                                    </div>
                                 </label>
                             </div>
-                            <% } %>
+                        <% } %>
                     </div>
                 </div>
 
@@ -173,6 +178,22 @@
                             <i class="bi bi-list-check"></i> List
                         </label>
                     </div>
+                </div>
+
+                <!-- Legend -->
+                <div class="d-flex flex-wrap gap-3 mb-3">
+                    <span class="d-flex align-items-center gap-2">
+                        <span style="width:20px;height:20px;border-radius:4px;background:#d4edda;border:2px solid #2e7d4f;display:inline-block;"></span>
+                        <small>Strike location</small>
+                    </span>
+                    <span class="d-flex align-items-center gap-2">
+                        <span style="width:20px;height:20px;border-radius:4px;background:#fff3cd;border:2px solid #d4a017;display:inline-block;"></span>
+                        <small>Chase / mid-mid</small>
+                    </span>
+                    <span class="d-flex align-items-center gap-2">
+                        <span style="width:20px;height:20px;border-radius:4px;background:#e9ecef;border:2px solid #ced4da;display:inline-block;"></span>
+                        <small>Disabled</small>
+                    </span>
                 </div>
 
                 <!-- Pitch Type Sections -->
@@ -213,36 +234,22 @@
                                                     <input class="form-check-input list-checkbox" type="checkbox"
                                                         id="list-loc-<%= i %>-<%= j %>" data-pitch="<%= i %>"
                                                         data-loc="<%= j %>" <%=loc.enabled ? 'checked' : '' %>>
-                                                    <label
-                                                        class="form-check-label badge p-2
-                                            <%= loc.name === 'mid-mid' ? 'bg-warning text-dark' : loc.type === 'chase' ? 'bg-warning text-dark' : 'bg-success' %>"
+                                                    <label class="form-check-label badge p-2
+                                                        <%= loc.name === 'mid-mid' ? 'bg-warning text-dark' : loc.type === 'chase' ? 'bg-warning text-dark' : !loc.enabled ? 'bg-secondary' : 'bg-success' %>"
                                                         for="list-loc-<%= i %>-<%= j %>">
                                                         <%= loc.name %>
                                                     </label>
                                                 </div>
-                                                <% } %>
+                                                <!-- Hidden inputs to submit location data -->
+                                                <input type="hidden" name="pitcher[pitchTypes][<%= i %>][locations][<%= j %>][name]" value="<%= loc.name %>">
+                                                <input type="hidden" name="pitcher[pitchTypes][<%= i %>][locations][<%= j %>][type]" value="<%= loc.type %>">
+                                                <input type="hidden" id="enabled-<%= i %>-<%= j %>" name="pitcher[pitchTypes][<%= i %>][locations][<%= j %>][enabled]" value="<%= loc.enabled %>">
+                                        <% } %>
                                     </div>
                                 </div>
 
-                                <!-- Hidden inputs for all locations -->
-                                <div style="display:none;" id="hidden-<%= i %>">
-                                    <% for (var j=0; j < pitch.locations.length; j++) { %>
-                                        <% var loc=pitch.locations[j]; %>
-                                            <input type="hidden"
-                                                name="pitcher[pitchTypes][<%= i %>][locations][<%= j %>][name]"
-                                                value="<%= loc.name %>">
-                                            <input type="hidden"
-                                                name="pitcher[pitchTypes][<%= i %>][locations][<%= j %>][type]"
-                                                value="<%= loc.type %>">
-                                            <input type="hidden" class="loc-enabled-input"
-                                                id="enabled-<%= i %>-<%= j %>"
-                                                name="pitcher[pitchTypes][<%= i %>][locations][<%= j %>][enabled]"
-                                                value="<%= loc.enabled %>">
-                                            <% } %>
-                                </div>
-
                             </div>
-                            <% } %>
+                    <% } %>
                 </div>
 
                 <button type="button" class="btn btn-outline-secondary mb-4" id="addPitch">
@@ -253,8 +260,7 @@
                     <button type="submit" class="btn btn-primary btn-lg">
                         <i class="bi bi-check-circle"></i> Save Changes
                     </button>
-                    <a href="/teams/<%= team._id %>/pitchers/<%= pitcher._id %>"
-                        class="btn btn-outline-secondary btn-lg">
+                    <a href="/teams/<%= team._id %>/pitchers/<%= pitcher._id %>" class="btn btn-outline-secondary btn-lg">
                         <i class="bi bi-x-circle"></i> Cancel
                     </a>
                 </div>
@@ -263,54 +269,29 @@
         </div>
     </div>
 
-    <!-- Legend -->
-    <div class="d-flex gap-3 mt-3 mb-4 flex-wrap">
-        <span class="d-flex align-items-center gap-2">
-            <span
-                style="width:20px;height:20px;border-radius:4px;background:#d4edda;border:2px solid #2e7d4f;display:inline-block;"></span>
-            <small>Strike location</small>
-        </span>
-        <span class="d-flex align-items-center gap-2">
-            <span
-                style="width:20px;height:20px;border-radius:4px;background:#fff3cd;border:2px solid #d4a017;display:inline-block;"></span>
-            <small>Chase / mid-mid</small>
-        </span>
-        <span class="d-flex align-items-center gap-2">
-            <span
-                style="width:20px;height:20px;border-radius:4px;background:#e9ecef;border:2px solid #ced4da;display:inline-block;"></span>
-            <small>Disabled</small>
-        </span>
-    </div>
-
     <script type="application/json" id="pitchDataJson"><%- JSON.stringify(pitcher.pitchTypes || []) %></script>
     <script>
         const throws = '<%= pitcher.throws %>';
         const isRHP = throws === 'R';
 
-        // Grid layout definitions
-        // Each location maps to [row, col] in a grid
-        // For RHP: arm=right, glove=left
-        // For LHP: arm=left, glove=right
-        // We define positions for RHP and flip cols for LHP
-
         const ZONE_LAYOUTS_A = {
-            'arm-side': { row: 1, col: isRHP ? 2 : 1 },
+            'arm-side':   { row: 1, col: isRHP ? 2 : 1 },
             'glove-side': { row: 1, col: isRHP ? 1 : 2 },
         };
         const ZONE_LAYOUTS_B = {
-            'up': { row: 1, col: 1 },
+            'up':   { row: 1, col: 1 },
             'down': { row: 2, col: 1 },
         };
         const ZONE_LAYOUTS_C = {
-            'up-out': { row: 1, col: 2, colSpan: 2 },
-            'glove-out': { row: 2, col: 1, rowSpan: 2 },
-            'glove-side-up': { row: 2, col: 2, colSpan: 2 },
-            'mid-mid': { row: 2, col: 3, rowSpan: 2, zIndex: 1 },
-            'arm-side-up': { row: 2, col: 3, colSpan: 2 },
-            'arm-out': { row: 2, col: 5, rowSpan: 2 },
+            'up-out':          { row: 1, col: 2, colSpan: 2 },
+            'glove-out':       { row: 2, col: 1, rowSpan: 2 },
+            'glove-side-up':   { row: 2, col: 2, colSpan: 2 },
+            'mid-mid':         { row: 2, col: 3, rowSpan: 2, zIndex: 1 },
+            'arm-side-up':     { row: 2, col: 3, colSpan: 2 },
+            'arm-out':         { row: 2, col: 5, rowSpan: 2 },
             'glove-side-down': { row: 3, col: 2, colSpan: 2 },
-            'arm-side-down': { row: 3, col: 3, colSpan: 2 },
-            'down-out': { row: 4, col: 2, colSpan: 2 },
+            'arm-side-down':   { row: 3, col: 3, colSpan: 2 },
+            'down-out':        { row: 4, col: 2, colSpan: 2 },
         };
         const ZONE_LAYOUTS_D = {
             'glove-out-up':   { row: 1, col: 1 },
@@ -331,6 +312,7 @@
             'down-out':       { row: 5, col: 2, colSpan: 3 },
             'arm-out-down':   { row: 5, col: 5 },
         };
+
         function getZoneLayouts(locations) {
             const names = new Set(locations.map(l => l.name));
             if (names.has('glove-up')) return ZONE_LAYOUTS_D;
@@ -339,7 +321,6 @@
             return ZONE_LAYOUTS_C;
         }
 
-        // Pitch data from server
         const pitchData = JSON.parse(document.getElementById('pitchDataJson').textContent);
 
         function getBoxClass(loc) {
@@ -351,41 +332,36 @@
 
         function buildGrid(pitchIndex) {
             const pitch = pitchData[pitchIndex];
-            const grid = document.getElementById('grid-' + pitchIndex);
+            if (!pitch || !pitch.locations) return;
+
+            const grid = document.getElementById(`grid-${pitchIndex}`);
             if (!grid) return;
+            grid.innerHTML = '';
 
-            const layouts = getZoneLayouts(pitch.locations);
+            const layout = getZoneLayouts(pitch.locations);
+            const maxRow = Math.max(...Object.values(layout).map(p => (p.row || 1) + (p.rowSpan || 1) - 1));
+            const maxCol = Math.max(...Object.values(layout).map(p => (p.col || 1) + (p.colSpan || 1) - 1));
 
-            let maxRow = 1, maxCol = 1;
-            pitch.locations.forEach(loc => {
-                const pos = layouts[loc.name];
-                if (pos) {
-                    maxRow = Math.max(maxRow, pos.row + (pos.rowSpan || 1) - 1);
-                    maxCol = Math.max(maxCol, pos.col + (pos.colSpan || 1) - 1);
-                }
-            });
-
-            grid.style.gridTemplateColumns = `repeat(${maxCol}, auto)`;
             grid.style.gridTemplateRows = `repeat(${maxRow}, auto)`;
+            grid.style.gridTemplateColumns = `repeat(${maxCol}, auto)`;
 
             pitch.locations.forEach((loc, j) => {
-                const pos = layouts[loc.name];
+                const pos = layout[loc.name];
                 if (!pos) return;
 
                 const box = document.createElement('div');
-                box.classList.add('loc-box', getBoxClass(loc));
+                box.className = `loc-box ${getBoxClass(loc)}`;
                 box.textContent = loc.name.replace(/-/g, ' ');
-                box.style.gridRow = pos.rowSpan ? `${pos.row} / span ${pos.rowSpan}` : String(pos.row);
-                box.style.gridColumn = pos.colSpan ? `${pos.col} / span ${pos.colSpan}` : String(pos.col);
                 box.dataset.pitch = pitchIndex;
                 box.dataset.loc = j;
                 box.dataset.enabled = loc.enabled;
+                box.style.gridRow = pos.rowSpan ? `${pos.row} / span ${pos.rowSpan}` : String(pos.row);
+                box.style.gridColumn = pos.colSpan ? `${pos.col} / span ${pos.colSpan}` : String(pos.col);
 
                 grid.appendChild(box);
             });
         }
 
-        // Build all grids on load
         pitchData.forEach((pitch, i) => buildGrid(i));
 
         // --- View toggle ---
@@ -410,7 +386,6 @@
 
             box.dataset.enabled = newEnabled;
 
-            // Get loc data from hidden inputs
             const nameInput = document.querySelector(`input[name="pitcher[pitchTypes][${pitch}][locations][${loc}][name]"]`);
             const typeInput = document.querySelector(`input[name="pitcher[pitchTypes][${pitch}][locations][${loc}][type]"]`);
             const name = nameInput ? nameInput.value : '';
@@ -427,11 +402,9 @@
                 box.classList.add('strike');
             }
 
-            // Sync hidden input
             const enabledInput = document.getElementById(`enabled-${pitch}-${loc}`);
             if (enabledInput) enabledInput.value = newEnabled;
 
-            // Sync list checkbox
             const checkbox = document.getElementById(`list-loc-${pitch}-${loc}`);
             if (checkbox) checkbox.checked = newEnabled;
         });
@@ -468,6 +441,7 @@
                 }
             }
         });
+
         const PRESETS_HTML = `
     <option value="">-- Select a pitch --</option>
     <option value="Fastball|FB">Fastball (FB)</option>
@@ -508,13 +482,12 @@
             }
         });
 
-        // --- Add pitch ---
-        let pitchCount = <%= pitcher.pitchTypes.length %>
-            document.getElementById('addPitch').addEventListener('click', () => {
-                const container = document.getElementById('pitchTypes');
-                const div = document.createElement('div');
-                div.classList.add('pitch-section', 'pitch-type-row');
-                div.innerHTML = `
+        let pitchCount = <%= pitcher.pitchTypes.length %>;
+        document.getElementById('addPitch').addEventListener('click', () => {
+            const container = document.getElementById('pitchTypes');
+            const div = document.createElement('div');
+            div.classList.add('pitch-section', 'pitch-type-row');
+            div.innerHTML = `
         <div class="pitch-section-header">
             <div class="d-flex align-items-center gap-2">
                 <input type="text" class="form-control fw-bold"
@@ -530,11 +503,10 @@
         </div>
         <p class="text-muted small">Save pitcher first to configure locations for new pitch types.</p>
     `;
-                container.appendChild(div);
-                pitchCount++;
-            });
+            container.appendChild(div);
+            pitchCount++;
+        });
 
-        // --- Remove pitch ---
         document.getElementById('pitchTypes').addEventListener('click', (e) => {
             if (e.target.closest('.remove-pitch')) {
                 e.target.closest('.pitch-type-row').remove();

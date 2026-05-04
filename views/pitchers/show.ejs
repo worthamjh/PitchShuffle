@@ -224,17 +224,6 @@
                                     'down': { row: 2, col: 1 },
                                 };
                                 const ZONE_LAYOUTS_C = {
-                                    'up-out': { row: 1, col: 2, colSpan: 2 },
-                                    'glove-out': { row: 2, col: 1, rowSpan: 2 },
-                                    'glove-side-up': { row: 2, col: 2, colSpan: 2 },
-                                    'mid-mid': { row: 2, col: 3, rowSpan: 2, zIndex: 1 },
-                                    'arm-side-up': { row: 2, col: 3, colSpan: 2 },
-                                    'arm-out': { row: 2, col: 5, rowSpan: 2 },
-                                    'glove-side-down': { row: 3, col: 2, colSpan: 2 },
-                                    'arm-side-down': { row: 3, col: 3, colSpan: 2 },
-                                    'down-out': { row: 4, col: 2, colSpan: 2 },
-                                };
-                                const ZONE_LAYOUTS_D = {
                                     'glove-out-up':   { row: 1, col: 1 },
                                     'up-out':         { row: 1, col: 2, colSpan: 3 },
                                     'arm-out-up':     { row: 1, col: 5 },
@@ -255,7 +244,7 @@
                                 };
                                 function getZoneLayouts(locations) {
                                     const names = new Set(locations.map(l => l.name));
-                                    if (names.has('glove-up')) return ZONE_LAYOUTS_D;
+                                    if (names.has('glove-up')) return ZONE_LAYOUTS_C;
                                     if (names.has('arm-side')) return ZONE_LAYOUTS_A;
                                     if (names.has('up')) return ZONE_LAYOUTS_B;
                                     return ZONE_LAYOUTS_C;

@@ -1,0 +1,37 @@
+/* Zone Image Card Selector */
+.zone-image-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 3px solid #dee2e6;
+    border-radius: 12px;
+    padding: 12px;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+    background: #fff;
+    width: 100%;
+}
+
+.zone-image-card:hover {
+    border-color: #1a2e4a;
+    box-shadow: 0 0 0 3px rgba(26, 46, 74, 0.12);
+}
+
+.btn-check:checked + .zone-image-card {
+    border-color: #1a2e4a;
+    box-shadow: 0 0 0 3px rgba(26, 46, 74, 0.2);
+    background-color: #eef1f5;
+}
+
+.zone-img {
+    width: 100%;
+    max-width: 140px;
+    height: auto;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    display: block;
+}
+
+.zone-label {
+    text-align: center;
+}
