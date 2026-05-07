@@ -3,31 +3,69 @@
     <style>
         .zone-grid {
             display: grid;
-            gap: 6px;
+            gap: 0;
             margin: 0 auto;
+            border: 2px solid #adb5bd;
         }
+
         .loc-box {
-            width: 70px; height: 70px;
-            border-radius: 8px;
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            font-size: 0.6rem; font-weight: 700;
-            text-align: center; text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border: 2px solid transparent;
-            transition: all 0.15s ease;
-            user-select: none; padding: 4px; cursor: pointer;
+            width: 70px;
+            height: 70px;
+            border-radius: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.55rem;
+            font-weight: 700;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            padding: 4px;
+            box-sizing: border-box;
+            border: 1px solid rgba(0,0,0,0.12);
+            transition: opacity 0.15s ease;
+            user-select: none;
+            cursor: pointer;
         }
-        @media (min-width: 576px) { .loc-box { width: 90px; height: 90px; font-size: 0.65rem; } }
-        @media (min-width: 992px) { .loc-box { width: 110px; height: 110px; font-size: 0.75rem; } }
-        .loc-box.strike  { background-color: #d4edda; border-color: #2e7d4f; color: #155724; }
-        .loc-box.chase   { background-color: #fff3cd; border-color: #d4a017; color: #856404; }
-        .loc-box.mid-mid { background-color: #fff3cd; border-color: #d4a017; color: #856404; }
-        .loc-box.disabled { background-color: #e9ecef; border-color: #ced4da; color: #adb5bd; text-decoration: line-through; }
-        .loc-box.empty   { background: transparent; border-color: transparent; cursor: default; pointer-events: none; }
-        .loc-box:not(.empty):hover { opacity: 0.85; transform: scale(1.05); }
-        .zone-container  { display: flex; justify-content: center; padding: 1rem 0; }
-        .pitch-section   { border: 1px solid #dee2e6; border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; background: #fff; }
+
+        @media (min-width: 576px) {
+            .loc-box { width: 88px; height: 88px; font-size: 0.6rem; }
+        }
+        @media (min-width: 992px) {
+            .loc-box { width: 108px; height: 108px; font-size: 0.7rem; }
+        }
+
+        .loc-box.strike   { background-color: #c8ecd4; border: 1px solid #2e7d4f; color: #155724; }
+        .loc-box.chase    { background-color: #fef3cd; border: 1px solid #d4a017; color: #856404; }
+        .loc-box.disabled { background-color: #e9ecef; border: 1px solid #ced4da; color: #adb5bd; text-decoration: line-through; }
+        .loc-box.empty    { background: transparent; border-color: transparent; cursor: default; pointer-events: none; }
+        .loc-box:not(.empty):hover { opacity: 0.75; }
+
+        .strike-zone-outline {
+            position: absolute;
+            pointer-events: none;
+            border: 3px solid #1a2e4a;
+            z-index: 10;
+        }
+
+        .zone-grid-wrapper {
+            display: inline-block;
+            position: relative;
+        }
+
+        .pitchers-view-label {
+            text-align: center;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .zone-container       { display: flex; justify-content: center; padding: 1rem 0; }
+        .pitch-section        { border: 1px solid #dee2e6; border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; background: #fff; }
         .pitch-section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
     </style>
 
@@ -100,16 +138,20 @@
                 <!-- Legend -->
                 <div class="d-flex flex-wrap gap-3 mb-3">
                     <span class="d-flex align-items-center gap-2">
-                        <span style="width:20px;height:20px;border-radius:4px;background:#d4edda;border:2px solid #2e7d4f;display:inline-block;"></span>
+                        <span style="width:20px;height:20px;background:#c8ecd4;border:2px solid #2e7d4f;display:inline-block;"></span>
                         <small>Strike location</small>
                     </span>
                     <span class="d-flex align-items-center gap-2">
-                        <span style="width:20px;height:20px;border-radius:4px;background:#fff3cd;border:2px solid #d4a017;display:inline-block;"></span>
-                        <small>Chase / mid-mid</small>
+                        <span style="width:20px;height:20px;background:#fef3cd;border:2px solid #d4a017;display:inline-block;"></span>
+                        <small>Chase</small>
                     </span>
                     <span class="d-flex align-items-center gap-2">
-                        <span style="width:20px;height:20px;border-radius:4px;background:#e9ecef;border:2px solid #ced4da;display:inline-block;"></span>
+                        <span style="width:20px;height:20px;background:#e9ecef;border:2px solid #ced4da;display:inline-block;"></span>
                         <small>Disabled</small>
+                    </span>
+                    <span class="d-flex align-items-center gap-2">
+                        <span style="width:20px;height:20px;border:3px solid #1a2e4a;display:inline-block;"></span>
+                        <small>Strike zone boundary</small>
                     </span>
                 </div>
 
@@ -135,7 +177,10 @@
                             <!-- VISUAL MODE -->
                             <div class="visual-view">
                                 <div class="zone-container">
-                                    <div class="zone-grid" id="grid-<%= i %>"></div>
+                                    <div class="zone-grid-wrapper" id="wrapper-<%= i %>">
+                                        <div class="pitchers-view-label">Pitcher's View</div>
+                                        <div class="zone-grid" id="grid-<%= i %>"></div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -149,7 +194,7 @@
                                                 id="list-loc-<%= i %>-<%= j %>" data-pitch="<%= i %>"
                                                 data-loc="<%= j %>" <%= loc.enabled ? 'checked' : '' %>>
                                             <label class="form-check-label badge p-2
-                                                <%= loc.name === 'mid-mid' ? 'bg-warning text-dark' : loc.type === 'chase' ? 'bg-warning text-dark' : !loc.enabled ? 'bg-secondary' : 'bg-success' %>"
+                                                <%= loc.type === 'chase' ? 'bg-warning text-dark' : !loc.enabled ? 'bg-secondary' : 'bg-success' %>"
                                                 for="list-loc-<%= i %>-<%= j %>">
                                                 <%= loc.name %>
                                             </label>
@@ -189,49 +234,40 @@
         const isRHP = throws === 'R';
 
         const ZONE_LAYOUTS_A = {
-            'arm-side':   { row: 1, col: isRHP ? 2 : 1 },
-            'glove-side': { row: 1, col: isRHP ? 1 : 2 },
+            'arm-side':   { row: 1, col: isRHP ? 2 : 1, strike: true },
+            'glove-side': { row: 1, col: isRHP ? 1 : 2, strike: true },
         };
         const ZONE_LAYOUTS_B = {
-            'up':   { row: 1, col: 1 },
-            'down': { row: 2, col: 1 },
+            'up':   { row: 1, col: 1, strike: true },
+            'down': { row: 2, col: 1, strike: true },
         };
+        // Zone C (formerly Zone D) — 3x3 strike core with chase border
+        // Columns flip for LHP: glove moves to right side, arm moves to left side
         const ZONE_LAYOUTS_C = {
-            'up-out':          { row: 1, col: 2, colSpan: 2 },
-            'glove-out':       { row: 2, col: 1, rowSpan: 2 },
-            'glove-side-up':   { row: 2, col: 2, colSpan: 2 },
-            'mid-mid':         { row: 2, col: 3, rowSpan: 2, zIndex: 1 },
-            'arm-side-up':     { row: 2, col: 3, colSpan: 2 },
-            'arm-out':         { row: 2, col: 5, rowSpan: 2 },
-            'glove-side-down': { row: 3, col: 2, colSpan: 2 },
-            'arm-side-down':   { row: 3, col: 3, colSpan: 2 },
-            'down-out':        { row: 4, col: 2, colSpan: 2 },
-        };
-        const ZONE_LAYOUTS_D = {
-            'glove-out-up':   { row: 1, col: 1 },
+            'glove-out-up':   { row: 1, col: isRHP ? 1 : 5 },
             'up-out':         { row: 1, col: 2, colSpan: 3 },
-            'arm-out-up':     { row: 1, col: 5 },
-            'glove-out-mid':  { row: 2, col: 1, rowSpan: 3 },
-            'glove-up':       { row: 2, col: 2 },
-            'mid-up':         { row: 2, col: 3 },
-            'arm-up':         { row: 2, col: 4 },
-            'arm-out-mid':    { row: 2, col: 5, rowSpan: 3 },
-            'glove-mid':      { row: 3, col: 2 },
-            'mid-mid':        { row: 3, col: 3 },
-            'arm-mid':        { row: 3, col: 4 },
-            'glove-down':     { row: 4, col: 2 },
-            'mid-down':       { row: 4, col: 3 },
-            'arm-down':       { row: 4, col: 4 },
-            'glove-out-down': { row: 5, col: 1 },
+            'arm-out-up':     { row: 1, col: isRHP ? 5 : 1 },
+            'glove-out-mid':  { row: 2, col: isRHP ? 1 : 5, rowSpan: 3 },
+            'glove-up':       { row: 2, col: isRHP ? 2 : 4, strike: true },
+            'mid-up':         { row: 2, col: 3, strike: true },
+            'arm-up':         { row: 2, col: isRHP ? 4 : 2, strike: true },
+            'arm-out-mid':    { row: 2, col: isRHP ? 5 : 1, rowSpan: 3 },
+            'glove-mid':      { row: 3, col: isRHP ? 2 : 4, strike: true },
+            'mid-mid':        { row: 3, col: 3, strike: true },
+            'arm-mid':        { row: 3, col: isRHP ? 4 : 2, strike: true },
+            'glove-down':     { row: 4, col: isRHP ? 2 : 4, strike: true },
+            'mid-down':       { row: 4, col: 3, strike: true },
+            'arm-down':       { row: 4, col: isRHP ? 4 : 2, strike: true },
+            'glove-out-down': { row: 5, col: isRHP ? 1 : 5 },
             'down-out':       { row: 5, col: 2, colSpan: 3 },
-            'arm-out-down':   { row: 5, col: 5 },
+            'arm-out-down':   { row: 5, col: isRHP ? 5 : 1 },
         };
 
         function getZoneLayouts(locations) {
             const names = new Set(locations.map(l => l.name));
-            if (names.has('glove-up')) return ZONE_LAYOUTS_D;
+            if (names.has('glove-up')) return ZONE_LAYOUTS_C;
             if (names.has('arm-side')) return ZONE_LAYOUTS_A;
-            if (names.has('up')) return ZONE_LAYOUTS_B;
+            if (names.has('up'))       return ZONE_LAYOUTS_B;
             return ZONE_LAYOUTS_C;
         }
 
@@ -239,9 +275,36 @@
 
         function getBoxClass(loc) {
             if (!loc.enabled) return 'disabled';
-            if (loc.name === 'mid-mid') return 'mid-mid';
             if (loc.type === 'chase') return 'chase';
             return 'strike';
+        }
+
+        function drawOutline(pitchIndex) {
+            const grid = document.getElementById(`grid-${pitchIndex}`);
+            const wrapper = document.getElementById(`wrapper-${pitchIndex}`);
+            if (!grid || !wrapper) return;
+            const strikeCells = [...grid.querySelectorAll('[data-is-strike="true"]')];
+            if (strikeCells.length === 0) return;
+            const gridRect = grid.getBoundingClientRect();
+            let top = Infinity, left = Infinity, bottom = -Infinity, right = -Infinity;
+            strikeCells.forEach(cell => {
+                const r = cell.getBoundingClientRect();
+                top    = Math.min(top,    r.top    - gridRect.top);
+                left   = Math.min(left,   r.left   - gridRect.left);
+                bottom = Math.max(bottom, r.bottom - gridRect.top);
+                right  = Math.max(right,  r.right  - gridRect.left);
+            });
+            const old = wrapper.querySelector('.strike-zone-outline');
+            if (old) old.remove();
+            const labelEl = wrapper.querySelector('.pitchers-view-label');
+            const labelH  = labelEl ? labelEl.offsetHeight + 4 : 0;
+            const outline = document.createElement('div');
+            outline.className = 'strike-zone-outline';
+            outline.style.top    = (top + labelH) + 'px';
+            outline.style.left   = left + 'px';
+            outline.style.width  = (right - left) + 'px';
+            outline.style.height = (bottom - top) + 'px';
+            wrapper.appendChild(outline);
         }
 
         function buildGrid(pitchIndex) {
@@ -253,7 +316,7 @@
             const layout = getZoneLayouts(pitch.locations);
             const maxRow = Math.max(...Object.values(layout).map(p => (p.row || 1) + (p.rowSpan || 1) - 1));
             const maxCol = Math.max(...Object.values(layout).map(p => (p.col || 1) + (p.colSpan || 1) - 1));
-            grid.style.gridTemplateRows = `repeat(${maxRow}, auto)`;
+            grid.style.gridTemplateRows    = `repeat(${maxRow}, auto)`;
             grid.style.gridTemplateColumns = `repeat(${maxCol}, auto)`;
             pitch.locations.forEach((loc, j) => {
                 const pos = layout[loc.name];
@@ -261,13 +324,15 @@
                 const box = document.createElement('div');
                 box.className = `loc-box ${getBoxClass(loc)}`;
                 box.textContent = loc.name.replace(/-/g, ' ');
-                box.dataset.pitch = pitchIndex;
-                box.dataset.loc = j;
-                box.dataset.enabled = loc.enabled;
-                box.style.gridRow = pos.rowSpan ? `${pos.row} / span ${pos.rowSpan}` : String(pos.row);
+                box.dataset.pitch    = pitchIndex;
+                box.dataset.loc      = j;
+                box.dataset.enabled  = loc.enabled;
+                box.dataset.isStrike = pos.strike ? 'true' : 'false';
+                box.style.gridRow    = pos.rowSpan ? `${pos.row} / span ${pos.rowSpan}` : String(pos.row);
                 box.style.gridColumn = pos.colSpan ? `${pos.col} / span ${pos.colSpan}` : String(pos.col);
                 grid.appendChild(box);
             });
+            requestAnimationFrame(() => drawOutline(pitchIndex));
         }
 
         pitchData.forEach((pitch, i) => buildGrid(i));
@@ -275,6 +340,7 @@
         document.getElementById('visualMode').addEventListener('change', () => {
             document.querySelectorAll('.visual-view').forEach(el => el.style.display = 'block');
             document.querySelectorAll('.list-view').forEach(el => el.style.display = 'none');
+            pitchData.forEach((p, i) => requestAnimationFrame(() => drawOutline(i)));
         });
         document.getElementById('listMode').addEventListener('change', () => {
             document.querySelectorAll('.visual-view').forEach(el => el.style.display = 'none');
@@ -285,18 +351,15 @@
             const box = e.target.closest('.loc-box');
             if (!box || box.classList.contains('empty')) return;
             const pitch = box.dataset.pitch;
-            const loc = box.dataset.loc;
+            const loc   = box.dataset.loc;
             const newEnabled = !(box.dataset.enabled === 'true');
             box.dataset.enabled = newEnabled;
-            const nameInput = document.querySelector(`input[name="pitcher[pitchTypes][${pitch}][locations][${loc}][name]"]`);
             const typeInput = document.querySelector(`input[name="pitcher[pitchTypes][${pitch}][locations][${loc}][type]"]`);
-            const name = nameInput ? nameInput.value : '';
             const type = typeInput ? typeInput.value : '';
-            box.classList.remove('strike', 'chase', 'mid-mid', 'disabled');
-            if (!newEnabled)         box.classList.add('disabled');
-            else if (name === 'mid-mid') box.classList.add('mid-mid');
-            else if (type === 'chase')   box.classList.add('chase');
-            else                         box.classList.add('strike');
+            box.classList.remove('strike', 'chase', 'disabled');
+            if (!newEnabled)           box.classList.add('disabled');
+            else if (type === 'chase') box.classList.add('chase');
+            else                       box.classList.add('strike');
             const enabledInput = document.getElementById(`enabled-${pitch}-${loc}`);
             if (enabledInput) enabledInput.value = newEnabled;
             const checkbox = document.getElementById(`list-loc-${pitch}-${loc}`);
@@ -307,22 +370,19 @@
             const checkbox = e.target.closest('.list-checkbox');
             if (!checkbox) return;
             const pitch = checkbox.dataset.pitch;
-            const loc = checkbox.dataset.loc;
+            const loc   = checkbox.dataset.loc;
             const newEnabled = checkbox.checked;
             const enabledInput = document.getElementById(`enabled-${pitch}-${loc}`);
             if (enabledInput) enabledInput.value = newEnabled;
             const box = document.querySelector(`.loc-box[data-pitch="${pitch}"][data-loc="${loc}"]`);
             if (box) {
                 box.dataset.enabled = newEnabled;
-                const nameInput = document.querySelector(`input[name="pitcher[pitchTypes][${pitch}][locations][${loc}][name]"]`);
                 const typeInput = document.querySelector(`input[name="pitcher[pitchTypes][${pitch}][locations][${loc}][type]"]`);
-                const name = nameInput ? nameInput.value : '';
                 const type = typeInput ? typeInput.value : '';
-                box.classList.remove('strike', 'chase', 'mid-mid', 'disabled');
-                if (!newEnabled)         box.classList.add('disabled');
-                else if (name === 'mid-mid') box.classList.add('mid-mid');
-                else if (type === 'chase')   box.classList.add('chase');
-                else                         box.classList.add('strike');
+                box.classList.remove('strike', 'chase', 'disabled');
+                if (!newEnabled)           box.classList.add('disabled');
+                else if (type === 'chase') box.classList.add('chase');
+                else                       box.classList.add('strike');
             }
         });
 
