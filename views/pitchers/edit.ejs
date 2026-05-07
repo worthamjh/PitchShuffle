@@ -42,6 +42,35 @@
         .loc-box.empty    { background: transparent; border-color: transparent; cursor: default; pointer-events: none; }
         .loc-box:not(.empty):hover { opacity: 0.75; }
 
+        .chase-overlay {
+            position: absolute;
+            background-color: #fef3cd;
+            border: 1px solid #d4a017;
+            color: #856404;
+            font-size: 0.55rem;
+            font-weight: 700;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+            z-index: 5;
+            cursor: pointer;
+            user-select: none;
+            transition: opacity 0.15s ease;
+        }
+        .chase-overlay:hover { opacity: 0.75; }
+        .chase-overlay.disabled {
+            background-color: #e9ecef;
+            border-color: #ced4da;
+            color: #adb5bd;
+            text-decoration: line-through;
+        }
+        @media (min-width: 576px) { .chase-overlay { font-size: 0.6rem; } }
+        @media (min-width: 992px) { .chase-overlay { font-size: 0.7rem; } }
+
         .strike-zone-outline {
             position: absolute;
             pointer-events: none;
@@ -241,11 +270,9 @@
             'up':   { row: 1, col: 1, strike: true },
             'down': { row: 2, col: 1, strike: true },
         };
-        // Zone C (formerly Zone D) — 3x3 strike core with chase border
-        // Columns flip for LHP: glove moves to right side, arm moves to left side
         const ZONE_LAYOUTS_C = {
             'glove-out-up':   { row: 1, col: isRHP ? 1 : 5 },
-            'up-out':         { row: 1, col: 2, colSpan: 3 },
+            'up-out':         { row: 1, col: 2 },
             'arm-out-up':     { row: 1, col: isRHP ? 5 : 1 },
             'glove-out-mid':  { row: 2, col: isRHP ? 1 : 5, rowSpan: 3 },
             'glove-up':       { row: 2, col: isRHP ? 2 : 4, strike: true },
@@ -259,7 +286,7 @@
             'mid-down':       { row: 4, col: 3, strike: true },
             'arm-down':       { row: 4, col: isRHP ? 4 : 2, strike: true },
             'glove-out-down': { row: 5, col: isRHP ? 1 : 5 },
-            'down-out':       { row: 5, col: 2, colSpan: 3 },
+            'down-out':       { row: 5, col: 2 },
             'arm-out-down':   { row: 5, col: isRHP ? 5 : 1 },
         };
 
@@ -269,6 +296,10 @@
             if (names.has('arm-side')) return ZONE_LAYOUTS_A;
             if (names.has('up'))       return ZONE_LAYOUTS_B;
             return ZONE_LAYOUTS_C;
+        }
+
+        function isZoneC(locations) {
+            return new Set(locations.map(l => l.name)).has('glove-up');
         }
 
         const pitchData = JSON.parse(document.getElementById('pitchDataJson').textContent);
@@ -307,6 +338,83 @@
             wrapper.appendChild(outline);
         }
 
+        function drawOverlays(pitchIndex, pitch) {
+            const grid = document.getElementById(`grid-${pitchIndex}`);
+            const wrapper = document.getElementById(`wrapper-${pitchIndex}`);
+            if (!grid || !wrapper) return;
+            wrapper.querySelectorAll('.chase-overlay').forEach(el => el.remove());
+            if (!isZoneC(pitch.locations)) return;
+
+            const gridRect = grid.getBoundingClientRect();
+            const labelEl  = wrapper.querySelector('.pitchers-view-label');
+            const labelH   = labelEl ? labelEl.offsetHeight + 4 : 0;
+
+            function getCell(locName) {
+                return [...grid.querySelectorAll('.loc-box')]
+                    .find(el => el.dataset.locName === locName);
+            }
+
+            function spanBounds(locNames) {
+                let top = Infinity, left = Infinity, right = -Infinity, bottom = -Infinity;
+                locNames.forEach(name => {
+                    const el = getCell(name);
+                    if (!el) return;
+                    const r = el.getBoundingClientRect();
+                    top    = Math.min(top,    r.top    - gridRect.top);
+                    left   = Math.min(left,   r.left   - gridRect.left);
+                    right  = Math.max(right,  r.right  - gridRect.left);
+                    bottom = Math.max(bottom, r.bottom - gridRect.top);
+                });
+                return { top, left, right, bottom };
+            }
+
+            function makeOverlay(locName, label, hSpanCells, vSpanCells) {
+                const locIndex = pitch.locations.findIndex(l => l.name === locName);
+                const loc = pitch.locations[locIndex];
+                const enabled = loc ? loc.enabled : true;
+
+                const hb = spanBounds(hSpanCells);
+                const vb = spanBounds(vSpanCells);
+
+                const overlay = document.createElement('div');
+                overlay.className = 'chase-overlay' + (enabled ? '' : ' disabled');
+                overlay.textContent = label;
+                overlay.dataset.pitchIndex = pitchIndex;
+                overlay.dataset.locIndex   = locIndex;
+                overlay.dataset.locName    = locName;
+                overlay.style.top    = (vb.top  + labelH) + 'px';
+                overlay.style.left   = hb.left + 'px';
+                overlay.style.width  = (hb.right - hb.left) + 'px';
+                overlay.style.height = (vb.bottom - vb.top) + 'px';
+                wrapper.appendChild(overlay);
+            }
+
+            makeOverlay(
+                'up-out', 'up out',
+                ['arm-up', 'mid-up', 'glove-up'],
+                ['up-out']
+            );
+            makeOverlay(
+                'down-out', 'down out',
+                ['arm-down', 'mid-down', 'glove-down'],
+                ['down-out']
+            );
+
+            const armOutName   = isRHP ? 'arm-out-mid'   : 'glove-out-mid';
+            const gloveOutName = isRHP ? 'glove-out-mid' : 'arm-out-mid';
+            const armLabel     = isRHP ? 'arm out'       : 'glove out';
+            const gloveLabel   = isRHP ? 'glove out'     : 'arm out';
+            const armStrikeCells   = isRHP
+                ? ['arm-up',   'arm-mid',   'arm-down']
+                : ['glove-up', 'glove-mid', 'glove-down'];
+            const gloveStrikeCells = isRHP
+                ? ['glove-up', 'glove-mid', 'glove-down']
+                : ['arm-up',   'arm-mid',   'arm-down'];
+
+            makeOverlay(armOutName,   armLabel,   [armOutName],   armStrikeCells);
+            makeOverlay(gloveOutName, gloveLabel, [gloveOutName], gloveStrikeCells);
+        }
+
         function buildGrid(pitchIndex) {
             const pitch = pitchData[pitchIndex];
             if (!pitch || !pitch.locations) return;
@@ -316,8 +424,9 @@
             const layout = getZoneLayouts(pitch.locations);
             const maxRow = Math.max(...Object.values(layout).map(p => (p.row || 1) + (p.rowSpan || 1) - 1));
             const maxCol = Math.max(...Object.values(layout).map(p => (p.col || 1) + (p.colSpan || 1) - 1));
-            grid.style.gridTemplateRows    = `repeat(${maxRow}, auto)`;
-            grid.style.gridTemplateColumns = `repeat(${maxCol}, auto)`;
+            const boxSize = window.innerWidth >= 992 ? 108 : window.innerWidth >= 576 ? 88 : 70;
+            grid.style.gridTemplateRows    = `repeat(${maxRow}, ${boxSize}px)`;
+            grid.style.gridTemplateColumns = `repeat(${maxCol}, ${boxSize}px)`;
             pitch.locations.forEach((loc, j) => {
                 const pos = layout[loc.name];
                 if (!pos) return;
@@ -328,11 +437,15 @@
                 box.dataset.loc      = j;
                 box.dataset.enabled  = loc.enabled;
                 box.dataset.isStrike = pos.strike ? 'true' : 'false';
+                box.dataset.locName  = loc.name;
                 box.style.gridRow    = pos.rowSpan ? `${pos.row} / span ${pos.rowSpan}` : String(pos.row);
                 box.style.gridColumn = pos.colSpan ? `${pos.col} / span ${pos.colSpan}` : String(pos.col);
                 grid.appendChild(box);
             });
-            requestAnimationFrame(() => drawOutline(pitchIndex));
+            requestAnimationFrame(() => {
+                drawOutline(pitchIndex);
+                drawOverlays(pitchIndex, pitch);
+            });
         }
 
         pitchData.forEach((pitch, i) => buildGrid(i));
@@ -340,50 +453,88 @@
         document.getElementById('visualMode').addEventListener('change', () => {
             document.querySelectorAll('.visual-view').forEach(el => el.style.display = 'block');
             document.querySelectorAll('.list-view').forEach(el => el.style.display = 'none');
-            pitchData.forEach((p, i) => requestAnimationFrame(() => drawOutline(i)));
+            pitchData.forEach((p, i) => requestAnimationFrame(() => {
+                drawOutline(i);
+                drawOverlays(i, p);
+            }));
         });
         document.getElementById('listMode').addEventListener('change', () => {
             document.querySelectorAll('.visual-view').forEach(el => el.style.display = 'none');
             document.querySelectorAll('.list-view').forEach(el => el.style.display = 'block');
         });
 
+        // Click on overlay — toggle the anchor loc
         document.addEventListener('click', (e) => {
+            const overlay = e.target.closest('.chase-overlay');
+            if (overlay) {
+                const pitchIndex = parseInt(overlay.dataset.pitchIndex);
+                const locIndex   = parseInt(overlay.dataset.locIndex);
+                const pitch      = pitchData[pitchIndex];
+                if (!pitch || locIndex < 0) return;
+
+                const loc = pitch.locations[locIndex];
+                const newEnabled = !loc.enabled;
+                loc.enabled = newEnabled;
+
+                const enabledInput = document.getElementById(`enabled-${pitchIndex}-${locIndex}`);
+                if (enabledInput) enabledInput.value = newEnabled;
+
+                const checkbox = document.getElementById(`list-loc-${pitchIndex}-${locIndex}`);
+                if (checkbox) checkbox.checked = newEnabled;
+
+                overlay.classList.toggle('disabled', !newEnabled);
+
+                const grid = document.getElementById(`grid-${pitchIndex}`);
+                const box  = grid ? [...grid.querySelectorAll('.loc-box')]
+                    .find(el => el.dataset.locName === overlay.dataset.locName) : null;
+                if (box) {
+                    box.dataset.enabled = newEnabled;
+                    box.classList.remove('strike', 'chase', 'disabled');
+                    box.classList.add(newEnabled ? 'chase' : 'disabled');
+                }
+                return;
+            }
+
+            // Regular loc-box click
             const box = e.target.closest('.loc-box');
             if (!box || box.classList.contains('empty')) return;
-            const pitch = box.dataset.pitch;
-            const loc   = box.dataset.loc;
+            const pitchIdx = box.dataset.pitch;
+            const locIdx   = box.dataset.loc;
             const newEnabled = !(box.dataset.enabled === 'true');
             box.dataset.enabled = newEnabled;
-            const typeInput = document.querySelector(`input[name="pitcher[pitchTypes][${pitch}][locations][${loc}][type]"]`);
+            const typeInput = document.querySelector(`input[name="pitcher[pitchTypes][${pitchIdx}][locations][${locIdx}][type]"]`);
             const type = typeInput ? typeInput.value : '';
             box.classList.remove('strike', 'chase', 'disabled');
             if (!newEnabled)           box.classList.add('disabled');
             else if (type === 'chase') box.classList.add('chase');
             else                       box.classList.add('strike');
-            const enabledInput = document.getElementById(`enabled-${pitch}-${loc}`);
+            const enabledInput = document.getElementById(`enabled-${pitchIdx}-${locIdx}`);
             if (enabledInput) enabledInput.value = newEnabled;
-            const checkbox = document.getElementById(`list-loc-${pitch}-${loc}`);
+            const checkbox = document.getElementById(`list-loc-${pitchIdx}-${locIdx}`);
             if (checkbox) checkbox.checked = newEnabled;
+            // Refresh overlays in case a covered cell was toggled
+            drawOverlays(parseInt(pitchIdx), pitchData[parseInt(pitchIdx)]);
         });
 
         document.addEventListener('change', (e) => {
             const checkbox = e.target.closest('.list-checkbox');
             if (!checkbox) return;
-            const pitch = checkbox.dataset.pitch;
-            const loc   = checkbox.dataset.loc;
+            const pitchIdx = checkbox.dataset.pitch;
+            const locIdx   = checkbox.dataset.loc;
             const newEnabled = checkbox.checked;
-            const enabledInput = document.getElementById(`enabled-${pitch}-${loc}`);
+            const enabledInput = document.getElementById(`enabled-${pitchIdx}-${locIdx}`);
             if (enabledInput) enabledInput.value = newEnabled;
-            const box = document.querySelector(`.loc-box[data-pitch="${pitch}"][data-loc="${loc}"]`);
+            const box = document.querySelector(`.loc-box[data-pitch="${pitchIdx}"][data-loc="${locIdx}"]`);
             if (box) {
                 box.dataset.enabled = newEnabled;
-                const typeInput = document.querySelector(`input[name="pitcher[pitchTypes][${pitch}][locations][${loc}][type]"]`);
+                const typeInput = document.querySelector(`input[name="pitcher[pitchTypes][${pitchIdx}][locations][${locIdx}][type]"]`);
                 const type = typeInput ? typeInput.value : '';
                 box.classList.remove('strike', 'chase', 'disabled');
                 if (!newEnabled)           box.classList.add('disabled');
                 else if (type === 'chase') box.classList.add('chase');
                 else                       box.classList.add('strike');
             }
+            drawOverlays(parseInt(pitchIdx), pitchData[parseInt(pitchIdx)]);
         });
 
         let pitchCount = <%= pitcher.pitchTypes.length %>;
