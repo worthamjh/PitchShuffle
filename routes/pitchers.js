@@ -5,10 +5,39 @@ const Team = require('../models/team');
 const StrikeZone = require('../models/strikeZone');
 const { isLoggedIn } = require('../middleware');
 
+// ── Game routes ───────────────────────────────────────────────
+// These must come BEFORE /:pitcherId to avoid route conflicts
+
+// Pitcher selection screen
+router.get('/game', isLoggedIn, async (req, res) => {
+    try {
+        const team = await Team.findById(req.params.teamId).populate('pitchers');
+        res.render('pitchers/game-select', { team });
+    } catch (e) {
+        console.error(e);
+        res.redirect(`/teams/${req.params.teamId}`);
+    }
+});
+
+// Game screen for a specific pitcher
+router.get('/game/:pitcherId', isLoggedIn, async (req, res) => {
+    try {
+        const team    = await Team.findById(req.params.teamId);
+        const pitcher = await Pitcher.findById(req.params.pitcherId).populate('zone');
+        if (!pitcher) return res.redirect(`/teams/${req.params.teamId}/pitchers/game`);
+        res.render('pitchers/game', { team, pitcher });
+    } catch (e) {
+        console.error(e);
+        res.redirect(`/teams/${req.params.teamId}`);
+    }
+});
+
+// ── Standard pitcher CRUD ─────────────────────────────────────
+
 // New pitcher form
 router.get('/new', isLoggedIn, async (req, res) => {
     try {
-        const team = await Team.findById(req.params.teamId);
+        const team  = await Team.findById(req.params.teamId);
         const zones = await StrikeZone.find({});
         res.render('pitchers/new', { team, zones });
     } catch (e) {
@@ -35,8 +64,8 @@ router.post('/', isLoggedIn, async (req, res) => {
 
         for (let pitchType of pitcher.pitchTypes) {
             pitchType.locations = zone.availableLocations.map(loc => ({
-                name: loc.name,
-                type: loc.type,
+                name:    loc.name,
+                type:    loc.type,
                 enabled: true
             }));
         }
@@ -57,7 +86,7 @@ router.post('/', isLoggedIn, async (req, res) => {
 router.get('/:pitcherId', isLoggedIn, async (req, res) => {
     try {
         const pitcher = await Pitcher.findById(req.params.pitcherId).populate('zone');
-        const team = await Team.findById(req.params.teamId);
+        const team    = await Team.findById(req.params.teamId);
         console.log('--- SHOW PITCHER ---');
         console.log('pitcher.pitchTypes:', JSON.stringify(pitcher.pitchTypes, null, 2));
         res.render('pitchers/show', { pitcher, team });
@@ -71,8 +100,8 @@ router.get('/:pitcherId', isLoggedIn, async (req, res) => {
 router.get('/:pitcherId/edit', isLoggedIn, async (req, res) => {
     try {
         const pitcher = await Pitcher.findById(req.params.pitcherId).populate('zone');
-        const team = await Team.findById(req.params.teamId);
-        const zones = await StrikeZone.find({});
+        const team    = await Team.findById(req.params.teamId);
+        const zones   = await StrikeZone.find({});
         res.render('pitchers/edit', { pitcher, team, zones });
     } catch (e) {
         console.error(e);
@@ -84,10 +113,10 @@ router.get('/:pitcherId/edit', isLoggedIn, async (req, res) => {
 router.put('/:pitcherId', isLoggedIn, async (req, res) => {
     try {
         const pitcher = await Pitcher.findById(req.params.pitcherId);
-        pitcher.name = req.body.pitcher.name;
-        pitcher.number = req.body.pitcher.number;
-        pitcher.throws = req.body.pitcher.throws;
-        pitcher.zone = req.body.pitcher.zone;
+        pitcher.name       = req.body.pitcher.name;
+        pitcher.number     = req.body.pitcher.number;
+        pitcher.throws     = req.body.pitcher.throws;
+        pitcher.zone       = req.body.pitcher.zone;
         pitcher.pitchTypes = req.body.pitcher.pitchTypes;
         pitcher.markModified('pitchTypes');
         await pitcher.save();

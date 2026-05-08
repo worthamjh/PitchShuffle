@@ -121,7 +121,7 @@
                     <p class="text-muted mb-1">Throws</p>
                     <p class="fw-bold fs-5"><%= pitcher.throws === 'R' ? 'Right' : 'Left' %></p>
                 </div>
-                <div class="col-md-5 mb-3 mb-md-0">
+                <div class="col-md-5 mb-3 mb-md-0 d-flex flex-column align-items-center">
                     <p class="text-muted mb-2">Strike Zone</p>
                     <% if (pitcher.zone) { %>
                         <div class="zone-display-card">
@@ -131,8 +131,8 @@
                             const zoneImg = zoneImageMap[zoneLetter] || null;
                             %>
                             <% if (zoneImg) { %>
-                                <img src="/images/<%= zoneImg %>" alt="<%= pitcher.zone.name %>"
-                                    style="width:80px;height:auto;border-radius:6px;display:block;">
+                            <img src="/images/<%= zoneImg %>" alt="<%= pitcher.zone.name %>"
+                                style="width:80px;height:80px;object-fit:contain;border-radius:6px;display:block;">
                             <% } %>
                             <div class="zone-card-label"><%= pitcher.zone.name %></div>
                         </div>
