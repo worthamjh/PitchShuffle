@@ -1,18 +1,9 @@
 <%- layout('layouts/boilerplate') %>
 
-<%
-  // If we came from an active game, back arrow returns to that game.
-  // Otherwise fall back to the team page.
-  const backHref = currentPitcherId
-    ? `/teams/${team._id}/pitchers/game/${currentPitcherId}`
-    : `/teams/${team._id}`;
-  const backLabel = currentPitcherId ? 'Back to Game' : 'Back to Team';
-%>
-
 <div class="page-header d-flex justify-content-between align-items-center">
-    <h1><i class="bi bi-arrow-repeat"></i> Change Pitcher</h1>
-    <a href="<%= backHref %>" class="btn btn-outline-light">
-        <i class="bi bi-arrow-left"></i> <%= backLabel %>
+    <h1><i class="bi bi-play-fill"></i> New Game</h1>
+    <a href="/game" class="btn btn-outline-light">
+        <i class="bi bi-arrow-left"></i> Teams
     </a>
 </div>
 
@@ -20,78 +11,77 @@
     <div class="card">
         <div class="card-body text-center p-5">
             <i class="bi bi-person-fill display-1 text-muted"></i>
-            <h4 class="mt-3 text-muted">No pitchers on this team</h4>
-            <p class="text-muted">Add a pitcher before making a change.</p>
+            <h4 class="mt-3 text-muted">No pitchers on <%= team.name %></h4>
+            <p class="text-muted">Add a pitcher to this team before starting a game.</p>
             <a href="/teams/<%= team._id %>/pitchers/new" class="btn btn-primary">
                 <i class="bi bi-plus-circle"></i> Add Pitcher
             </a>
         </div>
     </div>
 <% } else { %>
-
-    <p class="text-muted mb-3">Select the new pitcher coming in, then tap Change Pitcher.</p>
+    <p class="text-muted mb-1"><strong>Step 2 of 2</strong> — Select a pitcher</p>
+    <p class="text-muted small mb-3"><i class="bi bi-shield-fill"></i> <%= team.name %></p>
 
     <div class="row row-cols-1 row-cols-md-2 g-3 mb-4" id="pitcherList">
         <% for (let pitcher of team.pitchers) { %>
             <div class="col">
-                <div class="pitcher-select-card" data-pitcher-id="<%= pitcher._id %>">
-                    <div class="pitcher-number-badge">#<%= pitcher.number %></div>
-                    <div class="pitcher-select-info">
+                <div class="select-card" data-pitcher-id="<%= pitcher._id %>">
+                    <div class="pitcher-badge">#<%= pitcher.number %></div>
+                    <div class="select-card-info">
                         <div class="fw-bold fs-5"><%= pitcher.name %></div>
                         <div class="text-muted small">
                             <%= pitcher.throws === 'R' ? 'RHP' : 'LHP' %> &middot;
                             <%= pitcher.pitchTypes.length %> pitch type<%= pitcher.pitchTypes.length !== 1 ? 's' : '' %>
                         </div>
                     </div>
-                    <i class="bi bi-circle pitcher-select-check ms-auto"></i>
+                    <i class="bi bi-circle select-check ms-auto"></i>
                 </div>
             </div>
         <% } %>
     </div>
 
-    <!-- Add Pitcher link -->
+    <!-- Add pitcher link -->
     <div class="text-center mb-4">
-        <a href="/teams/<%= team._id %>/pitchers/new" class="btn btn-outline-secondary">
+        <a href="/teams/<%= team._id %>/pitchers/new?redirect=/game/<%= team._id %>" class="btn btn-outline-secondary">
             <i class="bi bi-plus-circle"></i> Add New Pitcher
         </a>
     </div>
 
-    <div class="sticky-bottom pb-3 pt-2" style="background: var(--ps-bg);">
-        <a id="startGameBtn" href="#" class="btn btn-primary btn-lg w-100 disabled">
-            <i class="bi bi-arrow-repeat"></i> Change Pitcher
+    <!-- Sticky start button -->
+    <div class="start-bar">
+        <a id="startBtn" href="#" class="btn btn-primary btn-lg w-100 disabled">
+            <i class="bi bi-play-fill"></i> Start Game
         </a>
-        <p class="text-center text-muted small mt-2 mb-0" id="selectHint">Select a pitcher above to continue</p>
+        <p class="text-center text-muted small mt-2 mb-0" id="selectHint">
+            Select a pitcher above to continue
+        </p>
     </div>
-
 <% } %>
 
 <style>
-    .pitcher-select-card {
+    .select-card {
         display: flex;
         align-items: center;
         gap: 1rem;
         padding: 0.85rem 1rem;
+        background: #fff;
         border: 2px solid #dee2e6;
         border-radius: 12px;
-        background: #fff;
         cursor: pointer;
         transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
         user-select: none;
     }
-    .pitcher-select-card:hover { border-color: #8fa8c8; }
-    .pitcher-select-card.selected {
+    .select-card:hover     { border-color: #8fa8c8; }
+    .select-card.selected  {
         border-color: #1a2e4a;
         background: #eef2f7;
-        box-shadow: 0 0 0 3px rgba(26, 46, 74, 0.12);
+        box-shadow: 0 0 0 3px rgba(26,46,74,0.12);
     }
-    .pitcher-select-card .pitcher-select-check {
-        font-size: 1.2rem;
-        color: #dee2e6;
-        transition: color 0.15s;
-    }
-    .pitcher-select-card.selected .pitcher-select-check { color: #1a2e4a; }
-    .pitcher-select-card.selected .pitcher-select-check::before { content: "\f270"; }
-    .pitcher-number-badge {
+    .select-check { font-size: 1.2rem; color: #dee2e6; transition: color 0.15s; }
+    .select-card.selected .select-check { color: #1a2e4a; }
+    .select-card.selected .select-check::before { content: "\f270"; } /* bi-check-circle-fill */
+
+    .pitcher-badge {
         width: 48px; height: 48px;
         border-radius: 50%;
         background: #1a2e4a;
@@ -101,18 +91,27 @@
         display: flex; align-items: center; justify-content: center;
         flex-shrink: 0;
     }
-    .pitcher-select-info { flex: 1; }
+    .select-card-info { flex: 1; }
+
+    .start-bar {
+        position: sticky;
+        bottom: 0;
+        padding: 0.75rem 0 0.5rem;
+        background: var(--ps-bg, #f0f0eb);
+    }
 </style>
 
 <script>
     const teamId = '<%= team._id %>';
 
     document.getElementById('pitcherList').addEventListener('click', e => {
-        const card = e.target.closest('.pitcher-select-card');
+        const card = e.target.closest('.select-card');
         if (!card) return;
-        document.querySelectorAll('.pitcher-select-card').forEach(c => c.classList.remove('selected'));
+
+        document.querySelectorAll('.select-card').forEach(c => c.classList.remove('selected'));
         card.classList.add('selected');
-        const btn = document.getElementById('startGameBtn');
+
+        const btn = document.getElementById('startBtn');
         btn.href = `/teams/${teamId}/pitchers/game/${card.dataset.pitcherId}`;
         btn.classList.remove('disabled');
         document.getElementById('selectHint').style.display = 'none';

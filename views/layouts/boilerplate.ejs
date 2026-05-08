@@ -113,7 +113,7 @@
 <body>
     <nav class="navbar navbar-expand-md">
         <div class="container-fluid">
-            <a class="navbar-brand" href="/teams">
+            <a class="navbar-brand" href="/">
                 <i class="bi bi-bullseye"></i> PitchShuffle
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -122,6 +122,11 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <% if (currentUser) { %>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/game">
+                                <i class="bi bi-play-fill"></i> New Game
+                            </a>
+                        </li>
                         <li class="nav-item">
                             <a class="nav-link" href="/teams">
                                 <i class="bi bi-people-fill"></i> My Teams

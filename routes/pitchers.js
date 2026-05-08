@@ -8,11 +8,12 @@ const { isLoggedIn } = require('../middleware');
 // ── Game routes ───────────────────────────────────────────────
 // These must come BEFORE /:pitcherId to avoid route conflicts
 
-// Pitcher selection screen
+// Pitcher selection screen (change pitcher)
 router.get('/game', isLoggedIn, async (req, res) => {
     try {
         const team = await Team.findById(req.params.teamId).populate('pitchers');
-        res.render('pitchers/game-select', { team });
+        const currentPitcherId = req.query.from || null;
+        res.render('pitchers/game-select', { team, currentPitcherId });
     } catch (e) {
         console.error(e);
         res.redirect(`/teams/${req.params.teamId}`);
@@ -37,9 +38,10 @@ router.get('/game/:pitcherId', isLoggedIn, async (req, res) => {
 // New pitcher form
 router.get('/new', isLoggedIn, async (req, res) => {
     try {
-        const team  = await Team.findById(req.params.teamId);
-        const zones = await StrikeZone.find({});
-        res.render('pitchers/new', { team, zones });
+        const team     = await Team.findById(req.params.teamId);
+        const zones    = await StrikeZone.find({});
+        const redirect = req.query.redirect || null;
+        res.render('pitchers/new', { team, zones, redirect });
     } catch (e) {
         console.error(e);
         res.redirect(`/teams/${req.params.teamId}`);
@@ -75,7 +77,8 @@ router.post('/', isLoggedIn, async (req, res) => {
         await pitcher.save();
         team.pitchers.push(pitcher);
         await team.save();
-        res.redirect(`/teams/${team._id}/pitchers/${pitcher._id}`);
+        const redirect = req.body.redirect;
+        res.redirect(redirect || `/teams/${team._id}/pitchers/${pitcher._id}`);
     } catch (e) {
         console.error('CREATE ERROR:', e);
         res.redirect(`/teams/${req.params.teamId}`);

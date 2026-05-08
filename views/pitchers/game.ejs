@@ -162,14 +162,14 @@
 
 <!-- ── Header ──────────────────────────────────────────────────── -->
 <div class="game-header">
-    <a href="/teams/<%= team._id %>/game" class="btn btn-sm btn-outline-light">
+    <a href="/teams/<%= team._id %>" class="btn btn-sm btn-outline-light">
         <i class="bi bi-arrow-left"></i>
     </a>
     <div class="pitcher-info">
         <div class="pitcher-name">#<%= pitcher.number %> <%= pitcher.name %></div>
         <div class="pitcher-meta"><%= pitcher.throws === 'R' ? 'RHP' : 'LHP' %></div>
     </div>
-    <a href="/teams/<%= team._id %>/game" class="btn btn-sm btn-outline-light">Change Pitcher</a>
+    <a href="/teams/<%= team._id %>/pitchers/game?from=<%= pitcher._id %>" class="btn btn-sm btn-outline-light">Change Pitcher</a>
 </div>
 
 <!-- ── Body ───────────────────────────────────────────────────── -->

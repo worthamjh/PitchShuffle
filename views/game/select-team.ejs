@@ -1,0 +1,68 @@
+<%- layout('layouts/boilerplate') %>
+
+<div class="page-header d-flex justify-content-between align-items-center">
+    <h1><i class="bi bi-play-fill"></i> New Game</h1>
+    <a href="/" class="btn btn-outline-light">
+        <i class="bi bi-arrow-left"></i> Home
+    </a>
+</div>
+
+<% if (teams.length === 0) { %>
+    <div class="card">
+        <div class="card-body text-center p-5">
+            <i class="bi bi-people display-1 text-muted"></i>
+            <h4 class="mt-3 text-muted">No teams yet</h4>
+            <p class="text-muted">Create a team before starting a game.</p>
+            <a href="/teams/new" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Create a Team
+            </a>
+        </div>
+    </div>
+<% } else { %>
+    <p class="text-muted mb-3"><strong>Step 1 of 2</strong> — Select a team</p>
+    <div class="row row-cols-1 row-cols-md-2 g-3">
+        <% for (let team of teams) { %>
+            <div class="col">
+                <a href="/game/<%= team._id %>" class="select-card text-decoration-none">
+                    <div class="select-card-icon">
+                        <i class="bi bi-shield-fill"></i>
+                    </div>
+                    <div class="select-card-info">
+                        <div class="fw-bold fs-5 text-dark"><%= team.name %></div>
+                        <div class="text-muted small">
+                            <%= team.pitchers.length %> pitcher<%= team.pitchers.length !== 1 ? 's' : '' %>
+                        </div>
+                    </div>
+                    <i class="bi bi-chevron-right text-muted ms-auto"></i>
+                </a>
+            </div>
+        <% } %>
+    </div>
+<% } %>
+
+<style>
+    .select-card {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.85rem 1rem;
+        background: #fff;
+        border: 2px solid #dee2e6;
+        border-radius: 12px;
+        transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .select-card:hover {
+        border-color: #1a2e4a;
+        box-shadow: 0 0 0 3px rgba(26,46,74,0.1);
+    }
+    .select-card-icon {
+        width: 48px; height: 48px;
+        border-radius: 50%;
+        background: #1a2e4a;
+        color: #fff;
+        font-size: 1.2rem;
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+    }
+    .select-card-info { flex: 1; }
+</style>
