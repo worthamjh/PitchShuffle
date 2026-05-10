@@ -1,159 +1,19 @@
 <%- layout('layouts/boilerplate') %>
 
 <style>
-    :root {
-        --navy:          #1a2e4a;
-        --navy-hover:    #243d5e;
-        --navy-muted:    #8fa8c8;
-
-        --strike-bg:     #c8ecd4;
-        --strike-border: #2e7d4f;
-        --strike-text:   #155724;
-        --strike-hover:  #a8dbb8;
-
-        --chase-bg:      #fef3cd;
-        --chase-border:  #d4a017;
-        --chase-text:    #856404;
-        --chase-hover:   #f5d97a;
-        --chase-hover-border: #b8860b;
-
-        --selected-ring: 3px solid var(--navy);
-        --col-width:     110px;
-        --btn-radius:    8px;
-    }
-    @media (min-width: 768px) { :root { --col-width: 130px; } }
-
-    .game-header {
-        display: flex; align-items: center; gap: 0.75rem;
-        padding: 0.6rem 1rem;
-        background: var(--navy); color: #fff; flex-shrink: 0;
-    }
-    .game-header .pitcher-info { flex: 1; }
-    .game-header .pitcher-name { font-size: 1.1rem; font-weight: 700; line-height: 1.2; }
-    .game-header .pitcher-meta { font-size: 0.75rem; color: var(--navy-muted); }
-
-    /* Onboarding banner */
+    /* ── Page-specific only ──────────────────────────────────── */
     .setup-banner {
-        background: #eef2f7;
-        border-bottom: 1px solid #c0cfe0;
-        padding: 0.5rem 1rem;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 0.75rem;
-        font-size: 0.8rem;
-        color: #1a2e4a;
+        gap: 0.5rem;
+        padding: 0.4rem 1rem;
+        background: #fff8e1;
+        border-bottom: 1px solid #ffe082;
+        font-size: 0.78rem;
+        color: #5d4037;
         flex-shrink: 0;
     }
-    .setup-banner a {
-        color: #1a2e4a;
-        font-weight: 700;
-        white-space: nowrap;
-        text-decoration: underline;
-    }
-
-    .game-body {
-        display: flex; flex: 1; overflow: hidden;
-        height: calc(100vh - 56px - 38px - 46px - 37px); /* extra 37px for banner */
-    }
-
-    .pitch-col, .action-col {
-        width: var(--col-width); flex-shrink: 0;
-        background: #f8f9fa;
-        display: flex; flex-direction: column;
-        gap: 0.4rem; padding: 0.75rem 0.5rem;
-    }
-    .pitch-col  { border-right: 1px solid #dee2e6; overflow-y: auto; }
-    .action-col { border-left:  1px solid #dee2e6; }
-
-    .pitch-btn, .action-btn {
-        padding: 0.55rem 0.4rem;
-        border-radius: var(--btn-radius);
-        font-size: 0.75rem; font-weight: 700;
-        text-align: center; cursor: pointer;
-        border: 2px solid #dee2e6;
-        background: #fff; color: #343a40;
-        user-select: none;
-        transition: background 0.15s, border-color 0.15s, color 0.15s;
-    }
-    .pitch-btn {
-        background: #eef2f7;
-        border-color: #c0cfe0;
-        color: var(--navy);
-        border-left: 4px solid var(--navy);
-        text-align: left;
-        padding-left: 0.6rem;
-    }
-    .pitch-btn:hover  { background: #dce6f0; border-left-color: var(--navy); border-color: #8fa8c8; }
-    .pitch-btn.active { background: var(--navy); border-color: var(--navy); border-left-color: #4a9edd; color: #fff; }
-
-    .action-btn { border-color: transparent; }
-    .btn-random { background: #e8f4fd; border-color: #4a9edd; color: #1a5f8a; }
-    .btn-random:hover { background: #4a9edd; color: #fff; }
-    .btn-clear  { background: #fde8e8; border-color: #dd4a4a; color: #8a1a1a; }
-    .btn-clear:hover  { background: #dd4a4a; color: #fff; }
-    .btn-repeat { background: #f0e8fd; border-color: #9a4add; color: #5a1a8a; }
-    .btn-repeat:hover { background: #9a4add; color: #fff; }
-    .btn-call {
-        background: var(--navy); border-color: var(--navy); color: #fff;
-        margin-top: auto; padding: 0.75rem 0.4rem; font-size: 0.85rem;
-    }
-    .btn-call:hover   { background: var(--navy-hover); border-color: var(--navy-hover); }
-    .btn-repeat.disabled-btn,
-    .btn-call.disabled-btn { opacity: 0.45; pointer-events: none; }
-
-    .zone-col {
-        flex: 1; display: flex; align-items: center; justify-content: center;
-        padding: 0.5rem; overflow: hidden;
-    }
-    .zone-grid-wrapper { display: inline-block; position: relative; }
-    .zone-grid         { display: grid; gap: 0; border: 2px solid #adb5bd; }
-
-    .loc-box {
-        display: flex; align-items: center; justify-content: center;
-        font-size: 0.5rem; font-weight: 700;
-        text-align: center; text-transform: uppercase; letter-spacing: 0.3px;
-        padding: 3px; box-sizing: border-box;
-        border: 1px solid rgba(0,0,0,0.12);
-        user-select: none; cursor: pointer;
-        transition: background-color 0.15s;
-    }
-    @media (min-width: 576px) { .loc-box, .chase-overlay { font-size: 0.55rem; } }
-    @media (min-width: 992px) { .loc-box, .chase-overlay { font-size: 0.65rem; } }
-
-    .loc-box.strike { background: var(--strike-bg); border-color: var(--strike-border); color: var(--strike-text); }
-    .loc-box.chase  { background: var(--chase-bg);  border-color: var(--chase-border);  color: var(--chase-text);  }
-    .loc-box.empty  { background: transparent; border-color: transparent; cursor: default; pointer-events: none; }
-    .loc-box.covered { pointer-events: none; }
-    .loc-box.strike:hover { background: var(--strike-hover); }
-    .loc-box.chase:hover  { background: var(--chase-hover);  }
-    .loc-box.empty:hover, .loc-box.covered:hover { background: inherit; }
-    .loc-box.selected-loc { outline: var(--selected-ring); outline-offset: -3px; }
-
-    .chase-overlay {
-        position: absolute; z-index: 5;
-        background: var(--chase-bg); border: 1px solid var(--chase-border); color: var(--chase-text);
-        font-size: 0.5rem; font-weight: 700;
-        text-align: center; text-transform: uppercase; letter-spacing: 0.3px;
-        display: flex; align-items: center; justify-content: center;
-        box-sizing: border-box; cursor: pointer; user-select: none;
-        transition: background-color 0.15s, border-color 0.15s;
-    }
-    .chase-overlay:hover        { background: var(--chase-hover); border-color: var(--chase-hover-border); }
-    .chase-overlay.selected-loc { outline: var(--selected-ring); outline-offset: -3px; }
-
-    .strike-zone-outline {
-        position: absolute; pointer-events: none;
-        border: 3px solid var(--navy); z-index: 10;
-    }
-
-    .call-bar {
-        flex-shrink: 0; min-height: 38px;
-        background: var(--navy); color: #fff;
-        display: flex; align-items: center; justify-content: center; gap: 0.5rem;
-        padding: 0.5rem 1rem; font-size: 0.85rem; font-weight: 600;
-    }
-    .call-bar .call-label { color: var(--navy-muted); font-weight: 400; font-size: 0.75rem; }
 
     .speaking-dot {
         display: inline-block; width: 8px; height: 8px; border-radius: 50%;
@@ -161,6 +21,15 @@
         animation: pulse 0.8s infinite alternate;
     }
     @keyframes pulse { from { opacity: 0.3; transform: scale(0.8); } to { opacity: 1; transform: scale(1.2); } }
+
+    /* ── Call bar style for quick-game.ejs (dark navy bar) ───── */
+    .call-bar {
+        flex-shrink: 0; min-height: 38px;
+        background: var(--ps-navy); color: #fff;
+        display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+        padding: 0.5rem 1rem; font-size: 0.85rem; font-weight: 600;
+    }
+    .call-bar .call-label { color: var(--ps-navy-muted); font-weight: 400; font-size: 0.75rem; }
 </style>
 
 <!-- ── Header ─────────────────────────────────────────────────── -->
@@ -176,7 +45,8 @@
 
 <!-- ── Onboarding banner ──────────────────────────────────────── -->
 <div class="setup-banner">
-    <span><i class="bi bi-lightning-fill me-1"></i> Enjoying PitchShuffle? <a href="/teams/new">Set up your team</a> to save pitchers and customise locations.</span>
+    <span><i class="bi bi-lightning-fill me-1"></i> Enjoying PitchShuffle?
+    <a href="/teams/new">Set up your team</a> to save pitchers and customise locations.</span>
     <button type="button" class="btn-close btn-close" style="font-size:0.7rem;" aria-label="Close"
             onclick="this.parentElement.style.display='none'"></button>
 </div>
@@ -342,38 +212,20 @@
 
         const armOutName   = isRHP ? 'arm-out-mid'   : 'glove-out-mid';
         const gloveOutName = isRHP ? 'glove-out-mid' : 'arm-out-mid';
-        const armCells     = isRHP ? ['arm-up','arm-mid','arm-down']       : ['glove-up','glove-mid','glove-down'];
-        const gloveCells   = isRHP ? ['glove-up','glove-mid','glove-down'] : ['arm-up','arm-mid','arm-down'];
+        const armCols      = isRHP ? ['arm-up','arm-mid','arm-down']   : ['glove-up','glove-mid','glove-down'];
+        const gloveCols    = isRHP ? ['glove-up','glove-mid','glove-down'] : ['arm-up','arm-mid','arm-down'];
 
-        makeOverlay('up-out',    'up out',
-            ['arm-up','mid-up','glove-up'], ['up-out'],   []);
-        makeOverlay('down-out',  'down out',
-            ['arm-down','mid-down','glove-down'], ['down-out'], []);
-        makeOverlay(armOutName,   isRHP ? 'arm out'   : 'glove out',
-            [armOutName],   armCells,   []);
-        makeOverlay(gloveOutName, isRHP ? 'glove out' : 'arm out',
-            [gloveOutName], gloveCells, []);
+        makeOverlay(armOutName,   armOutName.replace(/-/g,' '),   armCols,   ['mid-up','mid-mid','mid-down'], []);
+        makeOverlay(gloveOutName, gloveOutName.replace(/-/g,' '), gloveCols, ['mid-up','mid-mid','mid-down'], []);
     }
 
-    document.getElementById('zoneWrapper').addEventListener('click', e => {
-        const overlay = e.target.closest('.chase-overlay');
-        if (overlay) { selectLocation(overlay.dataset.locName); return; }
-        const cell = e.target.closest('.loc-box');
-        if (cell && !cell.classList.contains('empty')) selectLocation(cell.dataset.locName);
-    });
-
-    document.getElementById('pitchCol').addEventListener('click', e => {
-        const btn = e.target.closest('.pitch-btn');
-        if (btn) selectPitch(parseInt(btn.dataset.pitchIndex));
-    });
-
-    function highlightLocation(locName) {
-        document.querySelectorAll('.loc-box.selected-loc, .chase-overlay.selected-loc')
-            .forEach(el => el.classList.remove('selected-loc'));
-        if (!locName) return;
-        const overlay = document.querySelector(`.chase-overlay[data-loc-name="${locName}"]`);
-        const cell    = document.querySelector(`.loc-box[data-loc-name="${locName}"]`);
-        (overlay || cell)?.classList.add('selected-loc');
+    // ── Selection helpers ─────────────────────────────────────
+    function selectPitch(index) {
+        selectedPitchIndex = index;
+        document.querySelectorAll('.pitch-btn').forEach((btn, i) =>
+            btn.classList.toggle('active', i === index));
+        updateCallBar();
+        updateButtons();
     }
 
     function selectLocation(locName) {
@@ -383,12 +235,9 @@
         updateButtons();
     }
 
-    function selectPitch(index) {
-        selectedPitchIndex = index;
-        document.querySelectorAll('.pitch-btn')
-            .forEach((btn, i) => btn.classList.toggle('active', i === index));
-        updateCallBar();
-        updateButtons();
+    function highlightLocation(locName) {
+        document.querySelectorAll('.loc-box, .chase-overlay').forEach(el =>
+            el.classList.toggle('selected-loc', el.dataset.locName === locName));
     }
 
     function clearSelection() {
@@ -419,7 +268,6 @@
         'up-out':         'up and out',
         'down-out':       'down and out',
     };
-
     function locLabel(locName) {
         return LOC_LABELS[locName] || locName.replace(/-/g, ' ');
     }
@@ -443,6 +291,16 @@
         document.getElementById('btnCall').classList.toggle('disabled-btn', !ready);
         document.getElementById('btnRepeat').classList.toggle('disabled-btn', !lastCall);
     }
+
+    document.getElementById('pitchCol').addEventListener('click', e => {
+        const btn = e.target.closest('.pitch-btn');
+        if (btn) selectPitch(Number(btn.dataset.pitchIndex));
+    });
+
+    document.getElementById('zoneWrapper').addEventListener('click', e => {
+        const el = e.target.closest('.loc-box:not(.covered):not(.empty), .chase-overlay');
+        if (el) selectLocation(el.dataset.locName);
+    });
 
     document.getElementById('btnRandom').addEventListener('click', () => {
         const locs = zoneLocations.filter(l => l.enabled);

@@ -1,11 +1,462 @@
-/* ─── Mini zone thumbnail cells ─────────────────────────── */
-.mz-cell {
-    border-radius: 3px;
+/* =============================================================
+   PitchShuffle — style.css
+   Single source of truth for all shared styles.
+   Change a value here and it updates across the whole app.
+   ============================================================= */
+
+/* ── 1. Design tokens ──────────────────────────────────────── */
+:root {
+    /* Brand colours */
+    --ps-navy:       #1a2e4a;
+    --ps-navy-dark:  #111e30;
+    --ps-navy-hover: #243d5e;
+    --ps-navy-muted: #8fa8c8;
+    --ps-green:      #2e7d4f;
+    --ps-green-light:#3a9e63;
+
+    /* Page */
+    --ps-bg:         #f0f0eb;
+    --ps-card-bg:    #ffffff;
+    --ps-text:       #1a1a1a;
+    --ps-muted:      #6c757d;
+
+    /* Strike / chase zone colours */
+    --strike-bg:          #c8ecd4;
+    --strike-border:      #2e7d4f;
+    --strike-text:        #155724;
+    --strike-hover:       #a8dbb8;
+    --chase-bg:           #fef3cd;
+    --chase-border:       #d4a017;
+    --chase-text:         #856404;
+    --chase-hover:        #f5d97a;
+    --chase-hover-border: #b8860b;
+
+    /* Game layout */
+    --col-width:     110px;
+    --btn-radius:    8px;
+    --selected-ring: 3px solid var(--ps-navy);
 }
+@media (min-width: 768px) {
+    :root { --col-width: 130px; }
+}
+
+/* ── 2. Base ───────────────────────────────────────────────── */
+body {
+    background-color: var(--ps-bg);
+    color: var(--ps-text);
+    font-family: 'Segoe UI', sans-serif;
+}
+
+/* ── 3. Navbar ─────────────────────────────────────────────── */
+.navbar {
+    background-color: var(--ps-navy) !important;
+    padding: 0.75rem 1.5rem;
+}
+.navbar-brand {
+    color: #ffffff !important;
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+.nav-link {
+    color: rgba(255, 255, 255, 0.85) !important;
+    font-weight: 500;
+    font-size: 1rem;
+}
+.nav-link:hover { color: #ffffff !important; }
+
+/* ── 4. Cards ──────────────────────────────────────────────── */
+.card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    background-color: var(--ps-card-bg);
+}
+.card-header {
+    background-color: var(--ps-navy);
+    color: #ffffff;
+    border-radius: 12px 12px 0 0 !important;
+    font-weight: 600;
+    font-size: 1.1rem;
+    padding: 1rem 1.25rem;
+}
+
+/* ── 5. Buttons ────────────────────────────────────────────── */
+.btn-primary {
+    background-color: var(--ps-navy);
+    border-color: var(--ps-navy);
+    font-weight: 600;
+    padding: 0.5rem 1.25rem;
+}
+.btn-primary:hover {
+    background-color: var(--ps-navy-dark);
+    border-color: var(--ps-navy-dark);
+}
+.btn-success {
+    background-color: var(--ps-green);
+    border-color: var(--ps-green);
+    font-weight: 600;
+    padding: 0.5rem 1.25rem;
+}
+.btn-success:hover {
+    background-color: var(--ps-green-light);
+    border-color: var(--ps-green-light);
+}
+
+/* ── 6. Alerts & page chrome ───────────────────────────────── */
+.alert { border-radius: 10px; font-weight: 500; }
+
+.page-header {
+    background-color: var(--ps-navy);
+    color: #ffffff;
+    padding: 1.25rem 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+}
+.page-header h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+main {
+    padding: 1.5rem;
+    max-width: 960px;
+    margin: 0 auto;
+}
+
+/* ── 7. Home page ──────────────────────────────────────────── */
+.home-hero {
+    text-align: center;
+    padding: 2.5rem 1rem 2rem;
+}
+.home-hero .app-icon {
+    font-size: 3.5rem;
+    color: var(--ps-navy);
+    margin-bottom: 0.75rem;
+}
+.home-hero h1 {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--ps-navy);
+    margin-bottom: 0.25rem;
+}
+.home-hero p {
+    color: var(--ps-muted);
+    font-size: 1rem;
+    margin-bottom: 2rem;
+}
+
+.btn-quick-game {
+    background: var(--ps-navy);
+    color: #fff;
+    font-size: 1.2rem;
+    font-weight: 700;
+    padding: 1rem 2.5rem;
+    border-radius: 14px;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    text-decoration: none;
+    transition: background 0.15s, transform 0.1s;
+    box-shadow: 0 4px 16px rgba(26, 46, 74, 0.28);
+    width: 100%;
+    justify-content: center;
+}
+.btn-quick-game:hover {
+    background: var(--ps-navy-hover);
+    color: #fff;
+    transform: translateY(-1px);
+    text-decoration: none;
+}
+.btn-quick-game i { font-size: 1.4rem; }
+
+.quick-game-hint {
+    font-size: 0.8rem;
+    color: var(--ps-muted);
+    margin-top: 0.5rem;
+}
+
+.or-divider {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 1.75rem 0 1.5rem;
+    color: #adb5bd;
+    font-size: 0.85rem;
+}
+.or-divider::before,
+.or-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #dee2e6;
+}
+
+.btn-new-game {
+    background: #fff;
+    color: var(--ps-navy);
+    font-size: 1rem;
+    font-weight: 700;
+    padding: 0.8rem 2rem;
+    border-radius: 12px;
+    border: 2px solid var(--ps-navy);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s;
+    width: 100%;
+    justify-content: center;
+}
+.btn-new-game:hover {
+    background: var(--ps-navy);
+    color: #fff;
+    text-decoration: none;
+}
+
+.quick-links {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 1.25rem;
+}
+.quick-link-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 1.25rem 0.75rem;
+    background: #fff;
+    border: 2px solid #dee2e6;
+    border-radius: 12px;
+    text-decoration: none;
+    color: var(--ps-navy);
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+.quick-link-card:hover {
+    border-color: var(--ps-navy);
+    box-shadow: 0 0 0 3px rgba(26, 46, 74, 0.1);
+    color: var(--ps-navy);
+    text-decoration: none;
+}
+.quick-link-card i {
+    font-size: 1.6rem;
+    color: var(--ps-navy);
+}
+
+/* ── 8. Game layout (shared by game.ejs & quick-game.ejs) ─── */
+.game-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 1rem;
+    background: var(--ps-navy);
+    color: #fff;
+    flex-shrink: 0;
+}
+.game-header .pitcher-info { flex: 1; }
+.game-header .pitcher-name { font-size: 1.1rem; font-weight: 700; line-height: 1.2; }
+.game-header .pitcher-meta { font-size: 0.75rem; color: var(--ps-navy-muted); }
+
+.game-body {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    height: calc(100vh - 56px - 38px - 46px);
+}
+
+.pitch-col, .action-col {
+    width: var(--col-width);
+    flex-shrink: 0;
+    background: #f8f9fa;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 0.75rem 0.5rem;
+}
+.pitch-col  { border-right: 1px solid #dee2e6; overflow-y: auto; }
+.action-col { border-left:  1px solid #dee2e6; }
+
+.zone-col {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    overflow: hidden;
+}
+.zone-grid-wrapper { display: inline-block; position: relative; }
+.zone-grid         { display: grid; gap: 0; border: 2px solid #adb5bd; }
+
+/* ── 9. Pitch & action buttons (game views) ────────────────── */
+.pitch-btn, .action-btn {
+    padding: 0.55rem 0.4rem;
+    border-radius: var(--btn-radius);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-align: center;
+    cursor: pointer;
+    border: 2px solid #dee2e6;
+    background: #fff;
+    color: #343a40;
+    user-select: none;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.pitch-btn {
+    background: #eef2f7;
+    border-color: #c0cfe0;
+    color: var(--ps-navy);
+    border-left: 4px solid var(--ps-navy);
+    text-align: left;
+    padding-left: 0.6rem;
+}
+.pitch-btn:hover  { background: #dce6f0; border-left-color: var(--ps-navy); border-color: #8fa8c8; }
+.pitch-btn.active { background: var(--ps-navy); border-color: var(--ps-navy); border-left-color: #4a9edd; color: #fff; }
+
+.action-btn { border-color: transparent; }
+.btn-random { background: #e8f4fd; border-color: #4a9edd; color: #1a5f8a; }
+.btn-random:hover { background: #4a9edd; color: #fff; }
+.btn-clear  { background: #fde8e8; border-color: #dd4a4a; color: #8a1a1a; }
+.btn-clear:hover  { background: #dd4a4a; color: #fff; }
+.btn-repeat { background: #f0e8fd; border-color: #9a4add; color: #5a1a8a; }
+.btn-repeat:hover { background: #9a4add; color: #fff; }
+.btn-call {
+    background: var(--ps-navy);
+    border-color: var(--ps-navy);
+    color: #fff;
+    margin-top: auto;
+    padding: 0.75rem 0.4rem;
+    font-size: 0.85rem;
+}
+.btn-call:hover { background: var(--ps-navy-hover); border-color: var(--ps-navy-hover); }
+.btn-repeat.disabled-btn,
+.btn-call.disabled-btn { opacity: 0.45; pointer-events: none; }
+
+/* ── 10. Zone location boxes ───────────────────────────────── */
+.loc-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.5rem;
+    font-weight: 700;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding: 3px;
+    box-sizing: border-box;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    user-select: none;
+    cursor: pointer;
+    transition: background-color 0.15s;
+}
+@media (min-width: 576px) { .loc-box, .chase-overlay { font-size: 0.55rem; } }
+@media (min-width: 992px) { .loc-box, .chase-overlay { font-size: 0.65rem; } }
+
+.loc-box.strike   { background: var(--strike-bg);  border-color: var(--strike-border); color: var(--strike-text); }
+.loc-box.chase    { background: var(--chase-bg);   border-color: var(--chase-border);  color: var(--chase-text);  }
+.loc-box.disabled { background: #e9ecef; border-color: #ced4da; color: #adb5bd; text-decoration: line-through; }
+.loc-box.empty    { background: transparent; border-color: transparent; cursor: default; pointer-events: none; }
+.loc-box.covered  { pointer-events: none; }
+
+.loc-box.strike:hover   { background: var(--strike-hover); }
+.loc-box.chase:hover    { background: var(--chase-hover);  }
+.loc-box.disabled:hover { background: #e9ecef; }
+.loc-box.empty:hover, .loc-box.covered:hover { background: inherit; }
+.loc-box.selected-loc   { outline: var(--selected-ring); outline-offset: -3px; }
+
+/* ── 11. Chase overlay (spans multiple cells) ──────────────── */
+.chase-overlay {
+    position: absolute;
+    z-index: 5;
+    background: var(--chase-bg);
+    border: 1px solid var(--chase-border);
+    color: var(--chase-text);
+    font-size: 0.5rem;
+    font-weight: 700;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.15s, border-color 0.15s;
+}
+.chase-overlay:hover          { background: var(--chase-hover); border-color: var(--chase-hover-border); }
+.chase-overlay.disabled       { background: #e9ecef; border-color: #ced4da; color: #adb5bd; text-decoration: line-through; }
+.chase-overlay.disabled:hover { background: #e9ecef; border-color: #ced4da; }
+.chase-overlay.selected-loc   { outline: var(--selected-ring); outline-offset: -3px; }
+
+/* ── 12. Strike zone outline overlay ──────────────────────── */
+.strike-zone-outline {
+    position: absolute;
+    pointer-events: none;
+    border: 3px solid var(--ps-navy);
+    z-index: 10;
+}
+
+/* ── 13. Call bar ──────────────────────────────────────────── */
+.call-bar {
+    padding: 0.6rem 1rem;
+    background: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+    text-align: center;
+    flex-shrink: 0;
+}
+.call-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--ps-muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+.call-pitch-name  { font-size: 1rem; font-weight: 700; color: var(--ps-navy); }
+.call-location    { font-size: 0.85rem; color: var(--ps-muted); }
+
+/* ── 14. Zone edit grid (pitchers/edit.ejs) ────────────────── */
+.zone-grid-edit {
+    display: grid;
+    gap: 0;
+    margin: 0 auto;
+    border: 2px solid #adb5bd;
+}
+.loc-box-edit {
+    width: 70px;
+    height: 70px;
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.55rem;
+    font-weight: 700;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    padding: 4px;
+    box-sizing: border-box;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    transition: background-color 0.15s, border-color 0.15s;
+    user-select: none;
+    cursor: pointer;
+}
+@media (min-width: 576px) { .loc-box-edit { width: 88px;  height: 88px;  font-size: 0.6rem; } }
+@media (min-width: 992px) { .loc-box-edit { width: 108px; height: 108px; font-size: 0.7rem; } }
+
+/* ── 15. Mini zone thumbnail (partials/_zone_mini.ejs) ─────── */
+.mz-cell   { border-radius: 3px; }
 .mz-strike { background-color: #2e9e5b; }
 .mz-chase  { background-color: #d4a017; }
 
-/* ─── Zone selection card (new + edit) ───────────────────── */
+/* ── 16. Zone selection card (new + edit pitcher) ──────────── */
 .zone-image-card {
     display: flex;
     flex-direction: column;
@@ -22,11 +473,11 @@
     min-height: 140px;
 }
 .zone-image-card:hover {
-    border-color: #1a2e4a;
+    border-color: var(--ps-navy);
     box-shadow: 0 0 0 3px rgba(26, 46, 74, 0.12);
 }
 .btn-check:checked + .zone-image-card {
-    border-color: #1a2e4a;
+    border-color: var(--ps-navy);
     box-shadow: 0 0 0 3px rgba(26, 46, 74, 0.2);
     background-color: #eef1f5;
 }
@@ -34,21 +485,21 @@
     text-align: center;
     font-weight: 700;
     font-size: 0.85rem;
-    color: #1a2e4a;
+    color: var(--ps-navy);
 }
 .zone-card-label small {
     display: block;
     font-weight: 400;
-    color: #6c757d;
+    color: var(--ps-muted);
     font-size: 0.75rem;
 }
 
-/* ─── Zone display card (show page, read-only) ───────────── */
+/* ── 17. Zone display card (pitcher show page) ─────────────── */
 .zone-display-card {
     display: inline-flex;
     flex-direction: column;
     align-items: center;
-    border: 3px solid #1a2e4a;
+    border: 3px solid var(--ps-navy);
     border-radius: 12px;
     padding: 10px 16px;
     background: #eef1f5;
@@ -57,6 +508,6 @@
 .zone-display-card .zone-card-label {
     font-weight: 700;
     font-size: 0.85rem;
-    color: #1a2e4a;
+    color: var(--ps-navy);
     text-align: center;
 }
