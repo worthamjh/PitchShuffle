@@ -33,11 +33,19 @@
                 <div class="mb-4">
                     <div class="row row-cols-1 row-cols-md-3 g-3">
                         <% for (let zone of zones) { %>
+                            <%
+                                const _zoneImageMap = { 'A': 'zone_a.png', 'B': 'zone_b.png', 'C': 'zone_c.png' };
+                                const _zoneLetter   = zone.name.match(/Zone ([A-Z])/)?.[1];
+                                const _zoneImg      = _zoneImageMap[_zoneLetter] || null;
+                            %>
                             <div class="col">
                                 <input type="radio" class="btn-check" name="pitcher[zone]"
                                     id="zone-<%= zone._id %>" value="<%= zone._id %>" required>
                                 <label class="zone-image-card" for="zone-<%= zone._id %>">
-                                    <%- include('../../views/partials/_zone_mini', { zone }) %>
+                                    <% if (_zoneImg) { %>
+                                        <img src="/images/<%= _zoneImg %>" alt="<%= zone.name %>"
+                                            style="width:80px;height:80px;object-fit:contain;">
+                                    <% } %>
                                     <div class="zone-card-label">
                                         <%= zone.name %>
                                         <small><%= zone.availableLocations.length %> locations</small>

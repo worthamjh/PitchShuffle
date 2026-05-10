@@ -21,33 +21,84 @@
         font-size: 1rem;
         margin-bottom: 2rem;
     }
-    .btn-new-game {
+
+    /* Quick Game — primary CTA */
+    .btn-quick-game {
         background: #1a2e4a;
         color: #fff;
-        font-size: 1.15rem;
+        font-size: 1.2rem;
         font-weight: 700;
-        padding: 0.85rem 2.5rem;
-        border-radius: 12px;
+        padding: 1rem 2.5rem;
+        border-radius: 14px;
         border: none;
         display: inline-flex;
         align-items: center;
         gap: 0.6rem;
         text-decoration: none;
         transition: background 0.15s, transform 0.1s;
-        box-shadow: 0 4px 14px rgba(26,46,74,0.25);
+        box-shadow: 0 4px 16px rgba(26,46,74,0.28);
+        width: 100%;
+        justify-content: center;
     }
-    .btn-new-game:hover {
+    .btn-quick-game:hover {
         background: #243d5e;
         color: #fff;
         transform: translateY(-1px);
+        text-decoration: none;
     }
-    .btn-new-game i { font-size: 1.3rem; }
+    .btn-quick-game i { font-size: 1.4rem; }
+
+    .quick-game-hint {
+        font-size: 0.8rem;
+        color: #6c757d;
+        margin-top: 0.5rem;
+    }
+
+    /* Divider */
+    .or-divider {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin: 1.75rem 0 1.5rem;
+        color: #adb5bd;
+        font-size: 0.85rem;
+    }
+    .or-divider::before,
+    .or-divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: #dee2e6;
+    }
+
+    /* New Game — secondary */
+    .btn-new-game {
+        background: #fff;
+        color: #1a2e4a;
+        font-size: 1rem;
+        font-weight: 700;
+        padding: 0.8rem 2rem;
+        border-radius: 12px;
+        border: 2px solid #1a2e4a;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        text-decoration: none;
+        transition: background 0.15s, color 0.15s;
+        width: 100%;
+        justify-content: center;
+    }
+    .btn-new-game:hover {
+        background: #1a2e4a;
+        color: #fff;
+        text-decoration: none;
+    }
 
     .quick-links {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 1rem;
-        margin-top: 2.5rem;
+        margin-top: 1.25rem;
     }
     .quick-link-card {
         display: flex;
@@ -69,6 +120,7 @@
         border-color: #1a2e4a;
         box-shadow: 0 0 0 3px rgba(26,46,74,0.1);
         color: #1a2e4a;
+        text-decoration: none;
     }
     .quick-link-card i {
         font-size: 1.6rem;
@@ -80,6 +132,16 @@
     <div class="app-icon"><i class="bi bi-bullseye"></i></div>
     <h1>PitchShuffle</h1>
     <p>Call pitches fast. Keep your catcher in sync.</p>
+
+    <!-- Quick Game — jump straight in -->
+    <a href="/quick-game" class="btn-quick-game">
+        <i class="bi bi-lightning-fill"></i> Quick Game
+    </a>
+    <p class="quick-game-hint">Fastball, Curveball, Changeup, Slider — ready to go</p>
+
+    <div class="or-divider">or</div>
+
+    <!-- New Game — full team setup -->
     <a href="/game" class="btn-new-game">
         <i class="bi bi-play-fill"></i> New Game
     </a>

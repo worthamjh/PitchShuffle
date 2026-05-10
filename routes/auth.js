@@ -14,6 +14,46 @@ router.get('/', (req, res) => {
     res.redirect('/login');
 });
 
+// ── Quick Game ────────────────────────────────────────────────
+// No setup required — renders the game screen with default pitcher data.
+// Nothing is saved to the database.
+router.get('/quick-game', isLoggedIn, (req, res) => {
+    const quickPitcher = {
+        number: 1,
+        name:   'Pitcher',
+        throws: 'R',
+        pitchTypes: [
+            { name: 'Fastball',  abbreviation: 'FB'  },
+            { name: 'Curveball', abbreviation: 'CB'  },
+            { name: 'Changeup',  abbreviation: 'CH'  },
+            { name: 'Slider',    abbreviation: 'SL'  },
+        ],
+        // Zone C locations — all enabled by default
+        zone: {
+            availableLocations: [
+                { name: 'glove-up',       type: 'strike', enabled: true },
+                { name: 'mid-up',         type: 'strike', enabled: true },
+                { name: 'arm-up',         type: 'strike', enabled: true },
+                { name: 'glove-mid',      type: 'strike', enabled: true },
+                { name: 'mid-mid',        type: 'strike', enabled: true },
+                { name: 'arm-mid',        type: 'strike', enabled: true },
+                { name: 'glove-down',     type: 'strike', enabled: true },
+                { name: 'mid-down',       type: 'strike', enabled: true },
+                { name: 'arm-down',       type: 'strike', enabled: true },
+                { name: 'glove-out-up',   type: 'chase',  enabled: true },
+                { name: 'up-out',         type: 'chase',  enabled: true },
+                { name: 'arm-out-up',     type: 'chase',  enabled: true },
+                { name: 'glove-out-mid',  type: 'chase',  enabled: true },
+                { name: 'arm-out-mid',    type: 'chase',  enabled: true },
+                { name: 'glove-out-down', type: 'chase',  enabled: true },
+                { name: 'down-out',       type: 'chase',  enabled: true },
+                { name: 'arm-out-down',   type: 'chase',  enabled: true },
+            ]
+        }
+    };
+    res.render('pitchers/quick-game', { pitcher: quickPitcher });
+});
+
 // ── Game flow ─────────────────────────────────────────────────
 
 // Step 1 — select team
