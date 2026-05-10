@@ -21,7 +21,11 @@ const PitcherSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'StrikeZone'
     },
-    pitchTypes: [PitchTypeSchema]
+    pitchTypes: [PitchTypeSchema],
+
+    // Snapshot of previous zone state — used for revert after zone change
+    previousZone:       { type: mongoose.Schema.Types.ObjectId, ref: 'StrikeZone', default: null },
+    previousPitchTypes: { type: mongoose.Schema.Types.Mixed, default: null }
 });
 
 module.exports = mongoose.model('Pitcher', PitcherSchema);

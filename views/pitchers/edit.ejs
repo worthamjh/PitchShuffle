@@ -99,10 +99,38 @@
         .zone-container  { display: flex; justify-content: center; padding: 1rem 0; }
         .pitch-section   { border: 1px solid #dee2e6; border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; background: #fff; }
         .pitch-section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+
+        /* Zone card button — matches the label style used in new.ejs */
+        .zone-image-card-btn {
+            width: 100%;
+            background: #fff;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            padding: 0.75rem;
+            cursor: pointer;
+            text-align: center;
+            transition: border-color 0.15s, box-shadow 0.15s;
+            display: block;
+        }
+        .zone-image-card-btn:hover {
+            border-color: #8fa8c8;
+            box-shadow: 0 0 0 3px rgba(26,46,74,0.08);
+        }
+        .zone-change-form { margin: 0; }
+
+        /* Active (currently selected) zone card */
+        .active-zone {
+            border: 2px solid #1a2e4a !important;
+            box-shadow: 0 0 0 3px rgba(26,46,74,0.15);
+            background: #eef2f7;
+        }
     </style>
 
-    <div class="page-header">
+    <div class="page-header d-flex justify-content-between align-items-center">
         <h1><i class="bi bi-pencil"></i> Edit <%= pitcher.name %> #<%= pitcher.number %></h1>
+        <a href="/teams/<%= team._id %>" class="btn btn-outline-light">
+            <i class="bi bi-arrow-left"></i> Back to Team
+        </a>
     </div>
 
     <div class="card">
@@ -133,23 +161,56 @@
 
                 <!-- Zone Selection -->
                 <h5 class="fw-bold mb-3 mt-4">Strike Zone</h5>
+
+                <!-- Revert banner — only shown when a previous zone snapshot exists -->
+                <% if (pitcher.previousZone) { %>
+                    <div class="alert d-flex align-items-center justify-content-between gap-2 mb-3"
+                         style="background:#eef2f7;border:1px solid #c0cfe0;border-radius:10px;padding:0.75rem 1rem;">
+                        <span><i class="bi bi-arrow-counterclockwise me-1"></i> Zone changed — your previous location settings are saved.</span>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="revertZoneBtn">Revert to Previous Zone</button>
+                    </div>
+                <% } %>
+
+                <!-- Zone cards — clicking submits via JS to avoid nested forms -->
                 <div class="mb-4">
                     <div class="row row-cols-1 row-cols-md-3 g-3">
                         <% for (let zone of zones) { %>
+                            <% const isSelected = pitcher.zone && pitcher.zone._id.equals(zone._id); %>
+                            <%
+                                const _zoneImageMap = { 'A': 'zone_a.png', 'B': 'zone_b.png', 'C': 'zone_c.png' };
+                                const _zoneLetter   = zone.name.match(/Zone ([A-Z])/)?.[1];
+                                const _zoneImg      = _zoneImageMap[_zoneLetter] || null;
+                            %>
                             <div class="col">
-                                <input type="radio" class="btn-check" name="pitcher[zone]"
-                                    id="zone-<%= zone._id %>" value="<%= zone._id %>"
-                                    <%= pitcher.zone && pitcher.zone._id.equals(zone._id) ? 'checked' : '' %>>
-                                <label class="zone-image-card" for="zone-<%= zone._id %>">
-                                    <%- include('../../views/partials/_zone_mini', { zone }) %>
-                                    <div class="zone-card-label">
-                                        <%= zone.name %>
-                                        <small><%= zone.availableLocations.length %> locations</small>
+                                <% if (isSelected) { %>
+                                    <div class="zone-image-card active-zone">
+                                        <% if (_zoneImg) { %>
+                                            <img src="/images/<%= _zoneImg %>" alt="<%= zone.name %>"
+                                                style="width:80px;height:80px;object-fit:contain;">
+                                        <% } %>
+                                        <div class="zone-card-label">
+                                            <%= zone.name %>
+                                            <small><%= zone.availableLocations.length %> locations</small>
+                                        </div>
                                     </div>
-                                </label>
+                                <% } else { %>
+                                    <button type="button" class="zone-image-card zone-image-card-btn"
+                                        data-zone-id="<%= zone._id %>"
+                                        data-zone-url="/teams/<%= team._id %>/pitchers/<%= pitcher._id %>/change-zone">
+                                        <% if (_zoneImg) { %>
+                                            <img src="/images/<%= _zoneImg %>" alt="<%= zone.name %>"
+                                                style="width:80px;height:80px;object-fit:contain;">
+                                        <% } %>
+                                        <div class="zone-card-label">
+                                            <%= zone.name %>
+                                            <small><%= zone.availableLocations.length %> locations</small>
+                                        </div>
+                                    </button>
+                                <% } %>
                             </div>
                         <% } %>
                     </div>
+                    <input type="hidden" name="pitcher[zone]" value="<%= pitcher.zone ? pitcher.zone._id : '' %>">
                 </div>
 
                 <!-- Pitch Types Header + View Toggle -->
@@ -657,4 +718,33 @@
         document.getElementById('pitchTypes').addEventListener('click', (e) => {
             if (e.target.closest('.remove-pitch')) e.target.closest('.pitch-type-row').remove();
         });
+
+        // ── Zone card & revert — POST via JS to avoid nested forms ───
+        function postTo(url, body) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = url;
+            Object.entries(body).forEach(([k, v]) => {
+                const input = document.createElement('input');
+                input.type  = 'hidden';
+                input.name  = k;
+                input.value = v;
+                form.appendChild(input);
+            });
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        document.querySelectorAll('.zone-image-card-btn[data-zone-id]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                postTo(btn.dataset.zoneUrl, { zoneId: btn.dataset.zoneId });
+            });
+        });
+
+        const revertBtn = document.getElementById('revertZoneBtn');
+        if (revertBtn) {
+            revertBtn.addEventListener('click', () => {
+                postTo('/teams/<%= team._id %>/pitchers/<%= pitcher._id %>/revert-zone', {});
+            });
+        }
     </script>

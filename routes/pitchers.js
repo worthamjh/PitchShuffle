@@ -100,14 +100,18 @@ router.get('/:pitcherId/edit', isLoggedIn, async (req, res) => {
     }
 });
 
-// Update pitcher
+// Update pitcher (full save from edit form)
 router.put('/:pitcherId', isLoggedIn, async (req, res) => {
     try {
-        const pitcher = await Pitcher.findById(req.params.pitcherId);
+        const pitcher   = await Pitcher.findById(req.params.pitcherId);
         const newZoneId = req.body.pitcher.zone;
-
-        // Detect if the zone has changed
         const zoneChanged = pitcher.zone?.toString() !== newZoneId?.toString();
+
+        // If zone changed and no snapshot exists yet, take one
+        if (zoneChanged && newZoneId && !pitcher.previousZone) {
+            pitcher.previousZone       = pitcher.zone;
+            pitcher.previousPitchTypes = JSON.parse(JSON.stringify(pitcher.pitchTypes));
+        }
 
         pitcher.name       = req.body.pitcher.name;
         pitcher.number     = req.body.pitcher.number;
@@ -115,7 +119,7 @@ router.put('/:pitcherId', isLoggedIn, async (req, res) => {
         pitcher.zone       = newZoneId;
         pitcher.pitchTypes = req.body.pitcher.pitchTypes || pitcher.pitchTypes;
 
-        // If the zone changed, rebuild all pitch type locations from the new zone
+        // Rebuild locations if zone changed
         if (zoneChanged && newZoneId) {
             const newZone = await StrikeZone.findById(newZoneId);
             if (newZone) {
@@ -129,9 +133,83 @@ router.put('/:pitcherId', isLoggedIn, async (req, res) => {
             }
         }
 
+        // Clear snapshot on full save — revert no longer makes sense after committing
+        pitcher.previousZone       = null;
+        pitcher.previousPitchTypes = null;
+
         pitcher.markModified('pitchTypes');
+        pitcher.markModified('previousPitchTypes');
         await pitcher.save();
-        res.redirect(`/teams/${req.params.teamId}/pitchers/${pitcher._id}`);
+        res.redirect(`/teams/${req.params.teamId}/pitchers/${pitcher._id}/edit`);
+    } catch (e) {
+        console.error(e);
+        res.redirect(`/teams/${req.params.teamId}`);
+    }
+});
+
+// ── Zone change auto-save (triggered by zone image click in edit) ──
+// Saves just the zone change + rebuilds locations, snapshots original state once.
+router.post('/:pitcherId/change-zone', isLoggedIn, async (req, res) => {
+    try {
+        const pitcher   = await Pitcher.findById(req.params.pitcherId);
+        const newZoneId = req.body.zoneId;
+
+        if (!newZoneId || pitcher.zone?.toString() === newZoneId) {
+            return res.redirect(`/teams/${req.params.teamId}/pitchers/${pitcher._id}/edit`);
+        }
+
+        const newZone = await StrikeZone.findById(newZoneId);
+        if (!newZone) return res.redirect(`/teams/${req.params.teamId}/pitchers/${pitcher._id}/edit`);
+
+        // Only snapshot if one doesn't already exist — this preserves the
+        // original zone/locations across multiple zone changes, so revert
+        // always takes the coach back to where they started, not just one step back.
+        if (!pitcher.previousZone) {
+            pitcher.previousZone       = pitcher.zone;
+            pitcher.previousPitchTypes = JSON.parse(JSON.stringify(pitcher.pitchTypes));
+        }
+
+        // Apply new zone and rebuild all locations
+        pitcher.zone = newZoneId;
+        for (let pitchType of pitcher.pitchTypes) {
+            pitchType.locations = newZone.availableLocations.map(loc => ({
+                name:    loc.name,
+                type:    loc.type,
+                enabled: true
+            }));
+        }
+
+        pitcher.markModified('pitchTypes');
+        pitcher.markModified('previousPitchTypes');
+        await pitcher.save();
+        res.redirect(`/teams/${req.params.teamId}/pitchers/${pitcher._id}/edit`);
+    } catch (e) {
+        console.error(e);
+        res.redirect(`/teams/${req.params.teamId}`);
+    }
+});
+
+// ── Revert zone to previous snapshot ─────────────────────────
+router.post('/:pitcherId/revert-zone', isLoggedIn, async (req, res) => {
+    try {
+        const pitcher = await Pitcher.findById(req.params.pitcherId);
+
+        if (!pitcher.previousZone || !pitcher.previousPitchTypes) {
+            return res.redirect(`/teams/${req.params.teamId}/pitchers/${pitcher._id}/edit`);
+        }
+
+        // Restore previous state
+        pitcher.zone       = pitcher.previousZone;
+        pitcher.pitchTypes = pitcher.previousPitchTypes;
+
+        // Clear the snapshot so revert can't be clicked twice
+        pitcher.previousZone       = null;
+        pitcher.previousPitchTypes = null;
+
+        pitcher.markModified('pitchTypes');
+        pitcher.markModified('previousPitchTypes');
+        await pitcher.save();
+        res.redirect(`/teams/${req.params.teamId}/pitchers/${pitcher._id}/edit`);
     } catch (e) {
         console.error(e);
         res.redirect(`/teams/${req.params.teamId}`);
