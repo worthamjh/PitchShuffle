@@ -7,13 +7,14 @@ const PitchLocationSchema = new mongoose.Schema({
 });
 
 const PitchTypeSchema = new mongoose.Schema({
-    name:       { type: String, required: true },
-    signalCode: { type: String },
-    locations:  [PitchLocationSchema]
+    name:         { type: String, required: true },
+    abbreviation: { type: String },
+    signalCode:   { type: String },
+    locations:    [PitchLocationSchema]
 });
 
 const PitcherSchema = new mongoose.Schema({
-    name: { type: String, required: true },
+    name:   { type: String, required: true },
     number: { type: Number },
     throws: { type: String, enum: ['R', 'L'] },
     zone: {

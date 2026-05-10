@@ -7,6 +7,12 @@
     ? `/teams/${team._id}/pitchers/game/${currentPitcherId}`
     : `/teams/${team._id}`;
   const backLabel = currentPitcherId ? 'Back to Game' : 'Back to Team';
+
+  // If we came from an active game, "Add New Pitcher" should return here
+  // (with the from param) after saving, not to the pitcher show page.
+  const addPitcherHref = currentPitcherId
+    ? `/teams/${team._id}/pitchers/new?redirect=/teams/${team._id}/pitchers/game?from=${currentPitcherId}`
+    : `/teams/${team._id}/pitchers/new`;
 %>
 
 <div class="page-header d-flex justify-content-between align-items-center">
@@ -22,7 +28,7 @@
             <i class="bi bi-person-fill display-1 text-muted"></i>
             <h4 class="mt-3 text-muted">No pitchers on this team</h4>
             <p class="text-muted">Add a pitcher before making a change.</p>
-            <a href="/teams/<%= team._id %>/pitchers/new" class="btn btn-primary">
+            <a href="<%= addPitcherHref %>" class="btn btn-primary">
                 <i class="bi bi-plus-circle"></i> Add Pitcher
             </a>
         </div>
@@ -51,7 +57,7 @@
 
     <!-- Add Pitcher link -->
     <div class="text-center mb-4">
-        <a href="/teams/<%= team._id %>/pitchers/new" class="btn btn-outline-secondary">
+        <a href="<%= addPitcherHref %>" class="btn btn-outline-secondary">
             <i class="bi bi-plus-circle"></i> Add New Pitcher
         </a>
     </div>

@@ -24,7 +24,7 @@
             padding: 4px;
             box-sizing: border-box;
             border: 1px solid rgba(0,0,0,0.12);
-            transition: opacity 0.15s ease;
+            transition: background-color 0.15s, border-color 0.15s;
             user-select: none;
             cursor: pointer;
         }
@@ -36,15 +36,25 @@
             .loc-box { width: 108px; height: 108px; font-size: 0.7rem; }
         }
 
-        .loc-box.strike   { background-color: #c8ecd4; border: 1px solid #2e7d4f; color: #155724; }
-        .loc-box.chase    { background-color: #fef3cd; border: 1px solid #d4a017; color: #856404; }
-        .loc-box.disabled { background-color: #e9ecef; border: 1px solid #ced4da; color: #adb5bd; text-decoration: line-through; }
+        .loc-box.strike   { background: #c8ecd4; border-color: #2e7d4f; color: #155724; }
+        .loc-box.chase    { background: #fef3cd; border-color: #d4a017; color: #856404; }
+        .loc-box.disabled { background: #e9ecef; border-color: #ced4da; color: #adb5bd; text-decoration: line-through; }
         .loc-box.empty    { background: transparent; border-color: transparent; cursor: default; pointer-events: none; }
-        .loc-box:not(.empty):hover { opacity: 0.75; }
+        .loc-box.covered  { pointer-events: none; }
+
+        .loc-box.strike:hover   { background: #a8dbb8; border-color: #2e7d4f; }
+        .loc-box.chase:hover    { background: #f5d97a; border-color: #b8860b; }
+        .loc-box.disabled:hover { background: #e9ecef; }
+        .loc-box.empty:hover, .loc-box.covered:hover { background: inherit; }
+
+        /* Font size breakpoints applied to both cells and overlays at once */
+        @media (min-width: 576px) { .loc-box, .chase-overlay { font-size: 0.6rem; } }
+        @media (min-width: 992px) { .loc-box, .chase-overlay { font-size: 0.7rem; } }
 
         .chase-overlay {
             position: absolute;
-            background-color: #fef3cd;
+            z-index: 5;
+            background: #fef3cd;
             border: 1px solid #d4a017;
             color: #856404;
             font-size: 0.55rem;
@@ -56,20 +66,13 @@
             align-items: center;
             justify-content: center;
             box-sizing: border-box;
-            z-index: 5;
             cursor: pointer;
             user-select: none;
-            transition: opacity 0.15s ease;
+            transition: background-color 0.15s, border-color 0.15s;
         }
-        .chase-overlay:hover { opacity: 0.75; }
-        .chase-overlay.disabled {
-            background-color: #e9ecef;
-            border-color: #ced4da;
-            color: #adb5bd;
-            text-decoration: line-through;
-        }
-        @media (min-width: 576px) { .chase-overlay { font-size: 0.6rem; } }
-        @media (min-width: 992px) { .chase-overlay { font-size: 0.7rem; } }
+        .chase-overlay:hover          { background: #f5d97a; border-color: #b8860b; }
+        .chase-overlay.disabled       { background: #e9ecef; border-color: #ced4da; color: #adb5bd; text-decoration: line-through; }
+        .chase-overlay.disabled:hover { background: #e9ecef; border-color: #ced4da; }
 
         .strike-zone-outline {
             position: absolute;
@@ -93,8 +96,8 @@
             margin-bottom: 4px;
         }
 
-        .zone-container       { display: flex; justify-content: center; padding: 1rem 0; }
-        .pitch-section        { border: 1px solid #dee2e6; border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; background: #fff; }
+        .zone-container  { display: flex; justify-content: center; padding: 1rem 0; }
+        .pitch-section   { border: 1px solid #dee2e6; border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; background: #fff; }
         .pitch-section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
     </style>
 
@@ -236,6 +239,7 @@
                                     <% } %>
                                 </div>
                             </div>
+
                         </div>
                     <% } %>
                 </div>
@@ -276,14 +280,14 @@
             'arm-out-up':     { row: 1, col: isRHP ? 5 : 1 },
             'glove-out-mid':  { row: 2, col: isRHP ? 1 : 5, rowSpan: 3 },
             'glove-up':       { row: 2, col: isRHP ? 2 : 4, strike: true },
-            'mid-up':         { row: 2, col: 3, strike: true },
+            'mid-up':         { row: 2, col: 3,              strike: true },
             'arm-up':         { row: 2, col: isRHP ? 4 : 2, strike: true },
             'arm-out-mid':    { row: 2, col: isRHP ? 5 : 1, rowSpan: 3 },
             'glove-mid':      { row: 3, col: isRHP ? 2 : 4, strike: true },
-            'mid-mid':        { row: 3, col: 3, strike: true },
+            'mid-mid':        { row: 3, col: 3,              strike: true },
             'arm-mid':        { row: 3, col: isRHP ? 4 : 2, strike: true },
             'glove-down':     { row: 4, col: isRHP ? 2 : 4, strike: true },
-            'mid-down':       { row: 4, col: 3, strike: true },
+            'mid-down':       { row: 4, col: 3,              strike: true },
             'arm-down':       { row: 4, col: isRHP ? 4 : 2, strike: true },
             'glove-out-down': { row: 5, col: isRHP ? 1 : 5 },
             'down-out':       { row: 5, col: 2 },
@@ -298,9 +302,7 @@
             return ZONE_LAYOUTS_C;
         }
 
-        function isZoneC(locations) {
-            return new Set(locations.map(l => l.name)).has('glove-up');
-        }
+        const isZoneC = locations => new Set(locations.map(l => l.name)).has('glove-up');
 
         const pitchData = JSON.parse(document.getElementById('pitchDataJson').textContent);
 
@@ -310,20 +312,21 @@
             return 'strike';
         }
 
+        // ── Strike zone outline ───────────────────────────────────
         function drawOutline(pitchIndex) {
-            const grid = document.getElementById(`grid-${pitchIndex}`);
+            const grid    = document.getElementById(`grid-${pitchIndex}`);
             const wrapper = document.getElementById(`wrapper-${pitchIndex}`);
             if (!grid || !wrapper) return;
-            const strikeCells = [...grid.querySelectorAll('[data-is-strike="true"]')];
-            if (strikeCells.length === 0) return;
-            const gridRect = grid.getBoundingClientRect();
-            let top = Infinity, left = Infinity, bottom = -Infinity, right = -Infinity;
-            strikeCells.forEach(cell => {
-                const r = cell.getBoundingClientRect();
-                top    = Math.min(top,    r.top    - gridRect.top);
-                left   = Math.min(left,   r.left   - gridRect.left);
-                bottom = Math.max(bottom, r.bottom - gridRect.top);
-                right  = Math.max(right,  r.right  - gridRect.left);
+            const cells = [...grid.querySelectorAll('[data-is-strike="true"]')];
+            if (!cells.length) return;
+            const gr = grid.getBoundingClientRect();
+            let t = Infinity, l = Infinity, b = -Infinity, r = -Infinity;
+            cells.forEach(c => {
+                const cr = c.getBoundingClientRect();
+                t = Math.min(t, cr.top    - gr.top);
+                l = Math.min(l, cr.left   - gr.left);
+                b = Math.max(b, cr.bottom - gr.top);
+                r = Math.max(r, cr.right  - gr.left);
             });
             const old = wrapper.querySelector('.strike-zone-outline');
             if (old) old.remove();
@@ -331,125 +334,143 @@
             const labelH  = labelEl ? labelEl.offsetHeight + 4 : 0;
             const outline = document.createElement('div');
             outline.className = 'strike-zone-outline';
-            outline.style.top    = (top + labelH) + 'px';
-            outline.style.left   = left + 'px';
-            outline.style.width  = (right - left) + 'px';
-            outline.style.height = (bottom - top) + 'px';
+            Object.assign(outline.style, {
+                top: (t + labelH) + 'px', left: l + 'px',
+                width: (r - l) + 'px', height: (b - t) + 'px'
+            });
             wrapper.appendChild(outline);
         }
 
+        // ── Chase overlays — matches game.ejs exactly ─────────────
+        // hCells → overlay width/x   vCells → overlay height/y
+        // covered → underlying cells that get pointer-events: none
         function drawOverlays(pitchIndex, pitch) {
-            const grid = document.getElementById(`grid-${pitchIndex}`);
+            const grid    = document.getElementById(`grid-${pitchIndex}`);
             const wrapper = document.getElementById(`wrapper-${pitchIndex}`);
             if (!grid || !wrapper) return;
+
+            // Clear previous overlays and covered flags
             wrapper.querySelectorAll('.chase-overlay').forEach(el => el.remove());
+            grid.querySelectorAll('.loc-box.covered').forEach(el => el.classList.remove('covered'));
+
             if (!isZoneC(pitch.locations)) return;
 
-            const gridRect = grid.getBoundingClientRect();
-            const labelEl  = wrapper.querySelector('.pitchers-view-label');
-            const labelH   = labelEl ? labelEl.offsetHeight + 4 : 0;
+            const gr      = grid.getBoundingClientRect();
+            const labelEl = wrapper.querySelector('.pitchers-view-label');
+            const labelH  = labelEl ? labelEl.offsetHeight + 4 : 0;
 
-            function getCell(locName) {
-                return [...grid.querySelectorAll('.loc-box')]
-                    .find(el => el.dataset.locName === locName);
-            }
+            const getCell = name => [...grid.querySelectorAll('.loc-box')]
+                .find(el => el.dataset.locName === name);
 
-            function spanBounds(locNames) {
-                let top = Infinity, left = Infinity, right = -Infinity, bottom = -Infinity;
-                locNames.forEach(name => {
+            function spanBounds(names) {
+                let t = Infinity, l = Infinity, r = -Infinity, b = -Infinity;
+                names.forEach(name => {
                     const el = getCell(name);
                     if (!el) return;
-                    const r = el.getBoundingClientRect();
-                    top    = Math.min(top,    r.top    - gridRect.top);
-                    left   = Math.min(left,   r.left   - gridRect.left);
-                    right  = Math.max(right,  r.right  - gridRect.left);
-                    bottom = Math.max(bottom, r.bottom - gridRect.top);
+                    const cr = el.getBoundingClientRect();
+                    t = Math.min(t, cr.top    - gr.top);
+                    l = Math.min(l, cr.left   - gr.left);
+                    r = Math.max(r, cr.right  - gr.left);
+                    b = Math.max(b, cr.bottom - gr.top);
                 });
-                return { top, left, right, bottom };
+                return { t, l, r, b };
             }
 
-            function makeOverlay(locName, label, hSpanCells, vSpanCells) {
+            // hCells → overlay width/x   vCells → overlay height/y
+            // covered → underlying cells that get pointer-events: none
+            function makeOverlay(locName, label, hCells, vCells, covered) {
+                if (!pitch.locations.find(z => z.name === locName)) return;
+                const hb = spanBounds(hCells);
+                const vb = spanBounds(vCells);
+                if (!isFinite(hb.l) || !isFinite(vb.t)) return;
+
                 const locIndex = pitch.locations.findIndex(l => l.name === locName);
-                const loc = pitch.locations[locIndex];
-                const enabled = loc ? loc.enabled : true;
+                const loc      = pitch.locations[locIndex];
+                const enabled  = loc ? loc.enabled : true;
 
-                const hb = spanBounds(hSpanCells);
-                const vb = spanBounds(vSpanCells);
+                const el = document.createElement('div');
+                el.className           = 'chase-overlay' + (enabled ? '' : ' disabled');
+                el.textContent         = label;
+                el.dataset.locName     = locName;
+                el.dataset.pitchIndex  = pitchIndex;
+                el.dataset.locIndex    = locIndex;
+                Object.assign(el.style, {
+                    top:    (vb.t + labelH) + 'px',
+                    left:   hb.l + 'px',
+                    width:  (hb.r - hb.l) + 'px',
+                    height: (vb.b - vb.t) + 'px'
+                });
+                wrapper.appendChild(el);
 
-                const overlay = document.createElement('div');
-                overlay.className = 'chase-overlay' + (enabled ? '' : ' disabled');
-                overlay.textContent = label;
-                overlay.dataset.pitchIndex = pitchIndex;
-                overlay.dataset.locIndex   = locIndex;
-                overlay.dataset.locName    = locName;
-                overlay.style.top    = (vb.top  + labelH) + 'px';
-                overlay.style.left   = hb.left + 'px';
-                overlay.style.width  = (hb.right - hb.left) + 'px';
-                overlay.style.height = (vb.bottom - vb.top) + 'px';
-                wrapper.appendChild(overlay);
+                covered.forEach(name => {
+                    const cell = getCell(name);
+                    if (cell) cell.classList.add('covered');
+                });
             }
-
-            makeOverlay(
-                'up-out', 'up out',
-                ['arm-up', 'mid-up', 'glove-up'],
-                ['up-out']
-            );
-            makeOverlay(
-                'down-out', 'down out',
-                ['arm-down', 'mid-down', 'glove-down'],
-                ['down-out']
-            );
 
             const armOutName   = isRHP ? 'arm-out-mid'   : 'glove-out-mid';
             const gloveOutName = isRHP ? 'glove-out-mid' : 'arm-out-mid';
-            const armLabel     = isRHP ? 'arm out'       : 'glove out';
-            const gloveLabel   = isRHP ? 'glove out'     : 'arm out';
-            const armStrikeCells   = isRHP
-                ? ['arm-up',   'arm-mid',   'arm-down']
-                : ['glove-up', 'glove-mid', 'glove-down'];
-            const gloveStrikeCells = isRHP
-                ? ['glove-up', 'glove-mid', 'glove-down']
-                : ['arm-up',   'arm-mid',   'arm-down'];
+            const armCells     = isRHP ? ['arm-up',   'arm-mid',   'arm-down']   : ['glove-up', 'glove-mid', 'glove-down'];
+            const gloveCells   = isRHP ? ['glove-up', 'glove-mid', 'glove-down'] : ['arm-up',   'arm-mid',   'arm-down'];
 
-            makeOverlay(armOutName,   armLabel,   [armOutName],   armStrikeCells);
-            makeOverlay(gloveOutName, gloveLabel, [gloveOutName], gloveStrikeCells);
+            // Strike cells are only used to MEASURE overlay dimensions — they don't
+            // sit underneath the overlays, so nothing needs to be covered.
+            makeOverlay('up-out',      'up out',
+                ['arm-up', 'mid-up', 'glove-up'],       ['up-out'],   []);
+            makeOverlay('down-out',    'down out',
+                ['arm-down', 'mid-down', 'glove-down'],  ['down-out'], []);
+            makeOverlay(armOutName,   isRHP ? 'arm out'   : 'glove out',
+                [armOutName],   armCells,   []);
+            makeOverlay(gloveOutName, isRHP ? 'glove out' : 'arm out',
+                [gloveOutName], gloveCells, []);
         }
 
+        // ── Build grid ────────────────────────────────────────────
         function buildGrid(pitchIndex) {
             const pitch = pitchData[pitchIndex];
             if (!pitch || !pitch.locations) return;
-            const grid = document.getElementById(`grid-${pitchIndex}`);
-            if (!grid) return;
+            const grid    = document.getElementById(`grid-${pitchIndex}`);
+            const wrapper = document.getElementById(`wrapper-${pitchIndex}`);
+            if (!grid || !wrapper) return;
+
             grid.innerHTML = '';
-            const layout = getZoneLayouts(pitch.locations);
-            const maxRow = Math.max(...Object.values(layout).map(p => (p.row || 1) + (p.rowSpan || 1) - 1));
-            const maxCol = Math.max(...Object.values(layout).map(p => (p.col || 1) + (p.colSpan || 1) - 1));
+            wrapper.querySelectorAll('.chase-overlay, .strike-zone-outline').forEach(el => el.remove());
+
+            const layout  = getZoneLayouts(pitch.locations);
+            const maxRow  = Math.max(...Object.values(layout).map(p => (p.row || 1) + (p.rowSpan || 1) - 1));
+            const maxCol  = Math.max(...Object.values(layout).map(p => (p.col || 1) + (p.colSpan || 1) - 1));
             const boxSize = window.innerWidth >= 992 ? 108 : window.innerWidth >= 576 ? 88 : 70;
+
             grid.style.gridTemplateRows    = `repeat(${maxRow}, ${boxSize}px)`;
             grid.style.gridTemplateColumns = `repeat(${maxCol}, ${boxSize}px)`;
-            pitch.locations.forEach((loc, j) => {
+
+            pitch.locations.forEach((loc, locIndex) => {
                 const pos = layout[loc.name];
                 if (!pos) return;
                 const box = document.createElement('div');
-                box.className = `loc-box ${getBoxClass(loc)}`;
-                box.textContent = loc.name.replace(/-/g, ' ');
-                box.dataset.pitch    = pitchIndex;
-                box.dataset.loc      = j;
-                box.dataset.enabled  = loc.enabled;
-                box.dataset.isStrike = pos.strike ? 'true' : 'false';
+                box.className        = `loc-box ${getBoxClass(loc)}`;
+                box.textContent      = loc.name.replace(/-/g, ' ');
                 box.dataset.locName  = loc.name;
+                box.dataset.isStrike = pos.strike ? 'true' : 'false';
+                box.dataset.pitch    = pitchIndex;
+                box.dataset.loc      = locIndex;
+                box.dataset.enabled  = loc.enabled;
                 box.style.gridRow    = pos.rowSpan ? `${pos.row} / span ${pos.rowSpan}` : String(pos.row);
                 box.style.gridColumn = pos.colSpan ? `${pos.col} / span ${pos.colSpan}` : String(pos.col);
                 grid.appendChild(box);
             });
+
             requestAnimationFrame(() => {
                 drawOutline(pitchIndex);
                 drawOverlays(pitchIndex, pitch);
             });
         }
 
+        // Build all grids on load; rebuild on resize
         pitchData.forEach((pitch, i) => buildGrid(i));
+        window.addEventListener('resize', () => pitchData.forEach((pitch, i) => buildGrid(i)));
 
+        // ── View toggle ───────────────────────────────────────────
         document.getElementById('visualMode').addEventListener('change', () => {
             document.querySelectorAll('.visual-view').forEach(el => el.style.display = 'block');
             document.querySelectorAll('.list-view').forEach(el => el.style.display = 'none');
@@ -463,8 +484,9 @@
             document.querySelectorAll('.list-view').forEach(el => el.style.display = 'block');
         });
 
-        // Click on overlay — toggle the anchor loc
+        // ── Click handler — overlay toggle ────────────────────────
         document.addEventListener('click', (e) => {
+            // Chase overlay clicked — toggle that location's enabled state
             const overlay = e.target.closest('.chase-overlay');
             if (overlay) {
                 const pitchIndex = parseInt(overlay.dataset.pitchIndex);
@@ -472,7 +494,7 @@
                 const pitch      = pitchData[pitchIndex];
                 if (!pitch || locIndex < 0) return;
 
-                const loc = pitch.locations[locIndex];
+                const loc       = pitch.locations[locIndex];
                 const newEnabled = !loc.enabled;
                 loc.enabled = newEnabled;
 
@@ -484,6 +506,7 @@
 
                 overlay.classList.toggle('disabled', !newEnabled);
 
+                // Also update the underlying cell class (even though it's covered)
                 const grid = document.getElementById(`grid-${pitchIndex}`);
                 const box  = grid ? [...grid.querySelectorAll('.loc-box')]
                     .find(el => el.dataset.locName === overlay.dataset.locName) : null;
@@ -495,35 +518,42 @@
                 return;
             }
 
-            // Regular loc-box click
+            // Regular loc-box clicked — skip empty and covered cells
             const box = e.target.closest('.loc-box');
-            if (!box || box.classList.contains('empty')) return;
-            const pitchIdx = box.dataset.pitch;
-            const locIdx   = box.dataset.loc;
+            if (!box || box.classList.contains('empty') || box.classList.contains('covered')) return;
+
+            const pitchIdx   = box.dataset.pitch;
+            const locIdx     = box.dataset.loc;
             const newEnabled = !(box.dataset.enabled === 'true');
             box.dataset.enabled = newEnabled;
+
             const typeInput = document.querySelector(`input[name="pitcher[pitchTypes][${pitchIdx}][locations][${locIdx}][type]"]`);
             const type = typeInput ? typeInput.value : '';
             box.classList.remove('strike', 'chase', 'disabled');
             if (!newEnabled)           box.classList.add('disabled');
             else if (type === 'chase') box.classList.add('chase');
             else                       box.classList.add('strike');
+
             const enabledInput = document.getElementById(`enabled-${pitchIdx}-${locIdx}`);
             if (enabledInput) enabledInput.value = newEnabled;
+
             const checkbox = document.getElementById(`list-loc-${pitchIdx}-${locIdx}`);
             if (checkbox) checkbox.checked = newEnabled;
-            // Refresh overlays in case a covered cell was toggled
+
             drawOverlays(parseInt(pitchIdx), pitchData[parseInt(pitchIdx)]);
         });
 
+        // ── List checkbox change ───────────────────────────────────
         document.addEventListener('change', (e) => {
             const checkbox = e.target.closest('.list-checkbox');
             if (!checkbox) return;
-            const pitchIdx = checkbox.dataset.pitch;
-            const locIdx   = checkbox.dataset.loc;
+            const pitchIdx  = checkbox.dataset.pitch;
+            const locIdx    = checkbox.dataset.loc;
             const newEnabled = checkbox.checked;
+
             const enabledInput = document.getElementById(`enabled-${pitchIdx}-${locIdx}`);
             if (enabledInput) enabledInput.value = newEnabled;
+
             const box = document.querySelector(`.loc-box[data-pitch="${pitchIdx}"][data-loc="${locIdx}"]`);
             if (box) {
                 box.dataset.enabled = newEnabled;
@@ -537,6 +567,7 @@
             drawOverlays(parseInt(pitchIdx), pitchData[parseInt(pitchIdx)]);
         });
 
+        // ── Add / remove pitch type rows ──────────────────────────
         let pitchCount = <%= pitcher.pitchTypes.length %>;
         document.getElementById('addPitch').addEventListener('click', () => {
             const container = document.getElementById('pitchTypes');
