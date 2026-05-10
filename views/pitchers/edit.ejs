@@ -191,13 +191,33 @@
                 <div id="pitchTypes">
                     <% for (var i = 0; i < pitcher.pitchTypes.length; i++) { %>
                         <% var pitch = pitcher.pitchTypes[i]; %>
+                        <%
+                            var knownNames = ['Fastball','Two-Seam Fastball','Cutter','Sinker','Curveball','Slider','Sweeper','Slurve','Changeup','Splitter','Screwball','Knuckleball'];
+                            var presetValue = knownNames.includes(pitch.name) ? pitch.name : 'custom';
+                        %>
                         <div class="pitch-section pitch-type-row">
                             <div class="pitch-section-header">
-                                <div class="d-flex align-items-center gap-2">
-                                    <input type="text" class="form-control fw-bold"
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <select class="form-select pitch-preset" style="max-width:200px;">
+                                        <option value="">-- Select a pitch --</option>
+                                        <option value="Fastball|FB"              <%= presetValue === 'Fastball'           ? 'selected' : '' %>>Fastball (FB)</option>
+                                        <option value="Two-Seam Fastball|2FB"    <%= presetValue === 'Two-Seam Fastball'  ? 'selected' : '' %>>Two-Seam Fastball (2FB)</option>
+                                        <option value="Cutter|CUT"              <%= presetValue === 'Cutter'             ? 'selected' : '' %>>Cutter (CUT)</option>
+                                        <option value="Sinker|SIN"              <%= presetValue === 'Sinker'             ? 'selected' : '' %>>Sinker (SIN)</option>
+                                        <option value="Curveball|CB"            <%= presetValue === 'Curveball'          ? 'selected' : '' %>>Curveball (CB)</option>
+                                        <option value="Slider|SL"               <%= presetValue === 'Slider'             ? 'selected' : '' %>>Slider (SL)</option>
+                                        <option value="Sweeper|SWP"             <%= presetValue === 'Sweeper'            ? 'selected' : '' %>>Sweeper (SWP)</option>
+                                        <option value="Slurve|SLV"              <%= presetValue === 'Slurve'             ? 'selected' : '' %>>Slurve (SLV)</option>
+                                        <option value="Changeup|CH"             <%= presetValue === 'Changeup'           ? 'selected' : '' %>>Changeup (CH)</option>
+                                        <option value="Splitter|SPL"            <%= presetValue === 'Splitter'           ? 'selected' : '' %>>Splitter (SPL)</option>
+                                        <option value="Screwball|SCR"           <%= presetValue === 'Screwball'          ? 'selected' : '' %>>Screwball (SCR)</option>
+                                        <option value="Knuckleball|KN"          <%= presetValue === 'Knuckleball'        ? 'selected' : '' %>>Knuckleball (KN)</option>
+                                        <option value="custom|"                 <%= presetValue === 'custom'             ? 'selected' : '' %>>Custom</option>
+                                    </select>
+                                    <input type="text" class="form-control pitch-name fw-bold"
                                         name="pitcher[pitchTypes][<%= i %>][name]" value="<%= pitch.name %>"
                                         placeholder="Pitch name" style="max-width:160px;">
-                                    <input type="text" class="form-control"
+                                    <input type="text" class="form-control pitch-abbr"
                                         name="pitcher[pitchTypes][<%= i %>][abbreviation]"
                                         value="<%= pitch.abbreviation %>" placeholder="Abbr." style="max-width:80px;">
                                 </div>
@@ -567,6 +587,47 @@
             drawOverlays(parseInt(pitchIdx), pitchData[parseInt(pitchIdx)]);
         });
 
+        // ── Preset dropdown ───────────────────────────────────────
+        const PRESETS_HTML = `
+            <option value="">-- Select a pitch --</option>
+            <option value="Fastball|FB">Fastball (FB)</option>
+            <option value="Two-Seam Fastball|2FB">Two-Seam Fastball (2FB)</option>
+            <option value="Cutter|CUT">Cutter (CUT)</option>
+            <option value="Sinker|SIN">Sinker (SIN)</option>
+            <option value="Curveball|CB">Curveball (CB)</option>
+            <option value="Slider|SL">Slider (SL)</option>
+            <option value="Sweeper|SWP">Sweeper (SWP)</option>
+            <option value="Slurve|SLV">Slurve (SLV)</option>
+            <option value="Changeup|CH">Changeup (CH)</option>
+            <option value="Splitter|SPL">Splitter (SPL)</option>
+            <option value="Screwball|SCR">Screwball (SCR)</option>
+            <option value="Knuckleball|KN">Knuckleball (KN)</option>
+            <option value="custom|">Custom</option>
+        `;
+
+        function applyPreset(select) {
+            const row       = select.closest('.pitch-type-row');
+            const nameInput = row.querySelector('.pitch-name');
+            const abbrInput = row.querySelector('.pitch-abbr');
+            const val = select.value;
+            if (!val) return;
+            if (val === 'custom|') {
+                nameInput.value = '';
+                abbrInput.value = '';
+                nameInput.placeholder = 'Type pitch name';
+                abbrInput.placeholder = 'Type abbr.';
+                nameInput.focus();
+            } else {
+                const [name, abbr] = val.split('|');
+                nameInput.value = name;
+                abbrInput.value = abbr;
+            }
+        }
+
+        document.getElementById('pitchTypes').addEventListener('change', (e) => {
+            if (e.target.classList.contains('pitch-preset')) applyPreset(e.target);
+        });
+
         // ── Add / remove pitch type rows ──────────────────────────
         let pitchCount = <%= pitcher.pitchTypes.length %>;
         document.getElementById('addPitch').addEventListener('click', () => {
@@ -575,11 +636,12 @@
             div.classList.add('pitch-section', 'pitch-type-row');
             div.innerHTML = `
         <div class="pitch-section-header">
-            <div class="d-flex align-items-center gap-2">
-                <input type="text" class="form-control fw-bold"
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <select class="form-select pitch-preset" style="max-width:200px;">${PRESETS_HTML}</select>
+                <input type="text" class="form-control pitch-name fw-bold"
                     name="pitcher[pitchTypes][${pitchCount}][name]"
                     placeholder="Pitch name" style="max-width:160px;">
-                <input type="text" class="form-control"
+                <input type="text" class="form-control pitch-abbr"
                     name="pitcher[pitchTypes][${pitchCount}][abbreviation]"
                     placeholder="Abbr." style="max-width:80px;">
             </div>

@@ -51,18 +51,10 @@ router.get('/new', isLoggedIn, async (req, res) => {
 // Create pitcher
 router.post('/', isLoggedIn, async (req, res) => {
     try {
-        console.log('--- CREATE PITCHER ---');
-        console.log('req.body.pitcher:', JSON.stringify(req.body.pitcher, null, 2));
-
         const team = await Team.findById(req.params.teamId);
         const zone = await StrikeZone.findById(req.body.pitcher.zone);
 
-        console.log('zone found:', zone ? zone.name : 'NULL - zone not found!');
-        if (zone) console.log('zone.availableLocations:', JSON.stringify(zone.availableLocations, null, 2));
-
         const pitcher = new Pitcher({ ...req.body.pitcher });
-
-        console.log('pitcher.pitchTypes after construction:', JSON.stringify(pitcher.pitchTypes, null, 2));
 
         for (let pitchType of pitcher.pitchTypes) {
             pitchType.locations = zone.availableLocations.map(loc => ({
@@ -71,8 +63,6 @@ router.post('/', isLoggedIn, async (req, res) => {
                 enabled: true
             }));
         }
-
-        console.log('pitcher.pitchTypes after location copy:', JSON.stringify(pitcher.pitchTypes, null, 2));
 
         await pitcher.save();
         team.pitchers.push(pitcher);
@@ -90,8 +80,6 @@ router.get('/:pitcherId', isLoggedIn, async (req, res) => {
     try {
         const pitcher = await Pitcher.findById(req.params.pitcherId).populate('zone');
         const team    = await Team.findById(req.params.teamId);
-        console.log('--- SHOW PITCHER ---');
-        console.log('pitcher.pitchTypes:', JSON.stringify(pitcher.pitchTypes, null, 2));
         res.render('pitchers/show', { pitcher, team });
     } catch (e) {
         console.error(e);
@@ -116,11 +104,31 @@ router.get('/:pitcherId/edit', isLoggedIn, async (req, res) => {
 router.put('/:pitcherId', isLoggedIn, async (req, res) => {
     try {
         const pitcher = await Pitcher.findById(req.params.pitcherId);
+        const newZoneId = req.body.pitcher.zone;
+
+        // Detect if the zone has changed
+        const zoneChanged = pitcher.zone?.toString() !== newZoneId?.toString();
+
         pitcher.name       = req.body.pitcher.name;
         pitcher.number     = req.body.pitcher.number;
         pitcher.throws     = req.body.pitcher.throws;
-        pitcher.zone       = req.body.pitcher.zone;
-        pitcher.pitchTypes = req.body.pitcher.pitchTypes;
+        pitcher.zone       = newZoneId;
+        pitcher.pitchTypes = req.body.pitcher.pitchTypes || pitcher.pitchTypes;
+
+        // If the zone changed, rebuild all pitch type locations from the new zone
+        if (zoneChanged && newZoneId) {
+            const newZone = await StrikeZone.findById(newZoneId);
+            if (newZone) {
+                for (let pitchType of pitcher.pitchTypes) {
+                    pitchType.locations = newZone.availableLocations.map(loc => ({
+                        name:    loc.name,
+                        type:    loc.type,
+                        enabled: true
+                    }));
+                }
+            }
+        }
+
         pitcher.markModified('pitchTypes');
         await pitcher.save();
         res.redirect(`/teams/${req.params.teamId}/pitchers/${pitcher._id}`);

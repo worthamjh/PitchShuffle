@@ -432,11 +432,41 @@
         updateButtons();
     }
 
+    // ── Location label map ────────────────────────────────────
+    // Maps internal loc names to natural spoken/display phrases.
+    const LOC_LABELS = {
+        'glove-up':       'glove side up',
+        'glove-mid':      'glove side middle',
+        'glove-down':     'glove side down',
+        'arm-up':         'arm side up',
+        'arm-mid':        'arm side middle',
+        'arm-down':       'arm side down',
+        'mid-up':         'middle up',
+        'mid-mid':        'middle middle',
+        'mid-down':       'middle down',
+        'glove-out-up':   'glove side up and out',
+        'glove-out-mid':  'glove side out',
+        'glove-out-down': 'glove side down and out',
+        'arm-out-up':     'arm side up and out',
+        'arm-out-mid':    'arm side out',
+        'arm-out-down':   'arm side down and out',
+        'up-out':         'up and out',
+        'down-out':       'down and out',
+        'glove-side':     'glove side',
+        'arm-side':       'arm side',
+        'up':             'up',
+        'down':           'down',
+    };
+
+    function locLabel(locName) {
+        return LOC_LABELS[locName] || locName.replace(/-/g, ' ');
+    }
+
     function updateCallBar() {
         const bar = document.getElementById('callBar');
         if (selectedPitchIndex !== null && selectedLocation) {
             const name = pitchTypes[selectedPitchIndex].name;
-            bar.innerHTML = `<span class="call-label">CALL:</span>${name} — ${selectedLocation.replace(/-/g,' ')}`;
+            bar.innerHTML = `<span class="call-label">CALL:</span>${name} — ${locLabel(selectedLocation)}`;
         } else if (selectedPitchIndex !== null) {
             bar.innerHTML = `<span class="call-label">SELECT LOCATION</span>`;
         } else if (selectedLocation) {
@@ -482,7 +512,7 @@
     function speak(pitchName, locName) {
         if (!('speechSynthesis' in window)) return;
         window.speechSynthesis.cancel();
-        const utter  = new SpeechSynthesisUtterance(`${pitchName}, ${locName.replace(/-/g,' ')}`);
+        const utter  = new SpeechSynthesisUtterance(`${pitchName}, ${locLabel(locName)}`);
         utter.rate   = 0.95;
         const bar    = document.getElementById('callBar');
         const dot    = Object.assign(document.createElement('span'), { className: 'speaking-dot' });
