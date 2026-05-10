@@ -90,25 +90,51 @@
         .pitch-section  { border: 1px solid #dee2e6; border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; background: #fff; }
     </style>
 
+    <!-- Page Header -->
     <div class="page-header d-flex justify-content-between align-items-center">
         <h1><i class="bi bi-person-fill"></i> <%= pitcher.name %> #<%= pitcher.number %></h1>
         <div class="d-flex gap-2">
             <a href="/teams/<%= team._id %>/pitchers/<%= pitcher._id %>/edit" class="btn btn-outline-light">
                 <i class="bi bi-pencil"></i> Edit
             </a>
-            <form action="/teams/<%= team._id %>/pitchers/<%= pitcher._id %>?_method=DELETE" method="POST">
-                <button type="submit" class="btn btn-outline-danger">
-                    <i class="bi bi-trash"></i>
-                </button>
-            </form>
+            <button type="button" class="btn btn-outline-danger"
+                    data-bs-toggle="modal" data-bs-target="#deletePitcherModal">
+                <i class="bi bi-trash"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Delete Pitcher Modal -->
+    <div class="modal fade" id="deletePitcherModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius:14px;overflow:hidden;">
+                <div class="modal-header" style="background:#1a2e4a;color:#fff;border:none;">
+                    <h5 class="modal-title">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>Delete Pitcher
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body py-4">
+                    <p class="mb-1">Are you sure you want to delete <strong><%= pitcher.name %> #<%= pitcher.number %></strong>?</p>
+                    <p class="text-muted small mb-0">This will permanently remove the pitcher and all their pitch data. This cannot be undone.</p>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form action="/teams/<%= team._id %>/pitchers/<%= pitcher._id %>?_method=DELETE" method="POST" style="margin:0;">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash"></i> Yes, Delete
+                        </button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Basic Info -->
-                <div class="card mb-4">
-                    <div class="card-header">Basic Info</div>
-                    <div class="card-body">
-                        <div class="row align-items-center">
+    <div class="card mb-4">
+        <div class="card-header">Basic Info</div>
+        <div class="card-body">
+            <div class="row align-items-center">
                 <div class="col-md-5 mb-3 mb-md-0">
                     <p class="text-muted mb-1">Name</p>
                     <p class="fw-bold fs-5"><%= pitcher.name %></p>
@@ -218,14 +244,14 @@
             'arm-out-up':     { row: 1, col: isRHP ? 5 : 1 },
             'glove-out-mid':  { row: 2, col: isRHP ? 1 : 5, rowSpan: 3 },
             'glove-up':       { row: 2, col: isRHP ? 2 : 4, strike: true },
-            'mid-up':         { row: 2, col: 3, strike: true },
+            'mid-up':         { row: 2, col: 3,              strike: true },
             'arm-up':         { row: 2, col: isRHP ? 4 : 2, strike: true },
             'arm-out-mid':    { row: 2, col: isRHP ? 5 : 1, rowSpan: 3 },
             'glove-mid':      { row: 3, col: isRHP ? 2 : 4, strike: true },
-            'mid-mid':        { row: 3, col: 3, strike: true },
+            'mid-mid':        { row: 3, col: 3,              strike: true },
             'arm-mid':        { row: 3, col: isRHP ? 4 : 2, strike: true },
             'glove-down':     { row: 4, col: isRHP ? 2 : 4, strike: true },
-            'mid-down':       { row: 4, col: 3, strike: true },
+            'mid-down':       { row: 4, col: 3,              strike: true },
             'arm-down':       { row: 4, col: isRHP ? 4 : 2, strike: true },
             'glove-out-down': { row: 5, col: isRHP ? 1 : 5 },
             'down-out':       { row: 5, col: 2 },
@@ -256,7 +282,7 @@
         }
 
         function drawOutline(pitchIndex) {
-            const grid = document.getElementById(`grid-${pitchIndex}`);
+            const grid    = document.getElementById(`grid-${pitchIndex}`);
             const wrapper = document.getElementById(`wrapper-${pitchIndex}`);
             if (!grid || !wrapper) return;
             const strikeCells = [...grid.querySelectorAll('[data-is-strike="true"]')];
@@ -284,7 +310,7 @@
         }
 
         function drawOverlays(pitchIndex, pitch) {
-            const grid = document.getElementById(`grid-${pitchIndex}`);
+            const grid    = document.getElementById(`grid-${pitchIndex}`);
             const wrapper = document.getElementById(`wrapper-${pitchIndex}`);
             if (!grid || !wrapper) return;
             wrapper.querySelectorAll('.chase-overlay').forEach(el => el.remove());
@@ -299,43 +325,29 @@
                     .find(el => el.dataset.locName === locName);
             }
 
-            function bounds(el) {
-                const r = el.getBoundingClientRect();
-                return {
-                    top:    r.top    - gridRect.top,
-                    left:   r.left   - gridRect.left,
-                    right:  r.right  - gridRect.left,
-                    bottom: r.bottom - gridRect.top,
-                };
-            }
-
-            // Measure bounding box from a set of reference cells
             function spanBounds(locNames) {
                 let top = Infinity, left = Infinity, right = -Infinity, bottom = -Infinity;
                 locNames.forEach(name => {
                     const el = getCell(name);
                     if (!el) return;
-                    const b = bounds(el);
-                    top    = Math.min(top,    b.top);
-                    left   = Math.min(left,   b.left);
-                    right  = Math.max(right,  b.right);
-                    bottom = Math.max(bottom, b.bottom);
+                    const r = el.getBoundingClientRect();
+                    top    = Math.min(top,    r.top    - gridRect.top);
+                    left   = Math.min(left,   r.left   - gridRect.left);
+                    right  = Math.max(right,  r.right  - gridRect.left);
+                    bottom = Math.max(bottom, r.bottom - gridRect.top);
                 });
                 return { top, left, right, bottom };
             }
 
             function makeOverlay(locName, label, spanCells, heightCells) {
                 const locIndex = pitch.locations.findIndex(l => l.name === locName);
-                const loc = pitch.locations[locIndex];
-                const enabled = loc ? loc.enabled : true;
-
-                // Width/horizontal position from spanCells, height from heightCells
+                const loc      = pitch.locations[locIndex];
+                const enabled  = loc ? loc.enabled : true;
                 const hb = spanBounds(spanCells);
                 const vb = spanBounds(heightCells);
-
                 const overlay = document.createElement('div');
-                overlay.className = 'chase-overlay' + (enabled ? '' : ' disabled');
-                overlay.textContent = label;
+                overlay.className    = 'chase-overlay' + (enabled ? '' : ' disabled');
+                overlay.textContent  = label;
                 overlay.style.top    = (vb.top  + labelH) + 'px';
                 overlay.style.left   = hb.left + 'px';
                 overlay.style.width  = (hb.right - hb.left) + 'px';
@@ -343,38 +355,20 @@
                 wrapper.appendChild(overlay);
             }
 
-            // up-out: width spans cols 2-4 (measured from strike row above),
-            //         height is one row measured from up-out cell itself
-            makeOverlay(
-                'up-out', 'up out',
-                ['arm-up', 'mid-up', 'glove-up'],   // horizontal span = cols 2-4
-                ['up-out']                            // vertical span = row 1
-            );
+            makeOverlay('up-out',   'up out',
+                ['arm-up', 'mid-up', 'glove-up'], ['up-out']);
+            makeOverlay('down-out', 'down out',
+                ['arm-down', 'mid-down', 'glove-down'], ['down-out']);
 
-            // down-out: same idea
-            makeOverlay(
-                'down-out', 'down out',
-                ['arm-down', 'mid-down', 'glove-down'],
-                ['down-out']
-            );
-
-            // arm-out (col 1 rows 2-4): width from arm-out-mid cell, height from strike column
             const armOutName   = isRHP ? 'arm-out-mid'   : 'glove-out-mid';
             const gloveOutName = isRHP ? 'glove-out-mid' : 'arm-out-mid';
             const armLabel     = isRHP ? 'arm out'       : 'glove out';
             const gloveLabel   = isRHP ? 'glove out'     : 'arm out';
 
-            makeOverlay(
-                armOutName, armLabel,
-                [armOutName],                          // horizontal = col 1
-                ['arm-up', 'arm-mid', 'arm-down']      // vertical = rows 2-4
-            );
-
-            makeOverlay(
-                gloveOutName, gloveLabel,
-                [gloveOutName],                        // horizontal = col 5
-                ['glove-up', 'glove-mid', 'glove-down']
-            );
+            makeOverlay(armOutName,   armLabel,
+                [armOutName],   ['arm-up',   'arm-mid',   'arm-down']);
+            makeOverlay(gloveOutName, gloveLabel,
+                [gloveOutName], ['glove-up', 'glove-mid', 'glove-down']);
         }
 
         function buildGrid(pitchIndex) {
@@ -383,18 +377,19 @@
             const grid = document.getElementById(`grid-${pitchIndex}`);
             if (!grid) return;
             grid.innerHTML = '';
-            const layout = getZoneLayouts(pitch.locations);
-            const maxRow = Math.max(...Object.values(layout).map(p => (p.row || 1) + (p.rowSpan || 1) - 1));
-            const maxCol = Math.max(...Object.values(layout).map(p => (p.col || 1) + (p.colSpan || 1) - 1));
+            const layout  = getZoneLayouts(pitch.locations);
+            const maxRow  = Math.max(...Object.values(layout).map(p => (p.row || 1) + (p.rowSpan || 1) - 1));
+            const maxCol  = Math.max(...Object.values(layout).map(p => (p.col || 1) + (p.colSpan || 1) - 1));
             const boxSize = window.innerWidth >= 992 ? 108 : window.innerWidth >= 576 ? 88 : 70;
             grid.style.gridTemplateRows    = `repeat(${maxRow}, ${boxSize}px)`;
             grid.style.gridTemplateColumns = `repeat(${maxCol}, ${boxSize}px)`;
+
             pitch.locations.forEach((loc) => {
                 const pos = layout[loc.name];
                 if (!pos) return;
                 const box = document.createElement('div');
-                box.className = `loc-box ${getBoxClass(loc)}`;
-                box.textContent = loc.name.replace(/-/g, ' ');
+                box.className        = `loc-box ${getBoxClass(loc)}`;
+                box.textContent      = loc.name.replace(/-/g, ' ');
                 box.dataset.isStrike = pos.strike ? 'true' : 'false';
                 box.dataset.locName  = loc.name;
                 box.style.gridRow    = pos.rowSpan ? `${pos.row} / span ${pos.rowSpan}` : String(pos.row);
@@ -408,6 +403,7 @@
         }
 
         pitchData.forEach((pitch, i) => buildGrid(i));
+        window.addEventListener('resize', () => pitchData.forEach((p, i) => buildGrid(i)));
 
         document.getElementById('visualMode').addEventListener('change', () => {
             document.querySelectorAll('.visual-view').forEach(el => el.style.display = 'block');

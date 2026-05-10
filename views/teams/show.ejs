@@ -1,5 +1,46 @@
 <%- layout('layouts/boilerplate') %>
 
+<style>
+    .pitcher-card {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem 1.25rem;
+        background: #fff;
+        border: 2px solid #dee2e6;
+        border-radius: 12px;
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
+        transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+        user-select: none;
+    }
+    .pitcher-card:hover {
+        border-color: #8fa8c8;
+        box-shadow: 0 0 0 3px rgba(26,46,74,0.08);
+        background: #f8fafc;
+        color: inherit;
+        text-decoration: none;
+    }
+    .pitcher-number {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        background: #1a2e4a;
+        color: #fff;
+        font-weight: 700;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    .pitcher-info { flex: 1; }
+    .pitcher-name { font-size: 1.05rem; font-weight: 700; color: #1a2e4a; margin-bottom: 2px; }
+    .pitcher-meta { font-size: 0.82rem; color: #6c757d; }
+    .pitcher-chevron { color: #adb5bd; font-size: 1.1rem; }
+</style>
+
 <div class="page-header d-flex justify-content-between align-items-center">
     <h1><i class="bi bi-shield-fill"></i> <%= team.name %></h1>
     <a href="/teams/<%= team._id %>/pitchers/new" class="btn btn-outline-light">
@@ -19,54 +60,61 @@
         </div>
     </div>
 <% } else { %>
-    <div class="row row-cols-1 row-cols-md-2 g-4">
+    <div class="row row-cols-1 row-cols-md-2 g-3">
         <% for (let pitcher of team.pitchers) { %>
             <div class="col">
-                <div class="card h-100">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <span><i class="bi bi-person-fill"></i> <%= pitcher.name %></span>
-                        <span class="badge bg-light text-dark">#<%= pitcher.number %></span>
+                <a href="/teams/<%= team._id %>/pitchers/<%= pitcher._id %>" class="pitcher-card">
+                    <div class="pitcher-number">#<%= pitcher.number %></div>
+                    <div class="pitcher-info">
+                        <div class="pitcher-name"><%= pitcher.name %></div>
+                        <div class="pitcher-meta">
+                            <%= pitcher.throws === 'R' ? 'RHP' : 'LHP' %>
+                            &middot;
+                            <%= pitcher.pitchTypes.length %> pitch type<%= pitcher.pitchTypes.length !== 1 ? 's' : '' %>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <p class="mb-1">
-                            <i class="bi bi-arrow-left-right"></i>
-                            Throws: <strong><%= pitcher.throws === 'R' ? 'Right' : 'Left' %></strong>
-                        </p>
-                        <p class="mb-0 text-muted">
-                            <i class="bi bi-collection"></i>
-                            <%= pitcher.pitchTypes.length %> pitch type(s)
-                        </p>
-                    </div>
-                    <div class="card-footer d-flex gap-2">
-                        <a href="/teams/<%= team._id %>/pitchers/<%= pitcher._id %>" class="btn btn-primary btn-sm">
-                            <i class="bi bi-eye"></i> View
-                        </a>
-                        <a href="/teams/<%= team._id %>/pitchers/<%= pitcher._id %>/edit" class="btn btn-outline-secondary btn-sm">
-                            <i class="bi bi-pencil"></i> Edit
-                        </a>
-                        <form action="/teams/<%= team._id %>/pitchers/<%= pitcher._id %>?_method=DELETE"
-                            method="POST" class="ms-auto">
-                            <button type="submit" class="btn btn-outline-danger btn-sm">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </form>
-                    </div>
-                </div>
+                    <i class="bi bi-chevron-right pitcher-chevron"></i>
+                </a>
             </div>
         <% } %>
     </div>
 <% } %>
 
-<div class="mt-3 d-flex gap-2">
+<div class="mt-4 d-flex gap-2">
     <a href="/teams" class="btn btn-outline-secondary">
         <i class="bi bi-arrow-left"></i> Back to Teams
     </a>
     <a href="/teams/<%= team._id %>/edit" class="btn btn-outline-secondary">
         <i class="bi bi-pencil"></i> Edit Team
     </a>
-    <form action="/teams/<%= team._id %>?_method=DELETE" method="POST" class="ms-auto">
-        <button type="submit" class="btn btn-outline-danger">
-            <i class="bi bi-trash"></i> Delete Team
-        </button>
-    </form>
+    <button type="button" class="btn btn-outline-danger ms-auto"
+            data-bs-toggle="modal" data-bs-target="#deleteTeamModal">
+        <i class="bi bi-trash"></i> Delete Team
+    </button>
+</div>
+
+<!-- Delete Team Modal -->
+<div class="modal fade" id="deleteTeamModal" tabindex="-1" aria-labelledby="deleteTeamModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:14px;overflow:hidden;">
+            <div class="modal-header" style="background:#1a2e4a;color:#fff;border:none;">
+                <h5 class="modal-title" id="deleteTeamModalLabel">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Delete Team
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body py-4">
+                <p class="mb-1">Are you sure you want to delete <strong><%= team.name %></strong>?</p>
+                <p class="text-muted small mb-0">This will permanently remove the team and all its pitchers. This cannot be undone.</p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="/teams/<%= team._id %>?_method=DELETE" method="POST" style="margin:0;">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash"></i> Yes, Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
