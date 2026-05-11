@@ -17,6 +17,21 @@
         padding: 0.5rem 1rem; font-size: 0.85rem; font-weight: 600;
     }
     .call-bar .call-label { color: var(--ps-navy-muted); font-weight: 400; font-size: 0.75rem; }
+
+    /* ── Zone C: pin font size to fixed values (same as pitcher/edit view)
+       so the user's font-size preference doesn't shift the zone grid layout ── */
+    .zone-col .loc-box,
+    .zone-col .chase-overlay {
+        font-size: 0.55rem;
+    }
+    @media (min-width: 576px) {
+        .zone-col .loc-box,
+        .zone-col .chase-overlay { font-size: 0.6rem; }
+    }
+    @media (min-width: 992px) {
+        .zone-col .loc-box,
+        .zone-col .chase-overlay { font-size: 0.7rem; }
+    }
 </style>
 
 <!-- ── Header ──────────────────────────────────────────────────── -->
@@ -26,12 +41,14 @@
     </a>
     <div class="pitcher-info">
         <div class="pitcher-name">#<%= pitcher.number %> <%= pitcher.name %></div>
-        <div class="pitcher-meta"><%= pitcher.throws === 'R' ? 'RHP' : 'LHP' %></div>
+        <div class="pitcher-meta"><%= pitcher.throws === 'R' ? 'RHP' : 'LHP' %> &middot; <%= pitcher.zone ? pitcher.zone.name : 'No Zone' %></div>
     </div>
-    <a href="/teams/<%= team._id %>/pitchers/game?from=<%= pitcher._id %>" class="btn btn-sm btn-outline-light">Change Pitcher</a>
+    <a href="/teams/<%= team._id %>/pitchers/game?from=<%= pitcher._id %>" class="btn btn-sm btn-outline-light">
+        <i class="bi bi-person-fill"></i>
+    </a>
 </div>
 
-<!-- ── Body ───────────────────────────────────────────────────── -->
+<!-- ── Body ────────────────────────────────────────────────────── -->
 <div class="game-body">
 
     <div class="pitch-col" id="pitchCol">
@@ -55,24 +72,19 @@
 
 </div>
 
-<!-- ── Bottom bar ─────────────────────────────────────────────── -->
+<!-- ── Bottom call bar ───────────────────────────────────────── -->
 <div class="call-bar" id="callBar">
     <span class="call-label">SELECT PITCH & LOCATION</span>
 </div>
 
-<!-- ── Data ───────────────────────────────────────────────────── -->
-<script type="application/json" id="pitcherJson"><%- JSON.stringify({
-    throws:     pitcher.throws,
-    pitchTypes: pitcher.pitchTypes,
-    zone:       pitcher.zone
-}) %></script>
+<!-- ── Data ─────────────────────────────────────────────────── -->
+<script type="application/json" id="pitcherJson"><%- JSON.stringify(pitcher) %></script>
 
 <script>
     const pitcherData   = JSON.parse(document.getElementById('pitcherJson').textContent);
     const isRHP         = pitcherData.throws === 'R';
     const pitchTypes    = pitcherData.pitchTypes || [];
-    const zoneLocations = (pitcherData.zone?.availableLocations || [])
-                            .map(l => ({ ...l, enabled: true }));
+    const zoneLocations = pitcherData.zone ? pitcherData.zone.availableLocations : [];
 
     let selectedPitchIndex = null;
     let selectedLocation   = null;
@@ -149,6 +161,7 @@
 
         // Use math-based positioning — no getBoundingClientRect needed
         drawOutline(layout);
+        if (isZoneC(zoneLocations)) drawOverlays(layout);
         if (selectedLocation) highlightLocation(selectedLocation);
     }
 
@@ -161,7 +174,8 @@
     }
 
     function drawOutline(layout) {
-        const wrapper = document.getElementById('zoneWrapper');
+        const wrapper    = document.getElementById('zoneWrapper');
+        const gridBorder = 2; // .zone-grid has border: 2px — offset overlays into wrapper coords
         const strikePosArr = Object.values(layout).filter(p => p.strike);
         if (!strikePosArr.length) return;
 
@@ -177,10 +191,83 @@
         const outline = document.createElement('div');
         outline.className = 'strike-zone-outline';
         Object.assign(outline.style, {
-            top: t+'px', left: l+'px',
-            width: (r - l)+'px', height: (b - t)+'px'
+            top:    (t + gridBorder) + 'px',
+            left:   (l + gridBorder) + 'px',
+            width:  (r - l) + 'px',
+            height: (b - t) + 'px'
         });
         wrapper.appendChild(outline);
+    }
+
+    // ── Chase overlays (Zone C only) ──────────────────────────
+    // Positions span-overlay rectangles over up-out, down-out, arm-out-mid,
+    // glove-out-mid using the same math-based cellBounds — no getBoundingClientRect.
+    function drawOverlays(layout) {
+        const wrapper = document.getElementById('zoneWrapper');
+        const grid    = document.getElementById('zoneGrid');
+        wrapper.querySelectorAll('.chase-overlay').forEach(el => el.remove());
+
+        // The grid has a 2px border — overlays are relative to wrapper, so offset by that
+        const gridBorder = 2;
+
+        const armOutName   = isRHP ? 'arm-out-mid'   : 'glove-out-mid';
+        const gloveOutName = isRHP ? 'glove-out-mid' : 'arm-out-mid';
+
+        function spanBounds(names) {
+            let t = Infinity, l = Infinity, b = -Infinity, r = -Infinity;
+            names.forEach(name => {
+                const pos = layout[name];
+                if (!pos) return;
+                const bnd = cellBounds(pos);
+                t = Math.min(t, bnd.top);    l = Math.min(l, bnd.left);
+                b = Math.max(b, bnd.bottom); r = Math.max(r, bnd.right);
+            });
+            return { t, l, b, r };
+        }
+
+        function makeOverlay(locName, label, hCellNames, vCellNames, coverAlso = []) {
+            const loc = zoneLocations.find(z => z.name === locName);
+            if (!loc) return;
+            const hb = spanBounds(hCellNames);
+            const vb = spanBounds(vCellNames);
+            if (!isFinite(hb.l) || !isFinite(vb.t)) return;
+
+            // Hide the underlying grid cell(s) — overlay takes over interaction
+            const allToHide = [locName, ...coverAlso];
+            allToHide.forEach(name => {
+                const cell = grid ? [...grid.querySelectorAll('.loc-box')]
+                    .find(el => el.dataset.locName === name) : null;
+                if (cell) cell.classList.add('covered');
+            });
+
+            const el = document.createElement('div');
+            el.className        = 'chase-overlay' + (loc.enabled === false ? ' disabled' : '');
+            el.textContent      = label;
+            el.dataset.locName  = locName;
+            Object.assign(el.style, {
+                top:    (vb.t + gridBorder) + 'px',
+                left:   (hb.l + gridBorder) + 'px',
+                width:  (hb.r - hb.l) + 'px',
+                height: (vb.b - vb.t) + 'px',
+            });
+            wrapper.appendChild(el);
+        }
+
+        // up-out: spans the width of the 3 strike columns (glove-up → arm-up), height of up-out row
+        makeOverlay('up-out',   'up out',
+            ['glove-up', 'mid-up', 'arm-up'], ['up-out']);
+
+        // down-out: same width, height of down-out row
+        makeOverlay('down-out', 'down out',
+            ['glove-down', 'mid-down', 'arm-down'], ['down-out']);
+
+        // arm-out-mid: width of that single column, spans the 3 strike rows only
+        makeOverlay(armOutName,   isRHP ? 'arm out'   : 'glove out',
+            [armOutName], ['glove-up', 'glove-mid', 'glove-down']);
+
+        // glove-out-mid: same
+        makeOverlay(gloveOutName, isRHP ? 'glove out' : 'arm out',
+            [gloveOutName], ['arm-up', 'arm-mid', 'arm-down']);
     }
 
     // ── Selection helpers ─────────────────────────────────────

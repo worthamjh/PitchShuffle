@@ -70,7 +70,12 @@
 
 <!-- ── Visual Preferences ─────────────────────────────────────── -->
 <div class="card mb-4">
-    <div class="card-header fw-bold"><i class="bi bi-palette"></i> Visual Preferences</div>
+    <div class="card-header fw-bold d-flex align-items-center justify-content-between">
+        <span><i class="bi bi-palette"></i> Visual Preferences</span>
+        <button type="button" class="btn btn-sm btn-outline-light" id="restoreDefaultsBtn">
+            <i class="bi bi-arrow-counterclockwise"></i> Restore Defaults
+        </button>
+    </div>
     <div class="card-body">
         <form action="/profile/preferences" method="POST">
 
@@ -193,3 +198,21 @@
 <a href="/teams" class="btn btn-outline-secondary">
     <i class="bi bi-arrow-left"></i> Back to My Teams
 </a>
+
+<script>
+    document.getElementById('restoreDefaultsBtn').addEventListener('click', () => {
+        // Colours
+        document.getElementById('accentColor').value = '#1a2e4a';
+        document.getElementById('strikeColor').value = '#c8ecd4';
+        document.getElementById('chaseColor').value  = '#fef3cd';
+
+        // Theme → Light
+        document.getElementById('themeLight').checked = true;
+        document.getElementById('themeDark').checked  = false;
+
+        // Font size → Medium
+        document.getElementById('font-sm').checked = false;
+        document.getElementById('font-md').checked = true;
+        document.getElementById('font-lg').checked = false;
+    });
+</script>
