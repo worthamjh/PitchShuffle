@@ -23,6 +23,9 @@ const PitcherSchema = new mongoose.Schema({
     },
     pitchTypes: [PitchTypeSchema],
 
+    // Profile photo (Cloudinary URL)
+    photo: { type: String, default: '' },
+
     // Snapshot of previous zone state — used for revert after zone change
     previousZone:       { type: mongoose.Schema.Types.ObjectId, ref: 'StrikeZone', default: null },
     previousPitchTypes: { type: mongoose.Schema.Types.Mixed, default: null }

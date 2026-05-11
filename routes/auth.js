@@ -115,7 +115,7 @@ router.post('/login', passport.authenticate('local', {
 });
 
 // Logout
-router.get('/logout', (req, res) => {
+router.post('/logout', (req, res) => {
     req.logout(function(err) {
         if (err) return next(err);
         res.redirect('/login');

@@ -10,7 +10,10 @@ const TeamSchema = new mongoose.Schema({
     pitchers: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Pitcher'
-    }]
+    }],
+
+    // Team logo (Cloudinary URL)
+    logo: { type: String, default: '' },
 });
 
 module.exports = mongoose.model('Team', TeamSchema);

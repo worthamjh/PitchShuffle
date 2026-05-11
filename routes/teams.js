@@ -1,7 +1,8 @@
 const express = require('express');
-const router = express.Router();
-const Team = require('../models/team');
-const { isLoggedIn } = require('../middleware');
+const router  = express.Router();
+const Team    = require('../models/team');
+const { isLoggedIn }          = require('../middleware');
+const { upload, uploadToCloudinary } = require('../upload');
 
 // All teams for logged in coach
 router.get('/', isLoggedIn, async (req, res) => {
@@ -19,10 +20,17 @@ router.get('/new', isLoggedIn, (req, res) => {
     res.render('teams/new');
 });
 
-// Create team
-router.post('/', isLoggedIn, async (req, res) => {
+// Create team (with optional logo upload)
+router.post('/', isLoggedIn, upload.single('logo'), async (req, res) => {
     try {
         const team = new Team({ ...req.body.team, owner: req.user._id });
+        if (req.file) {
+            team.logo = await uploadToCloudinary(req.file.buffer, 'pitchshuffle/logos', {
+                public_id:      `logo_${team._id}`,
+                overwrite:      true,
+                transformation: [{ width: 400, height: 400, crop: 'fill' }]
+            });
+        }
         await team.save();
         req.user.teams.push(team);
         await req.user.save();
@@ -55,11 +63,20 @@ router.get('/:id/edit', isLoggedIn, async (req, res) => {
     }
 });
 
-// Update team
-router.put('/:id', isLoggedIn, async (req, res) => {
+// Update team (with optional logo upload)
+router.put('/:id', isLoggedIn, upload.single('logo'), async (req, res) => {
     try {
-        await Team.findByIdAndUpdate(req.params.id, { ...req.body.team });
-        res.redirect(`/teams/${req.params.id}`);
+        const team = await Team.findById(req.params.id);
+        team.name = req.body.team.name;
+        if (req.file) {
+            team.logo = await uploadToCloudinary(req.file.buffer, 'pitchshuffle/logos', {
+                public_id:      `logo_${team._id}`,
+                overwrite:      true,
+                transformation: [{ width: 400, height: 400, crop: 'fill' }]
+            });
+        }
+        await team.save();
+        res.redirect(`/teams/${team._id}`);
     } catch (e) {
         console.error(e);
         res.redirect('/teams');
