@@ -33,16 +33,16 @@
             .loc-box { width: 108px; height: 108px; font-size: 0.7rem; }
         }
 
-        .loc-box.strike   { background-color: #c8ecd4; border: 1px solid #2e7d4f; color: #155724; }
-        .loc-box.chase    { background-color: #fef3cd; border: 1px solid #d4a017; color: #856404; }
+        .loc-box.strike   { background-color: var(--strike-bg); border: 1px solid var(--strike-border); color: var(--strike-text); }
+        .loc-box.chase    { background-color: var(--chase-bg); border: 1px solid var(--chase-border); color: var(--chase-text); }
         .loc-box.disabled { background-color: #e9ecef; border: 1px solid #ced4da; color: #adb5bd; text-decoration: line-through; }
         .loc-box.empty    { background: transparent; border-color: transparent; pointer-events: none; }
 
         .chase-overlay {
             position: absolute;
-            background-color: #fef3cd;
-            border: 1px solid #d4a017;
-            color: #856404;
+            background-color: var(--chase-bg);
+            border: 1px solid var(--chase-border);
+            color: var(--chase-text);
             font-size: 0.55rem;
             font-weight: 700;
             text-align: center;
@@ -67,7 +67,7 @@
         .strike-zone-outline {
             position: absolute;
             pointer-events: none;
-            border: 3px solid #1a2e4a;
+            border: 3px solid var(--ps-navy);
             z-index: 10;
         }
 
@@ -108,7 +108,7 @@
     <div class="modal fade" id="deletePitcherModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content" style="border-radius:14px;overflow:hidden;">
-                <div class="modal-header" style="background:#1a2e4a;color:#fff;border:none;">
+                <div class="modal-header" style="background:var(--ps-navy);color:var(--accent-text,#fff);border:none;">
                     <h5 class="modal-title">
                         <i class="bi bi-exclamation-triangle-fill me-2"></i>Delete Pitcher
                     </h5>
@@ -204,11 +204,11 @@
         <!-- Legend -->
         <div class="d-flex gap-3 mb-4 flex-wrap">
             <span class="d-flex align-items-center gap-2">
-                <span style="width:20px;height:20px;background:#c8ecd4;border:2px solid #2e7d4f;display:inline-block;"></span>
+                <span style="width:20px;height:20px;background:var(--strike-bg);border:2px solid var(--strike-border);display:inline-block;"></span>
                 <small>Strike location</small>
             </span>
             <span class="d-flex align-items-center gap-2">
-                <span style="width:20px;height:20px;background:#fef3cd;border:2px solid #d4a017;display:inline-block;"></span>
+                <span style="width:20px;height:20px;background:var(--chase-bg);border:2px solid var(--chase-border);display:inline-block;"></span>
                 <small>Chase</small>
             </span>
             <span class="d-flex align-items-center gap-2">
@@ -216,7 +216,7 @@
                 <small>Disabled</small>
             </span>
             <span class="d-flex align-items-center gap-2">
-                <span style="width:20px;height:20px;border:3px solid #1a2e4a;display:inline-block;"></span>
+                <span style="width:20px;height:20px;border:3px solid var(--ps-navy);display:inline-block;"></span>
                 <small>Strike zone boundary</small>
             </span>
         </div>

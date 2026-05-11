@@ -60,7 +60,7 @@ body {
     letter-spacing: 1px;
 }
 .nav-link {
-    color: var(--accent-text, #ffffff);
+    color: var(--accent-text, #ffffff) !important;
     opacity: 0.85;
     font-weight: 500;
     font-size: 1rem;
@@ -69,6 +69,10 @@ body {
 .nav-link:hover {
     color: var(--accent-text, #ffffff) !important;
     opacity: 1;
+}
+.navbar .nav-link:hover {
+    background-color: var(--ps-navy-hover);
+    border-radius: 6px;
 }
 
 /* ── 4. Cards ──────────────────────────────────────────────── */
@@ -80,11 +84,24 @@ body {
 }
 .card-header {
     background-color: var(--ps-navy);
-    color: #ffffff;
+    color: var(--accent-text, #ffffff);
     border-radius: 12px 12px 0 0 !important;
     font-weight: 600;
     font-size: 1.1rem;
     padding: 1rem 1.25rem;
+}
+
+/* Button used inside card headers — border/text always contrast against
+   the accent background, no matter what colour the user picks */
+.btn-outline-accent {
+    color: var(--accent-text, #ffffff);
+    border-color: var(--accent-text, #ffffff);
+    background: transparent;
+}
+.btn-outline-accent:hover {
+    background: var(--accent-text, #ffffff);
+    color: var(--ps-navy);
+    border-color: var(--accent-text, #ffffff);
 }
 
 /* ── 5. Buttons ────────────────────────────────────────────── */
@@ -114,7 +131,7 @@ body {
 
 .page-header {
     background-color: var(--ps-navy);
-    color: #ffffff;
+    color: var(--accent-text, #ffffff);
     padding: 1.25rem 1.5rem;
     border-radius: 12px;
     margin-bottom: 1.5rem;
@@ -123,6 +140,7 @@ body {
     font-size: 1.6rem;
     font-weight: 700;
     margin: 0;
+    color: var(--accent-text, #ffffff);
 }
 
 main {
@@ -155,7 +173,7 @@ main {
 
 .btn-quick-game {
     background: var(--ps-navy);
-    color: #fff;
+    color: var(--accent-text, #fff);
     font-size: 1.2rem;
     font-weight: 700;
     padding: 1rem 2.5rem;
@@ -172,7 +190,7 @@ main {
 }
 .btn-quick-game:hover {
     background: var(--ps-navy-hover);
-    color: #fff;
+    color: var(--accent-text, #fff);
     transform: translateY(-1px);
     text-decoration: none;
 }
@@ -201,24 +219,25 @@ main {
 }
 
 .btn-new-game {
-    background: #fff;
-    color: var(--ps-navy);
+    background: var(--ps-card-bg);
+    color: var(--ps-text);
     font-size: 1rem;
     font-weight: 700;
     padding: 0.8rem 2rem;
     border-radius: 12px;
-    border: 2px solid var(--ps-navy);
+    border: 2px solid var(--ps-text);
     display: inline-flex;
     align-items: center;
     gap: 0.6rem;
     text-decoration: none;
-    transition: background 0.15s, color 0.15s;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
     width: 100%;
     justify-content: center;
 }
 .btn-new-game:hover {
     background: var(--ps-navy);
-    color: #fff;
+    color: var(--accent-text, #fff);
+    border-color: var(--ps-navy);
     text-decoration: none;
 }
 
@@ -235,20 +254,24 @@ main {
     justify-content: center;
     gap: 0.4rem;
     padding: 1.25rem 0.75rem;
-    background: #fff;
+    background: var(--ps-card-bg);
     border: 2px solid #dee2e6;
     border-radius: 12px;
     text-decoration: none;
-    color: var(--ps-navy);
+    color: var(--ps-text);
     font-weight: 600;
     font-size: 0.85rem;
-    transition: border-color 0.15s, box-shadow 0.15s;
+    transition: background 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s;
 }
 .quick-link-card:hover {
+    background: var(--ps-navy);
     border-color: var(--ps-navy);
+    color: var(--accent-text, #fff);
     box-shadow: 0 0 0 3px rgba(26, 46, 74, 0.1);
-    color: var(--ps-navy);
     text-decoration: none;
+}
+.quick-link-card:hover i {
+    color: var(--accent-text, #fff);
 }
 .quick-link-card i {
     font-size: 1.6rem;
@@ -262,7 +285,7 @@ main {
     gap: 0.75rem;
     padding: 0.6rem 1rem;
     background: var(--ps-navy);
-    color: #fff;
+    color: var(--accent-text, #fff);
     flex-shrink: 0;
 }
 .game-header .pitcher-info { flex: 1; }
@@ -323,7 +346,7 @@ main {
     padding-left: 0.6rem;
 }
 .pitch-btn:hover  { background: #dce6f0; border-left-color: var(--ps-navy); border-color: #8fa8c8; }
-.pitch-btn.active { background: var(--ps-navy); border-color: var(--ps-navy); border-left-color: #4a9edd; color: #fff; }
+.pitch-btn.active { background: var(--ps-navy); border-color: var(--ps-navy); border-left-color: #4a9edd; color: var(--accent-text, #fff); }
 
 .action-btn { border-color: transparent; }
 .btn-random { background: #e8f4fd; border-color: #4a9edd; color: #1a5f8a; }
@@ -335,7 +358,7 @@ main {
 .btn-call {
     background: var(--ps-navy);
     border-color: var(--ps-navy);
-    color: #fff;
+    color: var(--accent-text, #fff);
     margin-top: auto;
     padding: 0.75rem 0.4rem;
     font-size: 0.85rem;
@@ -616,3 +639,45 @@ main {
 }
 [data-theme="dark"] .pitch-btn:hover  { background: #2e4268; }
 [data-theme="dark"] .pitch-btn.active { background: var(--ps-navy); color: var(--accent-text); }
+
+/* ── 18. Dark mode — form text & general readability ──────── */
+[data-theme="dark"] .form-label,
+[data-theme="dark"] .form-check-label,
+[data-theme="dark"] .col-form-label { color: var(--ps-text); }
+[data-theme="dark"] .text-muted,
+[data-theme="dark"] small.text-muted,
+[data-theme="dark"] .form-text { color: var(--ps-muted) !important; }
+[data-theme="dark"] p,
+[data-theme="dark"] span:not(.badge):not(.navbar-brand):not(.speaking-dot):not(.card-header *) {
+    color: var(--ps-text);
+}
+[data-theme="dark"] .card-header,
+[data-theme="dark"] .card-header span,
+[data-theme="dark"] .card-header i {
+    color: var(--accent-text, #ffffff) !important;
+}
+[data-theme="dark"] hr { border-color: #2a3f5a; opacity: 1; }
+[data-theme="dark"] .card-body { color: var(--ps-text); }
+[data-theme="dark"] .alert { background-color: #1a2535; border-color: #2a3f5a; color: var(--ps-text); }
+[data-theme="dark"] .btn-outline-primary { color: var(--ps-navy-muted); border-color: #2a3f5a; }
+[data-theme="dark"] .btn-outline-primary:hover { background: var(--ps-navy); color: var(--accent-text, #fff); border-color: var(--ps-navy); }
+[data-theme="dark"] .zone-image-card { background: #1a2535; border-color: #2a3f5a; }
+[data-theme="dark"] .zone-card-label { color: var(--ps-text); }
+[data-theme="dark"] .zone-card-label small { color: var(--ps-muted); }
+[data-theme="dark"] .zone-display-card { background: #1a2535; }
+[data-theme="dark"] .select-card { background: #1a2535; border-color: #2a3f5a; color: var(--ps-text); }
+[data-theme="dark"] .select-card:hover { border-color: var(--ps-navy-muted); box-shadow: 0 0 0 3px rgba(143, 168, 200, 0.15); }
+[data-theme="dark"] .select-card.selected { background: #243350; border-color: var(--ps-navy-muted); }
+[data-theme="dark"] .select-card .fw-bold,
+[data-theme="dark"] .select-card .fs-5 { color: var(--ps-text); }
+[data-theme="dark"] .select-card .text-muted { color: var(--ps-muted) !important; }
+[data-theme="dark"] .select-card .select-check,
+[data-theme="dark"] .select-card .pitcher-select-check { color: #2a3f5a; }
+[data-theme="dark"] .select-card.selected .select-check,
+[data-theme="dark"] .select-card.selected .pitcher-select-check { color: var(--ps-navy-muted); }
+[data-theme="dark"] .text-dark { color: var(--ps-text) !important; }
+[data-theme="dark"] .pitch-col,
+[data-theme="dark"] .action-col { background: #1a2535; border-color: #2a3f5a; }
+[data-theme="dark"] .pitch-btn { background: #243350; border-color: #2a3f5a; color: var(--ps-navy-muted); border-left-color: var(--ps-navy-muted); }
+[data-theme="dark"] .pitch-btn:hover { background: #2e4268; }
+[data-theme="dark"] .pitch-btn.active { background: var(--ps-navy); color: var(--accent-text, #fff); }

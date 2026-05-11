@@ -96,9 +96,7 @@
             <% } %>
         }
 
-        /* Accent colour text — navbar, card headers, buttons */
-        .navbar-brand,
-        .nav-link,
+        /* Accent colour text — card headers, buttons, page headers */
         .card-header,
         .btn-primary,
         .btn-primary:hover,
@@ -107,10 +105,13 @@
             color: <%= accentText %> !important;
         }
 
-        /* Nav hover: use a shifted background + same contrast text so it's
-           always visible regardless of accent colour (fixes white-on-white) */
+        /* Nav: text colour + hover background both derived from accent */
+        .navbar-brand,
+        .nav-link,
         .nav-link:hover {
             color: <%= accentText %> !important;
+        }
+        .navbar .nav-link:hover {
             background-color: <%= shift(accentHex, 0.15) %>;
             border-radius: 6px;
         }

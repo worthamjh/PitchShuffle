@@ -36,14 +36,14 @@
             .loc-box { width: 108px; height: 108px; font-size: 0.7rem; }
         }
 
-        .loc-box.strike   { background: #c8ecd4; border-color: #2e7d4f; color: #155724; }
-        .loc-box.chase    { background: #fef3cd; border-color: #d4a017; color: #856404; }
+        .loc-box.strike   { background: var(--strike-bg); border-color: var(--strike-border); color: var(--strike-text); }
+        .loc-box.chase    { background: var(--chase-bg); border-color: var(--chase-border); color: var(--chase-text); }
         .loc-box.disabled { background: #e9ecef; border-color: #ced4da; color: #adb5bd; text-decoration: line-through; }
         .loc-box.empty    { background: transparent; border-color: transparent; cursor: default; pointer-events: none; }
         .loc-box.covered  { pointer-events: none; }
 
-        .loc-box.strike:hover   { background: #a8dbb8; border-color: #2e7d4f; }
-        .loc-box.chase:hover    { background: #f5d97a; border-color: #b8860b; }
+        .loc-box.strike:hover   { background: var(--strike-hover); border-color: var(--strike-border); }
+        .loc-box.chase:hover    { background: var(--chase-hover); border-color: var(--chase-hover-border); }
         .loc-box.disabled:hover { background: #e9ecef; }
         .loc-box.empty:hover, .loc-box.covered:hover { background: inherit; }
 
@@ -54,9 +54,9 @@
         .chase-overlay {
             position: absolute;
             z-index: 5;
-            background: #fef3cd;
-            border: 1px solid #d4a017;
-            color: #856404;
+            background: var(--chase-bg);
+            border: 1px solid var(--chase-border);
+            color: var(--chase-text);
             font-size: 0.55rem;
             font-weight: 700;
             text-align: center;
@@ -70,14 +70,14 @@
             user-select: none;
             transition: background-color 0.15s, border-color 0.15s;
         }
-        .chase-overlay:hover          { background: #f5d97a; border-color: #b8860b; }
+        .chase-overlay:hover          { background: var(--chase-hover); border-color: var(--chase-hover-border); }
         .chase-overlay.disabled       { background: #e9ecef; border-color: #ced4da; color: #adb5bd; text-decoration: line-through; }
         .chase-overlay.disabled:hover { background: #e9ecef; border-color: #ced4da; }
 
         .strike-zone-outline {
             position: absolute;
             pointer-events: none;
-            border: 3px solid #1a2e4a;
+            border: 3px solid var(--ps-navy);
             z-index: 10;
         }
 
@@ -120,7 +120,7 @@
 
         /* Active (currently selected) zone card */
         .active-zone {
-            border: 2px solid #1a2e4a !important;
+            border: 2px solid var(--ps-navy) !important;
             box-shadow: 0 0 0 3px rgba(26,46,74,0.15);
             background: #eef2f7;
         }
@@ -231,11 +231,11 @@
                 <!-- Legend -->
                 <div class="d-flex flex-wrap gap-3 mb-3">
                     <span class="d-flex align-items-center gap-2">
-                        <span style="width:20px;height:20px;background:#c8ecd4;border:2px solid #2e7d4f;display:inline-block;"></span>
+                        <span style="width:20px;height:20px;background:var(--strike-bg);border:2px solid var(--strike-border);display:inline-block;"></span>
                         <small>Strike location</small>
                     </span>
                     <span class="d-flex align-items-center gap-2">
-                        <span style="width:20px;height:20px;background:#fef3cd;border:2px solid #d4a017;display:inline-block;"></span>
+                        <span style="width:20px;height:20px;background:var(--chase-bg);border:2px solid var(--chase-border);display:inline-block;"></span>
                         <small>Chase</small>
                     </span>
                     <span class="d-flex align-items-center gap-2">
@@ -243,7 +243,7 @@
                         <small>Disabled</small>
                     </span>
                     <span class="d-flex align-items-center gap-2">
-                        <span style="width:20px;height:20px;border:3px solid #1a2e4a;display:inline-block;"></span>
+                        <span style="width:20px;height:20px;border:3px solid var(--ps-navy);display:inline-block;"></span>
                         <small>Strike zone boundary</small>
                     </span>
                 </div>
