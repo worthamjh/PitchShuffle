@@ -9,42 +9,33 @@
     <link rel="stylesheet" href="/stylesheets/style.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
 
-    <% if (currentUser && currentUser.preferences) { %>
+    <% if (currentUser) { %>
     <%
-        const p      = currentUser.preferences;
-        const isDark = p.theme === 'dark';
+        const p           = currentUser.preferences || {};
+        const isDark      = p.theme === 'dark';
         const fontSizeMap = { sm: '0.65rem', md: '0.75rem', lg: '0.88rem' };
-        const gameFont = fontSizeMap[p.gameFontSize] || '0.75rem';
+        const gameFont    = fontSizeMap[p.gameFontSize] || '0.75rem';
     %>
     <style>
-        /* ── User preference overrides ── */
         :root {
-            --ps-navy:        <%= p.accentColor %>;
-            --ps-navy-dark:   color-mix(in srgb, <%= p.accentColor %> 80%, #000);
-            --ps-navy-hover:  color-mix(in srgb, <%= p.accentColor %> 85%, #fff);
-            --strike-bg:      <%= p.strikeColor %>;
-            --chase-bg:       <%= p.chaseColor %>;
-            <% if (isDark) { %>
-            --ps-bg:          #0f1923;
-            --ps-card-bg:     #1a2535;
-            --ps-text:        #e8edf2;
-            --ps-muted:       #8fa8c8;
-            <% } %>
+            --ps-navy:        <%= p.accentColor || '#1a2e4a' %>;
+            --ps-navy-dark:   color-mix(in srgb, <%= p.accentColor || '#1a2e4a' %> 80%, #000);
+            --ps-navy-hover:  color-mix(in srgb, <%= p.accentColor || '#1a2e4a' %> 85%, #fff);
+            --strike-bg:      <%= p.strikeColor || '#c8ecd4' %>;
+            --chase-bg:       <%= p.chaseColor  || '#fef3cd' %>;
             --game-font-size: <%= gameFont %>;
+            <% if (isDark) { %>
+            --ps-bg:      #0f1923;
+            --ps-card-bg: #1a2535;
+            --ps-text:    #e8edf2;
+            --ps-muted:   #8fa8c8;
+            <% } %>
         }
         <% if (isDark) { %>
-        /* Dark mode overrides */
         body { color-scheme: dark; }
-        .card  { border: 1px solid #2a3f5a; }
-        .form-control, .form-select {
-            background-color: #1a2535;
-            border-color: #2a3f5a;
-            color: #e8edf2;
-        }
-        .form-control:focus, .form-select:focus {
-            background-color: #1a2535;
-            color: #e8edf2;
-        }
+        .card { border: 1px solid #2a3f5a; }
+        .form-control, .form-select { background-color: #1a2535; border-color: #2a3f5a; color: #e8edf2; }
+        .form-control:focus, .form-select:focus { background-color: #1a2535; color: #e8edf2; }
         .btn-outline-secondary { color: #8fa8c8; border-color: #2a3f5a; }
         .btn-outline-secondary:hover { background: #2a3f5a; color: #e8edf2; }
         .text-muted { color: #8fa8c8 !important; }
@@ -61,7 +52,7 @@
             <a class="navbar-brand" href="/">
                 <i class="bi bi-bullseye"></i> PitchShuffle
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
@@ -89,11 +80,9 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <form action="/logout" method="POST" class="d-inline">
-                                <button type="submit" class="nav-link btn btn-link p-0">
-                                    <i class="bi bi-box-arrow-right"></i> Logout
-                                </button>
-                            </form>
+                            <a class="nav-link" href="/logout">
+                                <i class="bi bi-box-arrow-right"></i> Logout
+                            </a>
                         </li>
                     <% } else { %>
                         <li class="nav-item">

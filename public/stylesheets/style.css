@@ -32,9 +32,10 @@
     --chase-hover-border: #b8860b;
 
     /* Game layout */
-    --col-width:     110px;
-    --btn-radius:    8px;
-    --selected-ring: 3px solid var(--ps-navy);
+    --col-width:      110px;
+    --btn-radius:     8px;
+    --selected-ring:  3px solid var(--ps-navy);
+    --game-font-size: 0.75rem; /* overridden per-user via boilerplate <style> block */
 }
 @media (min-width: 768px) {
     :root { --col-width: 130px; }
@@ -343,7 +344,10 @@ main {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.5rem;
+    /* Font size is controlled solely by the user preference variable.
+       Do NOT add media-query font-size overrides here — they fight the preference. */
+    font-size: var(--game-font-size, 0.75rem);
+    line-height: 1.1;
     font-weight: 700;
     text-align: center;
     text-transform: uppercase;
@@ -353,16 +357,15 @@ main {
     border: 1px solid rgba(0, 0, 0, 0.12);
     user-select: none;
     cursor: pointer;
+    overflow: hidden;        /* prevents text from expanding the JS-sized cell */
     transition: background-color 0.15s;
 }
-@media (min-width: 576px) { .loc-box, .chase-overlay { font-size: 0.55rem; } }
-@media (min-width: 992px) { .loc-box, .chase-overlay { font-size: 0.65rem; } }
 
 .loc-box.strike   { background: var(--strike-bg);  border-color: var(--strike-border); color: var(--strike-text); }
 .loc-box.chase    { background: var(--chase-bg);   border-color: var(--chase-border);  color: var(--chase-text);  }
 .loc-box.disabled { background: #e9ecef; border-color: #ced4da; color: #adb5bd; text-decoration: line-through; }
 .loc-box.empty    { background: transparent; border-color: transparent; cursor: default; pointer-events: none; }
-.loc-box.covered  { pointer-events: none; }
+.loc-box.covered  { pointer-events: none; visibility: hidden; }
 
 .loc-box.strike:hover   { background: var(--strike-hover); }
 .loc-box.chase:hover    { background: var(--chase-hover);  }
@@ -377,7 +380,8 @@ main {
     background: var(--chase-bg);
     border: 1px solid var(--chase-border);
     color: var(--chase-text);
-    font-size: 0.5rem;
+    font-size: var(--game-font-size, 0.75rem);
+    line-height: 1.1;
     font-weight: 700;
     text-align: center;
     text-transform: uppercase;
@@ -386,6 +390,7 @@ main {
     align-items: center;
     justify-content: center;
     box-sizing: border-box;
+    overflow: hidden;
     cursor: pointer;
     user-select: none;
     transition: background-color 0.15s, border-color 0.15s;

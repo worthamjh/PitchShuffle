@@ -22,7 +22,6 @@
     }
     @keyframes pulse { from { opacity: 0.3; transform: scale(0.8); } to { opacity: 1; transform: scale(1.2); } }
 
-    /* ── Call bar style for quick-game.ejs (dark navy bar) ───── */
     .call-bar {
         flex-shrink: 0; min-height: 38px;
         background: var(--ps-navy); color: #fff;
@@ -115,6 +114,8 @@
     };
 
     // ── Build grid ────────────────────────────────────────────
+    let _boxSize = 70;
+
     function buildGrid() {
         const grid    = document.getElementById('zoneGrid');
         const wrapper = document.getElementById('zoneWrapper');
@@ -124,10 +125,10 @@
         const layout  = LAYOUTS_C;
         const maxRow  = Math.max(...Object.values(layout).map(p => (p.row||1) + (p.rowSpan||1) - 1));
         const maxCol  = Math.max(...Object.values(layout).map(p => (p.col||1) + (p.colSpan||1) - 1));
-        const boxSize = window.innerWidth >= 992 ? 108 : window.innerWidth >= 576 ? 88 : 70;
+        _boxSize = window.innerWidth >= 992 ? 108 : window.innerWidth >= 576 ? 88 : 70;
 
-        grid.style.gridTemplateRows    = `repeat(${maxRow}, ${boxSize}px)`;
-        grid.style.gridTemplateColumns = `repeat(${maxCol}, ${boxSize}px)`;
+        grid.style.gridTemplateRows    = `repeat(${maxRow}, ${_boxSize}px)`;
+        grid.style.gridTemplateColumns = `repeat(${maxCol}, ${_boxSize}px)`;
 
         zoneLocations.forEach(loc => {
             const pos = layout[loc.name];
@@ -142,81 +143,33 @@
             grid.appendChild(box);
         });
 
-        requestAnimationFrame(() => {
-            drawOutline();
-            drawOverlays();
-            if (selectedLocation) highlightLocation(selectedLocation);
-        });
+        drawOutline(layout);
+        if (selectedLocation) highlightLocation(selectedLocation);
     }
 
-    function drawOutline() {
-        const grid    = document.getElementById('zoneGrid');
-        const wrapper = document.getElementById('zoneWrapper');
-        const cells   = [...grid.querySelectorAll('[data-is-strike="true"]')];
-        if (!cells.length) return;
-        const gr = grid.getBoundingClientRect();
+    function cellBounds(pos) {
+        const top    = (pos.row - 1) * _boxSize;
+        const left   = (pos.col - 1) * _boxSize;
+        const height = (pos.rowSpan || 1) * _boxSize;
+        const width  = (pos.colSpan || 1) * _boxSize;
+        return { top, left, bottom: top + height, right: left + width };
+    }
+
+    function drawOutline(layout) {
+        const wrapper      = document.getElementById('zoneWrapper');
+        const strikePosArr = Object.values(layout).filter(p => p.strike);
+        if (!strikePosArr.length) return;
+
         let t = Infinity, l = Infinity, b = -Infinity, r = -Infinity;
-        cells.forEach(c => {
-            const cr = c.getBoundingClientRect();
-            t = Math.min(t, cr.top    - gr.top);
-            l = Math.min(l, cr.left   - gr.left);
-            b = Math.max(b, cr.bottom - gr.top);
-            r = Math.max(r, cr.right  - gr.left);
+        strikePosArr.forEach(pos => {
+            const bnd = cellBounds(pos);
+            t = Math.min(t, bnd.top);    l = Math.min(l, bnd.left);
+            b = Math.max(b, bnd.bottom); r = Math.max(r, bnd.right);
         });
         const outline = document.createElement('div');
         outline.className = 'strike-zone-outline';
         Object.assign(outline.style, { top: t+'px', left: l+'px', width: (r-l)+'px', height: (b-t)+'px' });
         wrapper.appendChild(outline);
-    }
-
-    function drawOverlays() {
-        const grid    = document.getElementById('zoneGrid');
-        const wrapper = document.getElementById('zoneWrapper');
-        const gr      = grid.getBoundingClientRect();
-        const getCell = name => [...grid.querySelectorAll('.loc-box')]
-            .find(el => el.dataset.locName === name);
-
-        function spanBounds(names) {
-            let t = Infinity, l = Infinity, r = -Infinity, b = -Infinity;
-            names.forEach(name => {
-                const el = getCell(name);
-                if (!el) return;
-                const cr = el.getBoundingClientRect();
-                t = Math.min(t, cr.top    - gr.top);
-                l = Math.min(l, cr.left   - gr.left);
-                r = Math.max(r, cr.right  - gr.left);
-                b = Math.max(b, cr.bottom - gr.top);
-            });
-            return { t, l, r, b };
-        }
-
-        function makeOverlay(locName, label, hCells, vCells, covered) {
-            if (!zoneLocations.find(z => z.name === locName)) return;
-            const hb = spanBounds(hCells);
-            const vb = spanBounds(vCells);
-            if (!isFinite(hb.l) || !isFinite(vb.t)) return;
-            const el = document.createElement('div');
-            el.className       = 'chase-overlay';
-            el.textContent     = label;
-            el.dataset.locName = locName;
-            Object.assign(el.style, {
-                top: vb.t+'px', left: hb.l+'px',
-                width: (hb.r - hb.l)+'px', height: (vb.b - vb.t)+'px'
-            });
-            wrapper.appendChild(el);
-            covered.forEach(name => {
-                const cell = getCell(name);
-                if (cell) cell.classList.add('covered');
-            });
-        }
-
-        const armOutName   = isRHP ? 'arm-out-mid'   : 'glove-out-mid';
-        const gloveOutName = isRHP ? 'glove-out-mid' : 'arm-out-mid';
-        const armCols      = isRHP ? ['arm-up','arm-mid','arm-down']   : ['glove-up','glove-mid','glove-down'];
-        const gloveCols    = isRHP ? ['glove-up','glove-mid','glove-down'] : ['arm-up','arm-mid','arm-down'];
-
-        makeOverlay(armOutName,   armOutName.replace(/-/g,' '),   armCols,   ['mid-up','mid-mid','mid-down'], []);
-        makeOverlay(gloveOutName, gloveOutName.replace(/-/g,' '), gloveCols, ['mid-up','mid-mid','mid-down'], []);
     }
 
     // ── Selection helpers ─────────────────────────────────────
@@ -335,6 +288,11 @@
         window.speechSynthesis.speak(utter);
     }
 
+    // ── Init ─────────────────────────────────────────────────
+    let resizeTimer;
     buildGrid();
-    window.addEventListener('resize', buildGrid);
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(buildGrid, 100);
+    });
 </script>
