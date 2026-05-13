@@ -6,29 +6,31 @@ const Team = require('../models/team');
 const Pitcher = require('../models/pitcher');
 const { isLoggedIn } = require('../middleware');
 
+function setTeamLocals(res, team) {
+    res.locals.teamColor          = team.primaryColor   || '#1a2e4a';
+    res.locals.teamSecondaryColor = team.secondaryColor || '#4a7fa5';
+    res.locals.teamStrikeColor    = team.strikeColor    || '#c8ecd4';
+    res.locals.teamChaseColor     = team.chaseColor     || '#fef3cd';
+}
+
 // ── Home ──────────────────────────────────────────────────────
 router.get('/', (req, res) => {
-    if (req.isAuthenticated()) {
-        return res.render('home');
-    }
+    if (req.isAuthenticated()) return res.render('home');
     res.redirect('/login');
 });
 
 // ── Quick Game ────────────────────────────────────────────────
-// No setup required — renders the game screen with default pitcher data.
-// Nothing is saved to the database.
 router.get('/quick-game', isLoggedIn, (req, res) => {
     const quickPitcher = {
         number: 1,
         name:   'Pitcher',
         throws: 'R',
         pitchTypes: [
-            { name: 'Fastball',  abbreviation: 'FB'  },
-            { name: 'Curveball', abbreviation: 'CB'  },
-            { name: 'Changeup',  abbreviation: 'CH'  },
-            { name: 'Slider',    abbreviation: 'SL'  },
+            { name: 'Fastball',  abbreviation: 'FB' },
+            { name: 'Curveball', abbreviation: 'CB' },
+            { name: 'Changeup',  abbreviation: 'CH' },
+            { name: 'Slider',    abbreviation: 'SL' },
         ],
-        // Zone C locations — all enabled by default
         zone: {
             availableLocations: [
                 { name: 'glove-up',       type: 'strike', enabled: true },
@@ -56,7 +58,6 @@ router.get('/quick-game', isLoggedIn, (req, res) => {
 
 // ── Game flow ─────────────────────────────────────────────────
 
-// Step 1 — select team
 router.get('/game', isLoggedIn, async (req, res) => {
     try {
         const teams = await Team.find({ owner: req.user._id }).populate('pitchers');
@@ -67,11 +68,11 @@ router.get('/game', isLoggedIn, async (req, res) => {
     }
 });
 
-// Step 2 — select pitcher from chosen team
 router.get('/game/:teamId', isLoggedIn, async (req, res) => {
     try {
         const team = await Team.findById(req.params.teamId).populate('pitchers');
         if (!team) return res.redirect('/game');
+        setTeamLocals(res, team);
         res.render('game/select-pitcher', { team });
     } catch (e) {
         console.error(e);
@@ -81,12 +82,8 @@ router.get('/game/:teamId', isLoggedIn, async (req, res) => {
 
 // ── Auth ──────────────────────────────────────────────────────
 
-// Register form
-router.get('/register', (req, res) => {
-    res.render('auth/register');
-});
+router.get('/register', (req, res) => res.render('auth/register'));
 
-// Register logic
 router.post('/register', async (req, res) => {
     try {
         const { email, username, password } = req.body;
@@ -101,20 +98,13 @@ router.post('/register', async (req, res) => {
     }
 });
 
-// Login form
-router.get('/login', (req, res) => {
-    res.render('auth/login');
-});
+router.get('/login', (req, res) => res.render('auth/login'));
 
-// Login logic
 router.post('/login', passport.authenticate('local', {
     failureRedirect: '/login',
     keepSessionInfo: true
-}), (req, res) => {
-    res.redirect('/');
-});
+}), (req, res) => res.redirect('/'));
 
-// Logout
 router.post('/logout', (req, res) => {
     req.logout(function(err) {
         if (err) return next(err);

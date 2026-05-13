@@ -25,7 +25,12 @@
             <div class="col">
                 <a href="/game/<%= team._id %>" class="select-card text-decoration-none">
                     <div class="select-card-icon">
-                        <i class="bi bi-shield-fill"></i>
+                        <% if (team.logo) { %>
+                            <img src="<%= team.logo %>" alt="<%= team.name %>"
+                                 style="width:48px;height:48px;object-fit:contain;">
+                        <% } else { %>
+                            <i class="bi bi-shield-fill"></i>
+                        <% } %>
                     </div>
                     <div class="select-card-info">
                         <div class="fw-bold fs-5 text-dark"><%= team.name %></div>
@@ -51,18 +56,17 @@
         border-radius: 12px;
         transition: border-color 0.15s, box-shadow 0.15s;
     }
-    .select-card:hover {
-        border-color: #1a2e4a;
-        box-shadow: 0 0 0 3px rgba(26,46,74,0.1);
-    }
     .select-card-icon {
-        width: 48px; height: 48px;
-        border-radius: 50%;
-        background: #1a2e4a;
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
         color: #fff;
         font-size: 1.2rem;
-        display: flex; align-items: center; justify-content: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         flex-shrink: 0;
+        overflow: hidden;
     }
     .select-card-info { flex: 1; }
 </style>

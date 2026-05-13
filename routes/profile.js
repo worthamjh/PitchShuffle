@@ -67,21 +67,15 @@ router.post('/avatar', isLoggedIn, upload.single('avatar'), async (req, res) => 
     }
 });
 
-const HEX_RE = /^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/;
-const sanitizeColor = (val, fallback) => HEX_RE.test(val) ? val : fallback;
-
-// Save visual preferences
+// Save visual preferences (theme + font size only)
 router.post('/preferences', isLoggedIn, async (req, res) => {
     try {
-        const { theme, accentColor, strikeColor, chaseColor, gameFontSize } = req.body;
-        const safeTheme    = ['light', 'dark'].includes(theme)      ? theme      : 'light';
+        const { theme, gameFontSize } = req.body;
+        const safeTheme    = ['light', 'dark'].includes(theme)         ? theme       : 'light';
         const safeFontSize = ['sm', 'md', 'lg'].includes(gameFontSize) ? gameFontSize : 'md';
         await User.findByIdAndUpdate(req.user._id, {
             preferences: {
-                theme:       safeTheme,
-                accentColor: sanitizeColor(accentColor, '#1a3a5c'),
-                strikeColor: sanitizeColor(strikeColor, '#4ade80'),
-                chaseColor:  sanitizeColor(chaseColor,  '#fb923c'),
+                theme:        safeTheme,
                 gameFontSize: safeFontSize
             }
         });

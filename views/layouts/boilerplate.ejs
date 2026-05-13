@@ -16,8 +16,6 @@
         const fontSizeMap = { sm: '0.65rem', md: '0.75rem', lg: '0.88rem' };
         const gameFont    = fontSizeMap[p.gameFontSize] || '0.75rem';
 
-        // ── Luminance helper ──────────────────────────────────────
-        // Returns relative luminance (0–1) of a hex colour.
         function luminance(hex) {
             const h = hex.replace('#', '');
             const toLinear = c => {
@@ -27,26 +25,14 @@
             return 0.2126 * toLinear(0) + 0.7152 * toLinear(2) + 0.0722 * toLinear(4);
         }
 
-        // ── Contrast helper ───────────────────────────────────────
-        // Returns '#ffffff' or '#000000' — whichever has better WCAG contrast.
         function contrastText(hex) {
             const L = luminance(hex);
-            const onWhite = (1.05) / (L + 0.05);
-            const onBlack = (L + 0.05) / (0.05);
-            return onWhite >= onBlack ? '#ffffff' : '#000000';
+            return (1.05 / (L + 0.05)) >= ((L + 0.05) / 0.05) ? '#ffffff' : '#000000';
         }
 
-        // ── Shift helper ──────────────────────────────────────────
-        // Shifts each RGB channel toward white (lighten) or black (darken)
-        // by `amount` (0–1). Direction is chosen automatically so the result
-        // always contrasts against the source — dark colours get lightened,
-        // light colours get darkened. This ensures borders and hover states
-        // are always visible no matter what colour the user picks.
         function shift(hex, amount) {
             const h = hex.replace('#', '');
-            const L = luminance(hex);
-            // For dark colours (L < 0.18), shift toward white; otherwise toward black
-            const lighten = L < 0.18;
+            const lighten = luminance(hex) < 0.18;
             const channels = [0, 2, 4].map(i => {
                 const v = parseInt(h.substring(i, i + 2), 16);
                 return lighten
@@ -56,13 +42,21 @@
             return '#' + channels.map(v => v.toString(16).padStart(2, '0')).join('');
         }
 
-        const accentHex = p.accentColor || '#1a2e4a';
-        const strikeHex = p.strikeColor || '#c8ecd4';
-        const chaseHex  = p.chaseColor  || '#fef3cd';
+        // When a team is in context, use team colors.
+        // Otherwise fall back to brand navy and user strike/chase prefs.
+        const navyHex       = (typeof teamColor !== 'undefined' && teamColor)
+                                ? teamColor : '#1a2e4a';
+        const secondaryHex  = (typeof teamSecondaryColor !== 'undefined' && teamSecondaryColor)
+                                ? teamSecondaryColor : navyHex;
+        const strikeHex     = (typeof teamStrikeColor !== 'undefined' && teamStrikeColor)
+                                ? teamStrikeColor : (p.strikeColor || '#c8ecd4');
+        const chaseHex      = (typeof teamChaseColor !== 'undefined' && teamChaseColor)
+                                ? teamChaseColor  : (p.chaseColor  || '#fef3cd');
 
-        const accentText  = contrastText(accentHex);
-        const strikeText  = contrastText(strikeHex);
-        const chaseText   = contrastText(chaseHex);
+        const navyText      = contrastText(navyHex);
+        const secondaryText = contrastText(secondaryHex);
+        const strikeText    = contrastText(strikeHex);
+        const chaseText     = contrastText(chaseHex);
 
         const strikeBorder = shift(strikeHex, 0.30);
         const strikeHover  = shift(strikeHex, 0.12);
@@ -71,10 +65,14 @@
     %>
     <style>
         :root {
-            --ps-navy:        <%= accentHex %>;
-            --ps-navy-dark:   <%= shift(accentHex, 0.20) %>;
-            --ps-navy-hover:  <%= shift(accentHex, 0.10) %>;
-            --accent-text:    <%= accentText %>;
+            --ps-navy:        <%= navyHex %>;
+            --ps-navy-dark:   <%= shift(navyHex, 0.20) %>;
+            --ps-navy-hover:  <%= shift(navyHex, 0.10) %>;
+            --ps-navy-muted:  <%= shift(navyHex, 0.35) %>;
+            --accent-text:    <%= navyText %>;
+
+            --ps-secondary:      <%= secondaryHex %>;
+            --ps-secondary-text: <%= secondaryText %>;
 
             --strike-bg:      <%= strikeHex %>;
             --strike-border:  <%= strikeBorder %>;
@@ -96,25 +94,24 @@
             <% } %>
         }
 
-        /* Accent colour text — card headers, buttons, page headers */
         .card-header,
         .btn-primary,
         .btn-primary:hover,
         .page-header,
         .page-header h1 {
-            color: <%= accentText %> !important;
+            color: <%= navyText %> !important;
         }
 
-        /* Nav: text colour + hover background both derived from accent */
         .navbar-brand,
         .nav-link,
         .nav-link:hover {
-            color: <%= accentText %> !important;
+            color: <%= navyText %> !important;
         }
         .navbar .nav-link:hover {
-            background-color: <%= shift(accentHex, 0.15) %>;
+            background-color: <%= shift(navyHex, 0.15) %>;
             border-radius: 6px;
         }
+
         <% if (isDark) { %>
         body { color-scheme: dark; }
         .card { border: 1px solid #2a3f5a; }

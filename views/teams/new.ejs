@@ -7,16 +7,58 @@
 <div class="card">
     <div class="card-body p-4">
         <form action="/teams" method="POST" enctype="multipart/form-data">
+
             <div class="mb-4">
                 <label for="name" class="form-label fw-bold">Team Name</label>
                 <input type="text" class="form-control form-control-lg" id="name" name="team[name]"
                     placeholder="e.g. Varsity Bulldogs" required>
             </div>
+
             <div class="mb-4">
                 <label for="logo" class="form-label fw-bold">Team Logo <span class="text-muted fw-normal">(optional)</span></label>
                 <input type="file" class="form-control" id="logo" name="logo" accept="image/*">
                 <div class="form-text">Upload a logo to display on your team page. Max 5MB.</div>
             </div>
+
+            <!-- Team Colors -->
+            <div class="mb-4">
+                <label class="form-label fw-bold">Team Colors <span class="text-muted fw-normal">(optional)</span></label>
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <label for="primaryColor" class="form-label">Primary Color</label>
+                        <div class="d-flex align-items-center gap-2">
+                            <input type="color" class="form-control form-control-color" id="primaryColor"
+                                   name="team[primaryColor]" value="#1a2e4a">
+                            <small class="text-muted">Navbar, headers, buttons</small>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <label for="secondaryColor" class="form-label">Secondary Color</label>
+                        <div class="d-flex align-items-center gap-2">
+                            <input type="color" class="form-control form-control-color" id="secondaryColor"
+                                   name="team[secondaryColor]" value="#4a7fa5">
+                            <small class="text-muted">Pitcher badge circles</small>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <label for="strikeColor" class="form-label">Strike Zone Color</label>
+                        <div class="d-flex align-items-center gap-2">
+                            <input type="color" class="form-control form-control-color" id="strikeColor"
+                                   name="team[strikeColor]" value="#c8ecd4">
+                            <small class="text-muted">Strike zone cells</small>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <label for="chaseColor" class="form-label">Chase Zone Color</label>
+                        <div class="d-flex align-items-center gap-2">
+                            <input type="color" class="form-control form-control-color" id="chaseColor"
+                                   name="team[chaseColor]" value="#fef3cd">
+                            <small class="text-muted">Chase zone cells</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="d-flex gap-2">
                 <button type="submit" class="btn btn-primary btn-lg">
                     <i class="bi bi-check-circle"></i> Create Team
@@ -25,6 +67,7 @@
                     <i class="bi bi-x-circle"></i> Cancel
                 </a>
             </div>
+
         </form>
     </div>
 </div>

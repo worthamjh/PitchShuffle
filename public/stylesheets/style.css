@@ -681,3 +681,107 @@ main {
 [data-theme="dark"] .pitch-btn { background: #243350; border-color: #2a3f5a; color: var(--ps-navy-muted); border-left-color: var(--ps-navy-muted); }
 [data-theme="dark"] .pitch-btn:hover { background: #2e4268; }
 [data-theme="dark"] .pitch-btn.active { background: var(--ps-navy); color: var(--accent-text, #fff); }
+
+/* ─────────────────────────────────────────────────────────────
+   ADD TO style.css — Team colour customisation
+   (paste these rules after the existing :root block, or at the
+   end of the file — they only target team/pitcher card elements)
+   ─────────────────────────────────────────────────────────────
+
+   --team-color is injected per-user via boilerplate.ejs.
+   It falls back to the brand navy so the default looks identical
+   to before for users who haven't customised.
+   ───────────────────────────────────────────────────────────── */
+
+/* ── Team card icon circles (teams/index.ejs) ────────────── */
+.team-icon {
+    background: var(--team-color, #1a2e4a);
+    color: var(--team-color-text, #ffffff);
+}
+
+/* Team card name text */
+.team-name {
+    color: var(--team-color, #1a2e4a);
+}
+
+/* Team card hover border */
+.team-card:hover {
+    border-color: var(--team-color-muted, #8fa8c8);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--team-color, #1a2e4a) 10%, transparent);
+}
+
+/* ── Pitcher number badge circles (teams/show.ejs, game select) ── */
+.pitcher-number,
+.pitcher-badge,
+.pitcher-number-badge,
+.pitcher-select-badge {
+    background: var(--team-color, #1a2e4a);
+    color: var(--team-color-text, #ffffff);
+}
+
+/* Pitcher name text */
+.pitcher-name {
+    color: var(--team-color, #1a2e4a);
+}
+
+/* Pitcher card hover border */
+.pitcher-card:hover {
+    border-color: var(--team-color-muted, #8fa8c8);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--team-color, #1a2e4a) 8%, transparent);
+}
+
+/* ── Select-card icon circles (game/select-team.ejs, game/select-pitcher.ejs) ── */
+.select-card-icon,
+.pitcher-badge {
+    background: var(--team-color, #1a2e4a);
+    color: var(--team-color-text, #ffffff);
+}
+
+/* Select-card hover/selected state */
+.select-card:hover {
+    border-color: var(--team-color, #1a2e4a);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--team-color, #1a2e4a) 10%, transparent);
+}
+.select-card.selected {
+    border-color: var(--team-color, #1a2e4a);
+    background: color-mix(in srgb, var(--team-color, #1a2e4a) 8%, white);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--team-color, #1a2e4a) 12%, transparent);
+}
+.select-card.selected .select-check,
+.select-card.selected .pitcher-select-check {
+    color: var(--team-color, #1a2e4a);
+}
+
+/* ── Dark mode overrides for team-color elements ──────────── */
+[data-theme="dark"] .team-name,
+[data-theme="dark"] .pitcher-name {
+    color: var(--team-color-muted, #8fa8c8);
+}
+[data-theme="dark"] .select-card.selected {
+    background: color-mix(in srgb, var(--team-color, #1a2e4a) 20%, #1a2535);
+    border-color: var(--team-color-muted, #8fa8c8);
+}
+[data-theme="dark"] .select-card.selected .select-check,
+[data-theme="dark"] .select-card.selected .pitcher-select-check {
+    color: var(--team-color-muted, #8fa8c8);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   ADD TO style.css — Secondary color for pitcher badge circles
+   Paste these rules after the existing :root block (or at end).
+   ───────────────────────────────────────────────────────────── */
+
+/* Pitcher number badge circles use the team secondary color */
+.pitcher-number,
+.pitcher-badge,
+.pitcher-number-badge,
+.pitcher-select-badge {
+    background: var(--ps-secondary, #4a7fa5);
+    color: var(--ps-secondary-text, #ffffff);
+}
+
+/* Team icon circle on teams/index also uses secondary */
+.team-icon {
+    background: var(--ps-secondary, #4a7fa5);
+    color: var(--ps-secondary-text, #ffffff);
+}

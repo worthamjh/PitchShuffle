@@ -25,14 +25,20 @@
     .team-icon {
         width: 52px;
         height: 52px;
-        border-radius: 50%;
-        background: #1a2e4a;
-        color: #fff;
+        border-radius: 10px;
+        background: #f0f0f0;
+        color: #8fa8c8;
         font-size: 1.3rem;
         display: flex;
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
+        overflow: hidden;
+    }
+    .team-icon img {
+        width: 52px;
+        height: 52px;
+        object-fit: contain;
     }
     .team-info { flex: 1; }
     .team-name { font-size: 1.05rem; font-weight: 700; color: #1a2e4a; margin-bottom: 2px; }
@@ -64,7 +70,11 @@
             <div class="col">
                 <a href="/teams/<%= team._id %>" class="team-card">
                     <div class="team-icon">
-                        <i class="bi bi-shield-fill"></i>
+                        <% if (team.logo) { %>
+                            <img src="<%= team.logo %>" alt="<%= team.name %>">
+                        <% } else { %>
+                            <i class="bi bi-shield-fill"></i>
+                        <% } %>
                     </div>
                     <div class="team-info">
                         <div class="team-name"><%= team.name %></div>

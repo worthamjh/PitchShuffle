@@ -16,16 +16,14 @@ const UserSchema = new mongoose.Schema({
     // Profile picture (Cloudinary URL)
     avatar: { type: String, default: '' },
 
-    // Visual preferences
+    // User-level preferences (theme and font size only)
+    // Strike/chase/team colors are configured per team on the team edit page
     preferences: {
         theme:        { type: String, enum: ['light', 'dark'], default: 'light' },
-        accentColor:  { type: String, default: '#1a2e4a' },
-        strikeColor:  { type: String, default: '#c8ecd4' },
-        chaseColor:   { type: String, default: '#fef3cd' },
         gameFontSize: { type: String, enum: ['sm', 'md', 'lg'], default: 'md' },
     }
 });
 
-UserSchema.plugin(passportLocalMongoose); // adds username + password hashing
+UserSchema.plugin(passportLocalMongoose);
 
 module.exports = mongoose.model('User', UserSchema);

@@ -43,8 +43,8 @@
         <div class="pitcher-name">#<%= pitcher.number %> <%= pitcher.name %></div>
         <div class="pitcher-meta"><%= pitcher.throws === 'R' ? 'RHP' : 'LHP' %> &middot; <%= pitcher.zone ? pitcher.zone.name : 'No Zone' %></div>
     </div>
-    <a href="/teams/<%= team._id %>/pitchers/game?from=<%= pitcher._id %>" class="btn btn-sm btn-outline-light">
-        <i class="bi bi-person-fill"></i>
+<a href="/teams/<%= team._id %>/pitchers/game?from=<%= pitcher._id %>" class="btn btn-sm btn-outline-light">
+        <i class="bi bi-person-fill"></i> Change Pitcher
     </a>
 </div>
 

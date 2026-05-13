@@ -68,6 +68,7 @@
     </div>
 </div>
 
+
 <!-- ── Visual Preferences ─────────────────────────────────────── -->
 <div class="card mb-4">
     <div class="card-header fw-bold d-flex align-items-center justify-content-between">
@@ -100,38 +101,7 @@
                 </div>
             </div>
 
-            <!-- Colours -->
-            <div class="row mb-4">
-                <div class="col-sm-4 mb-3 mb-sm-0">
-                    <label for="accentColor" class="form-label fw-bold">Accent Colour</label>
-                    <div class="d-flex align-items-center gap-2">
-                        <input type="color" class="form-control form-control-color" id="accentColor"
-                               name="accentColor"
-                               value="<%= (user.preferences && user.preferences.accentColor) ? user.preferences.accentColor : '#1a2e4a' %>">
-                        <small class="text-muted">Navbar, buttons, headers</small>
-                    </div>
-                </div>
-                <div class="col-sm-4 mb-3 mb-sm-0">
-                    <label for="strikeColor" class="form-label fw-bold">Strike Zone Colour</label>
-                    <div class="d-flex align-items-center gap-2">
-                        <input type="color" class="form-control form-control-color" id="strikeColor"
-                               name="strikeColor"
-                               value="<%= (user.preferences && user.preferences.strikeColor) ? user.preferences.strikeColor : '#c8ecd4' %>">
-                        <small class="text-muted">Strike locations</small>
-                    </div>
-                </div>
-                <div class="col-sm-4">
-                    <label for="chaseColor" class="form-label fw-bold">Chase Zone Colour</label>
-                    <div class="d-flex align-items-center gap-2">
-                        <input type="color" class="form-control form-control-color" id="chaseColor"
-                               name="chaseColor"
-                               value="<%= (user.preferences && user.preferences.chaseColor) ? user.preferences.chaseColor : '#fef3cd' %>">
-                        <small class="text-muted">Chase locations</small>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Game font size -->
+            <!-- Game View Font Size -->
             <div class="mb-4">
                 <label class="form-label fw-bold">Game View Font Size</label>
                 <div class="d-flex gap-3">
@@ -146,7 +116,15 @@
                         </div>
                     <% }); %>
                 </div>
-                <small class="text-muted">Controls the size of pitch type and location labels in the game view.</small>
+                <small class="text-muted">Controls pitch type and location label sizes in the game view.</small>
+            </div>
+
+            <div class="mb-2">
+                <small class="text-muted">
+                    <i class="bi bi-info-circle"></i>
+                    Strike zone and chase zone colors are set per team on the
+                    <a href="/teams">team edit page</a>.
+                </small>
             </div>
 
             <button type="submit" class="btn btn-primary">
@@ -155,6 +133,37 @@
         </form>
     </div>
 </div>
+
+<script>
+document.getElementById('restoreDefaultsBtn').addEventListener('click', () => {
+    document.getElementById('themeLight').checked = true;
+    document.getElementById('themeDark').checked  = false;
+    document.getElementById('font-sm').checked    = false;
+    document.getElementById('font-md').checked    = true;
+    document.getElementById('font-lg').checked    = false;
+});
+</script>
+
+
+<script>
+document.getElementById('restoreDefaultsBtn').addEventListener('click', () => {
+    const teamColorInput = document.getElementById('teamColor');
+    if (teamColorInput) teamColorInput.value = '#1a2e4a';
+
+    const strikeColorInput = document.getElementById('strikeColor');
+    if (strikeColorInput) strikeColorInput.value = '#c8ecd4';
+
+    const chaseColorInput = document.getElementById('chaseColor');
+    if (chaseColorInput) chaseColorInput.value = '#fef3cd';
+
+    document.getElementById('themeLight').checked = true;
+
+    const fontMd = document.getElementById('fontMd');
+    if (fontMd) fontMd.checked = true;
+});
+</script>
+
+
 
 <!-- ── Update Email ───────────────────────────────────────────── -->
 <div class="card mb-4">
