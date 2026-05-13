@@ -1,6 +1,13 @@
 <%- layout('layouts/boilerplate') %>
 
 <style>
+    .pitch-signal-code {
+    display: block;
+    font-size: 0.7em;
+    font-weight: 400;
+    opacity: 0.7;
+    margin-top: 1px;
+}
     /* ── Page-specific only: speaking dot animation ─────────── */
     .speaking-dot {
         display: inline-block; width: 8px; height: 8px; border-radius: 50%;
@@ -53,7 +60,12 @@
 
     <div class="pitch-col" id="pitchCol">
         <% pitcher.pitchTypes.forEach(function(pt, i) { %>
-            <button class="pitch-btn" data-pitch-index="<%= i %>"><%= pt.name %></button>
+            <button class="pitch-btn" data-pitch-index="<%= i %>">
+                <%= pt.name %>
+                <% if (pt.signalCode) { %>
+                    <span class="pitch-signal-code"><%= pt.signalCode %></span>
+                <% } %>
+            </button>
         <% }); %>
     </div>
 
@@ -332,7 +344,9 @@
         const bar = document.getElementById('callBar');
         if (selectedPitchIndex !== null && selectedLocation) {
             const name = pitchTypes[selectedPitchIndex].name;
-            bar.innerHTML = `<span class="call-label">CALL:</span>${name} — ${locLabel(selectedLocation)}`;
+            const signal = pitchTypes[selectedPitchIndex].signalCode;
+            const signalStr = signal ? ` <span style="opacity:0.7;font-size:0.8em;">[${signal}]</span>` : '';
+            bar.innerHTML = `<span class="call-label">CALL:</span>${name}${signalStr} — ${locLabel(selectedLocation)}`;
         } else if (selectedPitchIndex !== null) {
             bar.innerHTML = `<span class="call-label">SELECT LOCATION</span>`;
         } else if (selectedLocation) {
@@ -384,17 +398,38 @@
         updateButtons();
     });
 
-    function speak(pitchName, locName) {
-        if (!('speechSynthesis' in window)) return;
-        window.speechSynthesis.cancel();
-        const utter = new SpeechSynthesisUtterance(`${pitchName}, ${locLabel(locName)}`);
-        utter.rate  = 0.95;
-        const bar   = document.getElementById('callBar');
-        const dot   = Object.assign(document.createElement('span'), { className: 'speaking-dot' });
+function speak(pitchName, locName) {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(`${pitchName}, ${locLabel(locName)}`);
+    utter.rate  = 0.95;
+
+    // Apply saved voice — fetch voices fresh each time as they may not
+    // be loaded yet if called early, and use a small delay if list is empty
+    function applyVoiceAndSpeak() {
+        const savedURI = window.PS_VOICE_URI || '';
+        if (savedURI) {
+            const voices = window.speechSynthesis.getVoices();
+            const match  = voices.find(v => v.voiceURI === savedURI);
+            if (match) utter.voice = match;
+        }
+        const bar = document.getElementById('callBar');
+        const dot = Object.assign(document.createElement('span'), { className: 'speaking-dot' });
         utter.onstart = () => bar.appendChild(dot);
         utter.onend = utter.onerror = () => dot.parentNode?.removeChild(dot);
         window.speechSynthesis.speak(utter);
     }
+
+    // Voices may not be loaded yet on first call
+    if (window.speechSynthesis.getVoices().length) {
+        applyVoiceAndSpeak();
+    } else {
+        window.speechSynthesis.onvoiceschanged = () => {
+            window.speechSynthesis.onvoiceschanged = null;
+            applyVoiceAndSpeak();
+        };
+    }
+}
 
     // ── Init ─────────────────────────────────────────────────
     let resizeTimer;

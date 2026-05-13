@@ -281,6 +281,10 @@
                                     <input type="text" class="form-control pitch-abbr"
                                         name="pitcher[pitchTypes][<%= i %>][abbreviation]"
                                         value="<%= pitch.abbreviation %>" placeholder="Abbr." style="max-width:80px;">
+                                    <input type="text" class="form-control"
+                                        name="pitcher[pitchTypes][<%= i %>][signalCode]"
+                                        value="<%= pitch.signalCode || '' %>" placeholder="Signal" style="max-width:90px;"
+                                        title="Signal code shown during game">
                                 </div>
                                 <button type="button" class="btn btn-outline-danger btn-sm remove-pitch">
                                     <i class="bi bi-trash"></i>
@@ -705,6 +709,10 @@
                 <input type="text" class="form-control pitch-abbr"
                     name="pitcher[pitchTypes][${pitchCount}][abbreviation]"
                     placeholder="Abbr." style="max-width:80px;">
+                <input type="text" class="form-control"
+                    name="pitcher[pitchTypes][${pitchCount}][signalCode]"
+                    placeholder="Signal" style="max-width:90px;"
+                    title="Signal code shown during game">
             </div>
             <button type="button" class="btn btn-outline-danger btn-sm remove-pitch">
                 <i class="bi bi-trash"></i>

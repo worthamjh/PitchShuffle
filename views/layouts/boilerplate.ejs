@@ -125,6 +125,11 @@
         <% } %>
     </style>
     <% } %>
+    <% if (currentUser) { %>
+    <script>
+        window.PS_VOICE_URI = <%- JSON.stringify(currentUser.preferences && currentUser.preferences.voiceURI || '') %>;
+    </script>
+    <% } %>
 </head>
 
 <body>

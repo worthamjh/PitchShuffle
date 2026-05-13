@@ -67,16 +67,17 @@ router.post('/avatar', isLoggedIn, upload.single('avatar'), async (req, res) => 
     }
 });
 
-// Save visual preferences (theme + font size only)
+// Save visual preferences
 router.post('/preferences', isLoggedIn, async (req, res) => {
     try {
-        const { theme, gameFontSize } = req.body;
+        const { theme, gameFontSize, voiceURI } = req.body;
         const safeTheme    = ['light', 'dark'].includes(theme)         ? theme       : 'light';
         const safeFontSize = ['sm', 'md', 'lg'].includes(gameFontSize) ? gameFontSize : 'md';
         await User.findByIdAndUpdate(req.user._id, {
             preferences: {
                 theme:        safeTheme,
-                gameFontSize: safeFontSize
+                gameFontSize: safeFontSize,
+                voiceURI:     voiceURI || '',
             }
         });
         req.flash('success', 'Preferences saved.');

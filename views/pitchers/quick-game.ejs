@@ -369,17 +369,38 @@
         updateButtons();
     });
 
-    function speak(pitchName, locName) {
-        if (!('speechSynthesis' in window)) return;
-        window.speechSynthesis.cancel();
-        const utter  = new SpeechSynthesisUtterance(`${pitchName}, ${locLabel(locName)}`);
-        utter.rate   = 0.95;
-        const bar    = document.getElementById('callBar');
-        const dot    = Object.assign(document.createElement('span'), { className: 'speaking-dot' });
+function speak(pitchName, locName) {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(`${pitchName}, ${locLabel(locName)}`);
+    utter.rate  = 0.95;
+
+    // Apply saved voice — fetch voices fresh each time as they may not
+    // be loaded yet if called early, and use a small delay if list is empty
+    function applyVoiceAndSpeak() {
+        const savedURI = window.PS_VOICE_URI || '';
+        if (savedURI) {
+            const voices = window.speechSynthesis.getVoices();
+            const match  = voices.find(v => v.voiceURI === savedURI);
+            if (match) utter.voice = match;
+        }
+        const bar = document.getElementById('callBar');
+        const dot = Object.assign(document.createElement('span'), { className: 'speaking-dot' });
         utter.onstart = () => bar.appendChild(dot);
         utter.onend = utter.onerror = () => dot.parentNode?.removeChild(dot);
         window.speechSynthesis.speak(utter);
     }
+
+    // Voices may not be loaded yet on first call
+    if (window.speechSynthesis.getVoices().length) {
+        applyVoiceAndSpeak();
+    } else {
+        window.speechSynthesis.onvoiceschanged = () => {
+            window.speechSynthesis.onvoiceschanged = null;
+            applyVoiceAndSpeak();
+        };
+    }
+}
 
     // ── Init ─────────────────────────────────────────────────
     let resizeTimer;

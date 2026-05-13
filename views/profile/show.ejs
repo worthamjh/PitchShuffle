@@ -119,6 +119,21 @@
                 <small class="text-muted">Controls pitch type and location label sizes in the game view.</small>
             </div>
 
+            <!-- Pitch Call Voice -->
+            <div class="mb-4">
+                <label for="voiceSelect" class="form-label fw-bold">Pitch Call Voice</label>
+                <div class="d-flex align-items-center gap-2">
+                    <select class="form-select" id="voiceSelect" name="voiceURI" style="max-width: 320px;">
+                        <option value="">Default voice</option>
+                        <!-- Populated by JS below -->
+                    </select>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="testVoiceBtn">
+                        <i class="bi bi-play-fill"></i> Test
+                    </button>
+                </div>
+                <small class="text-muted">Voices available on your device. Selection is saved per browser.</small>
+            </div>
+
             <div class="mb-2">
                 <small class="text-muted">
                     <i class="bi bi-info-circle"></i>
@@ -133,6 +148,58 @@
         </form>
     </div>
 </div>
+
+<script>
+// ── Restore defaults ──────────────────────────────────────────
+document.getElementById('restoreDefaultsBtn').addEventListener('click', () => {
+    document.getElementById('themeLight').checked = true;
+    document.getElementById('themeDark').checked  = false;
+    document.getElementById('font-sm').checked    = false;
+    document.getElementById('font-md').checked    = true;
+    document.getElementById('font-lg').checked    = false;
+    document.getElementById('voiceSelect').value  = '';
+});
+
+// ── Voice selector ────────────────────────────────────────────
+const savedVoiceURI = '<%= (user.preferences && user.preferences.voiceURI) ? user.preferences.voiceURI : "" %>';
+
+function populateVoices() {
+    const voices = window.speechSynthesis.getVoices();
+    if (!voices.length) return;
+
+    const select = document.getElementById('voiceSelect');
+    // Clear existing options except the default
+    while (select.options.length > 1) select.remove(1);
+
+    voices.forEach(v => {
+        const opt = document.createElement('option');
+        opt.value       = v.voiceURI;
+        opt.textContent = `${v.name} (${v.lang})`;
+        if (v.voiceURI === savedVoiceURI) opt.selected = true;
+        select.appendChild(opt);
+    });
+}
+
+// Voices load asynchronously on some browsers
+populateVoices();
+if (window.speechSynthesis.onvoiceschanged !== undefined) {
+    window.speechSynthesis.onvoiceschanged = populateVoices;
+}
+
+// ── Test voice button ─────────────────────────────────────────
+document.getElementById('testVoiceBtn').addEventListener('click', () => {
+    if (!('speechSynthesis' in window)) return;
+    const voices    = window.speechSynthesis.getVoices();
+    const selectedURI = document.getElementById('voiceSelect').value;
+    const voice     = voices.find(v => v.voiceURI === selectedURI) || null;
+    window.speechSynthesis.cancel();
+    const utter     = new SpeechSynthesisUtterance('Fastball, glove side down');
+    utter.voice     = voice;
+    utter.rate      = 0.95;
+    window.speechSynthesis.speak(utter);
+});
+</script>
+
 
 <script>
 document.getElementById('restoreDefaultsBtn').addEventListener('click', () => {

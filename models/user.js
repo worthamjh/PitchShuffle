@@ -16,11 +16,12 @@ const UserSchema = new mongoose.Schema({
     // Profile picture (Cloudinary URL)
     avatar: { type: String, default: '' },
 
-    // User-level preferences (theme and font size only)
+    // User-level preferences
     // Strike/chase/team colors are configured per team on the team edit page
     preferences: {
         theme:        { type: String, enum: ['light', 'dark'], default: 'light' },
         gameFontSize: { type: String, enum: ['sm', 'md', 'lg'], default: 'md' },
+        voiceURI:     { type: String, default: '' }, // speech synthesis voice
     }
 });
 
