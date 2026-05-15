@@ -2,9 +2,9 @@
 const _locs  = zone.availableLocations;
 const _names = new Set(_locs.map(l => l.name));
 let _layout = 'C';
-if (_names.has('glove-up'))      _layout = 'D';
-else if (_names.has('arm-side')) _layout = 'A';
-else if (_names.has('up'))       _layout = 'B';
+if (_names.has('glove-up') || _names.has('inside-up'))       _layout = 'D';
+else if (_names.has('arm-side') || _names.has('inside-side')) _layout = 'A';
+else if (_names.has('up'))                                     _layout = 'B';
 %>
 
 <% if (_layout === 'A') { %>

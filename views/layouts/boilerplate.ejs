@@ -126,8 +126,9 @@
     </style>
     <% } %>
     <% if (currentUser) { %>
+    <meta name="ps-voice-uri" content="<%= (currentUser.preferences && currentUser.preferences.voiceURI) || '' %>">
     <script>
-        window.PS_VOICE_URI = <%- JSON.stringify(currentUser.preferences && currentUser.preferences.voiceURI || '') %>;
+        window.PS_VOICE_URI = document.querySelector('meta[name="ps-voice-uri"]').content;
     </script>
     <% } %>
 </head>
@@ -138,7 +139,8 @@
             <a class="navbar-brand" href="/">
                 <i class="bi bi-bullseye"></i> PitchShuffle
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
@@ -166,9 +168,9 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="/logout">
-                                <i class="bi bi-box-arrow-right"></i> Logout
-                            </a>
+                            <form action="/logout" method="POST" class="d-inline">
+                                <button type="submit" class="btn btn-outline-light btn-sm">Logout</button>
+                            </form>
                         </li>
                     <% } else { %>
                         <li class="nav-item">
@@ -199,6 +201,14 @@
                 <i class="bi bi-exclamation-triangle-fill"></i> <%= error %>
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
+        <% } %>
+            <% if (warning && warning.length) { %>
+        <% for (let msg of warning) { %>
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle"></i> <%= msg %>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <% } %>
         <% } %>
     </div>
 

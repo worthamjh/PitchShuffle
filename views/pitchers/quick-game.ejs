@@ -128,6 +128,33 @@
         'arm-out-down':   { row: 5, col: isRHP ? 5 : 1 },
     };
 
+    // ── Inside/Away layout (fixed — no isRHP flip) ────────────
+    const LAYOUTS_C_IA = {
+        'away-out-up':     { row: 1, col: 1 },
+        'up-out':          { row: 1, col: 2 },
+        'inside-out-up':   { row: 1, col: 5 },
+        'away-out-mid':    { row: 2, col: 1, rowSpan: 3 },
+        'away-up':         { row: 2, col: 2, strike: true },
+        'mid-up':          { row: 2, col: 3, strike: true },
+        'inside-up':       { row: 2, col: 4, strike: true },
+        'inside-out-mid':  { row: 2, col: 5, rowSpan: 3 },
+        'away-mid':        { row: 3, col: 2, strike: true },
+        'mid-mid':         { row: 3, col: 3, strike: true },
+        'inside-mid':      { row: 3, col: 4, strike: true },
+        'away-down':       { row: 4, col: 2, strike: true },
+        'mid-down':        { row: 4, col: 3, strike: true },
+        'inside-down':     { row: 4, col: 4, strike: true },
+        'away-out-down':   { row: 5, col: 1 },
+        'down-out':        { row: 5, col: 2 },
+        'inside-out-down': { row: 5, col: 5 },
+    };
+
+    function getLayout(locs) {
+        const n = new Set(locs.map(l => l.name));
+        if (n.has('inside-up')) return LAYOUTS_C_IA;
+        return LAYOUTS_C;
+    }
+
     // ── Build grid ────────────────────────────────────────────
     let _boxSize = 70;
 
@@ -137,7 +164,7 @@
         grid.innerHTML = '';
         wrapper.querySelectorAll('.chase-overlay, .strike-zone-outline').forEach(el => el.remove());
 
-        const layout  = LAYOUTS_C;
+        const layout  = getLayout(zoneLocations);
         const maxRow  = Math.max(...Object.values(layout).map(p => (p.row||1) + (p.rowSpan||1) - 1));
         const maxCol  = Math.max(...Object.values(layout).map(p => (p.col||1) + (p.colSpan||1) - 1));
         _boxSize = window.innerWidth >= 992 ? 108 : window.innerWidth >= 576 ? 88 : 70;
@@ -313,6 +340,20 @@
         'arm-out-down':   'arm side down and out',
         'up-out':         'up and out',
         'down-out':       'down and out',
+        'away-up':          'away up',
+        'away-mid':         'away middle',
+        'away-down':        'away down',
+        'inside-up':        'inside up',
+        'inside-mid':       'inside middle',
+        'inside-down':      'inside down',
+        'away-out-up':      'away up and out',
+        'away-out-mid':     'away out',
+        'away-out-down':    'away down and out',
+        'inside-out-up':    'inside up and out',
+        'inside-out-mid':   'inside out',
+        'inside-out-down':  'inside down and out',
+        'away-side':        'away',
+        'inside-side':      'inside',
     };
     function locLabel(locName) {
         return LOC_LABELS[locName] || locName.replace(/-/g, ' ');

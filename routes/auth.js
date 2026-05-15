@@ -86,8 +86,17 @@ router.get('/register', (req, res) => res.render('auth/register'));
 
 router.post('/register', async (req, res) => {
     try {
-        const { email, username, password } = req.body;
-        const user = new User({ email, username });
+        const { email, username, password, zoneTerminology } = req.body;
+        const safeTerminology = ['arm-glove', 'inside-away'].includes(zoneTerminology)
+            ? zoneTerminology
+            : 'arm-glove';
+        const user = new User({
+            email,
+            username,
+            preferences: {
+                zoneTerminology: safeTerminology,
+            }
+        });
         const registeredUser = await User.register(user, password);
         req.login(registeredUser, err => {
             if (err) return next(err);

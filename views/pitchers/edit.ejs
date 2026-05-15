@@ -379,15 +379,45 @@
             'arm-out-down':   { row: 5, col: isRHP ? 5 : 1 },
         };
 
+        // ── Inside/Away layouts (fixed — no isRHP flip) ───────
+        const ZONE_LAYOUTS_A_IA = {
+            'away-side':   { row: 1, col: 1, strike: true },
+            'inside-side': { row: 1, col: 2, strike: true },
+        };
+        const ZONE_LAYOUTS_C_IA = {
+            'away-out-up':     { row: 1, col: 1 },
+            'up-out':          { row: 1, col: 2 },
+            'inside-out-up':   { row: 1, col: 5 },
+            'away-out-mid':    { row: 2, col: 1, rowSpan: 3 },
+            'away-up':         { row: 2, col: 2, strike: true },
+            'mid-up':          { row: 2, col: 3, strike: true },
+            'inside-up':       { row: 2, col: 4, strike: true },
+            'inside-out-mid':  { row: 2, col: 5, rowSpan: 3 },
+            'away-mid':        { row: 3, col: 2, strike: true },
+            'mid-mid':         { row: 3, col: 3, strike: true },
+            'inside-mid':      { row: 3, col: 4, strike: true },
+            'away-down':       { row: 4, col: 2, strike: true },
+            'mid-down':        { row: 4, col: 3, strike: true },
+            'inside-down':     { row: 4, col: 4, strike: true },
+            'away-out-down':   { row: 5, col: 1 },
+            'down-out':        { row: 5, col: 2 },
+            'inside-out-down': { row: 5, col: 5 },
+        };
+
         function getZoneLayouts(locations) {
             const names = new Set(locations.map(l => l.name));
-            if (names.has('glove-up')) return ZONE_LAYOUTS_C;
-            if (names.has('arm-side')) return ZONE_LAYOUTS_A;
-            if (names.has('up'))       return ZONE_LAYOUTS_B;
+            if (names.has('glove-up'))    return ZONE_LAYOUTS_C;
+            if (names.has('inside-up'))   return ZONE_LAYOUTS_C_IA;
+            if (names.has('arm-side'))    return ZONE_LAYOUTS_A;
+            if (names.has('inside-side')) return ZONE_LAYOUTS_A_IA;
+            if (names.has('up'))          return ZONE_LAYOUTS_B;
             return ZONE_LAYOUTS_C;
         }
 
-        const isZoneC = locations => new Set(locations.map(l => l.name)).has('glove-up');
+        const isZoneC = locations => {
+            const names = new Set(locations.map(l => l.name));
+            return names.has('glove-up') || names.has('inside-up');
+        };
 
         const pitchData = JSON.parse(document.getElementById('pitchDataJson').textContent);
 
@@ -493,21 +523,36 @@
                 });
             }
 
-            const armOutName   = isRHP ? 'arm-out-mid'   : 'glove-out-mid';
-            const gloveOutName = isRHP ? 'glove-out-mid' : 'arm-out-mid';
-            const armCells     = isRHP ? ['arm-up',   'arm-mid',   'arm-down']   : ['glove-up', 'glove-mid', 'glove-down'];
-            const gloveCells   = isRHP ? ['glove-up', 'glove-mid', 'glove-down'] : ['arm-up',   'arm-mid',   'arm-down'];
+            // Detect inside/away vs arm/glove terminology
+            const locNames     = new Set(pitch.locations.map(l => l.name));
+            const isInsideAway = locNames.has('inside-up');
 
-            // Strike cells are only used to MEASURE overlay dimensions — they don't
-            // sit underneath the overlays, so nothing needs to be covered.
-            makeOverlay('up-out',      'up out',
-                ['arm-up', 'mid-up', 'glove-up'],       ['up-out'],   []);
-            makeOverlay('down-out',    'down out',
-                ['arm-down', 'mid-down', 'glove-down'],  ['down-out'], []);
-            makeOverlay(armOutName,   isRHP ? 'arm out'   : 'glove out',
-                [armOutName],   armCells,   []);
-            makeOverlay(gloveOutName, isRHP ? 'glove out' : 'arm out',
-                [gloveOutName], gloveCells, []);
+            if (isInsideAway) {
+                // Inside/Away — fixed layout, no handedness flip
+                makeOverlay('up-out',         'up out',
+                    ['inside-up', 'mid-up', 'away-up'],       ['up-out'],   []);
+                makeOverlay('down-out',        'down out',
+                    ['inside-down', 'mid-down', 'away-down'],  ['down-out'], []);
+                makeOverlay('inside-out-mid', 'inside out',
+                    ['inside-out-mid'], ['inside-up', 'inside-mid', 'inside-down'], []);
+                makeOverlay('away-out-mid',   'away out',
+                    ['away-out-mid'],   ['away-up',   'away-mid',   'away-down'],   []);
+            } else {
+                // Arm/Glove — mirrors based on pitcher handedness
+                const armOutName   = isRHP ? 'arm-out-mid'   : 'glove-out-mid';
+                const gloveOutName = isRHP ? 'glove-out-mid' : 'arm-out-mid';
+                const armCells     = isRHP ? ['arm-up',   'arm-mid',   'arm-down']   : ['glove-up', 'glove-mid', 'glove-down'];
+                const gloveCells   = isRHP ? ['glove-up', 'glove-mid', 'glove-down'] : ['arm-up',   'arm-mid',   'arm-down'];
+
+                makeOverlay('up-out',      'up out',
+                    ['arm-up', 'mid-up', 'glove-up'],       ['up-out'],   []);
+                makeOverlay('down-out',    'down out',
+                    ['arm-down', 'mid-down', 'glove-down'],  ['down-out'], []);
+                makeOverlay(armOutName,   isRHP ? 'arm out'   : 'glove out',
+                    [armOutName],   armCells,   []);
+                makeOverlay(gloveOutName, isRHP ? 'glove out' : 'arm out',
+                    [gloveOutName], gloveCells, []);
+            }
         }
 
         // ── Build grid ────────────────────────────────────────────

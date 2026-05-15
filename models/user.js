@@ -17,11 +17,11 @@ const UserSchema = new mongoose.Schema({
     avatar: { type: String, default: '' },
 
     // User-level preferences
-    // Strike/chase/team colors are configured per team on the team edit page
     preferences: {
-        theme:        { type: String, enum: ['light', 'dark'], default: 'light' },
-        gameFontSize: { type: String, enum: ['sm', 'md', 'lg'], default: 'md' },
-        voiceURI:     { type: String, default: '' }, // speech synthesis voice
+        theme:           { type: String, enum: ['light', 'dark'], default: 'light' },
+        gameFontSize:    { type: String, enum: ['sm', 'md', 'lg'], default: 'md' },
+        voiceURI:        { type: String, default: '' },
+        zoneTerminology: { type: String, enum: ['arm-glove', 'inside-away'], default: 'arm-glove' },
     }
 });
 

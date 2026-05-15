@@ -2,6 +2,8 @@ const express  = require('express');
 const router   = express.Router();
 const User     = require('../models/user');
 const Team     = require('../models/team');
+const Pitcher  = require('../models/pitcher');
+const StrikeZone = require('../models/strikeZone');
 const { isLoggedIn }          = require('../middleware');
 const { upload, uploadToCloudinary } = require('../upload');
 
@@ -70,14 +72,46 @@ router.post('/avatar', isLoggedIn, upload.single('avatar'), async (req, res) => 
 // Save visual preferences
 router.post('/preferences', isLoggedIn, async (req, res) => {
     try {
-        const { theme, gameFontSize, voiceURI } = req.body;
-        const safeTheme    = ['light', 'dark'].includes(theme)         ? theme       : 'light';
-        const safeFontSize = ['sm', 'md', 'lg'].includes(gameFontSize) ? gameFontSize : 'md';
+        const { theme, gameFontSize, voiceURI, zoneTerminology } = req.body;
+        const safeTheme       = ['light', 'dark'].includes(theme)              ? theme            : 'light';
+        const safeFontSize    = ['sm', 'md', 'lg'].includes(gameFontSize)      ? gameFontSize      : 'md';
+        const safeTerminology = ['arm-glove', 'inside-away'].includes(zoneTerminology)
+            ? zoneTerminology
+            : 'arm-glove';
+
+        const currentTerminology = req.user.preferences?.zoneTerminology || 'arm-glove';
+        const terminologyChanged = safeTerminology !== currentTerminology;
+
+        if (terminologyChanged) {
+            // Count pitchers that use zones from the OLD terminology
+            // so we can warn the user they won't be affected
+            const teams = await Team.find({ owner: req.user._id }).populate({
+                path: 'pitchers',
+                populate: { path: 'zone' }
+            });
+            let mismatchCount = 0;
+            for (const team of teams) {
+                for (const pitcher of team.pitchers) {
+                    if (pitcher.zone && pitcher.zone.terminology === currentTerminology) {
+                        mismatchCount++;
+                    }
+                }
+            }
+            if (mismatchCount > 0) {
+                const oldLabel = currentTerminology === 'arm-glove' ? 'Arm/Glove' : 'Inside/Away';
+                const newLabel = safeTerminology    === 'arm-glove' ? 'Arm/Glove' : 'Inside/Away';
+                req.flash('warning',
+                    `${mismatchCount} pitcher${mismatchCount !== 1 ? 's' : ''} still use${mismatchCount === 1 ? 's' : ''} ${oldLabel} zones — they won't be affected by this change. Only new pitchers will use ${newLabel} terminology.`
+                );
+            }
+        }
+
         await User.findByIdAndUpdate(req.user._id, {
             preferences: {
-                theme:        safeTheme,
-                gameFontSize: safeFontSize,
-                voiceURI:     voiceURI || '',
+                theme:           safeTheme,
+                gameFontSize:    safeFontSize,
+                voiceURI:        voiceURI || '',
+                zoneTerminology: safeTerminology,
             }
         });
         req.flash('success', 'Preferences saved.');

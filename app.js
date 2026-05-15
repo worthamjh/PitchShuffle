@@ -46,6 +46,7 @@ app.use((req, res, next) => {
     res.locals.currentUser        = req.user;
     res.locals.success            = req.flash('success');
     res.locals.error              = req.flash('error');
+    res.locals.warning = req.flash('warning');
     // Team color locals — overridden by routes that have a team in context
     res.locals.teamColor          = null;
     res.locals.teamSecondaryColor = null;

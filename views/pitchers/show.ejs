@@ -35,12 +35,23 @@
 
         .loc-box.strike   { background-color: var(--strike-bg); border: 1px solid var(--strike-border); color: var(--strike-text); }
         .loc-box.chase    { background-color: var(--chase-bg); border: 1px solid var(--chase-border); color: var(--chase-text); }
-        .loc-box.disabled { background-color: #e9ecef; border: 1px solid #ced4da; color: #adb5bd; text-decoration: line-through; }
-        .loc-box.empty    { background: transparent; border-color: transparent; pointer-events: none; }
+        .loc-box.disabled { background: #e9ecef; border-color: #ced4da; color: #adb5bd; text-decoration: line-through; }
+        .loc-box.empty    { background: transparent; border-color: transparent; cursor: default; pointer-events: none; }
+        .loc-box.covered  { pointer-events: none; }
+
+        .loc-box.strike:hover   { background: var(--strike-hover); border-color: var(--strike-border); }
+        .loc-box.chase:hover    { background: var(--chase-hover); border-color: var(--chase-hover-border); }
+        .loc-box.disabled:hover { background: #e9ecef; }
+        .loc-box.empty:hover, .loc-box.covered:hover { background: inherit; }
+
+        /* Font size breakpoints applied to both cells and overlays at once */
+        @media (min-width: 576px) { .loc-box, .chase-overlay { font-size: 0.6rem; } }
+        @media (min-width: 992px) { .loc-box, .chase-overlay { font-size: 0.7rem; } }
 
         .chase-overlay {
             position: absolute;
-            background-color: var(--chase-bg);
+            z-index: 5;
+            background: var(--chase-bg);
             border: 1px solid var(--chase-border);
             color: var(--chase-text);
             font-size: 0.55rem;
@@ -52,17 +63,13 @@
             align-items: center;
             justify-content: center;
             box-sizing: border-box;
-            z-index: 5;
-            pointer-events: none;
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.15s, border-color 0.15s;
         }
-        .chase-overlay.disabled {
-            background-color: #e9ecef;
-            border-color: #ced4da;
-            color: #adb5bd;
-            text-decoration: line-through;
-        }
-        @media (min-width: 576px) { .chase-overlay { font-size: 0.6rem; } }
-        @media (min-width: 992px) { .chase-overlay { font-size: 0.7rem; } }
+        .chase-overlay:hover          { background: var(--chase-hover); border-color: var(--chase-hover-border); }
+        .chase-overlay.disabled       { background: #e9ecef; border-color: #ced4da; color: #adb5bd; text-decoration: line-through; }
+        .chase-overlay.disabled:hover { background: #e9ecef; border-color: #ced4da; }
 
         .strike-zone-outline {
             position: absolute;
@@ -258,16 +265,44 @@
             'arm-out-down':   { row: 5, col: isRHP ? 5 : 1 },
         };
 
+        // ── Inside/Away layouts (fixed — no isRHP flip) ───────
+        const ZONE_LAYOUTS_A_IA = {
+            'away-side':   { row: 1, col: 1, strike: true },
+            'inside-side': { row: 1, col: 2, strike: true },
+        };
+        const ZONE_LAYOUTS_C_IA = {
+            'away-out-up':     { row: 1, col: 1 },
+            'up-out':          { row: 1, col: 2 },
+            'inside-out-up':   { row: 1, col: 5 },
+            'away-out-mid':    { row: 2, col: 1, rowSpan: 3 },
+            'away-up':         { row: 2, col: 2, strike: true },
+            'mid-up':          { row: 2, col: 3, strike: true },
+            'inside-up':       { row: 2, col: 4, strike: true },
+            'inside-out-mid':  { row: 2, col: 5, rowSpan: 3 },
+            'away-mid':        { row: 3, col: 2, strike: true },
+            'mid-mid':         { row: 3, col: 3, strike: true },
+            'inside-mid':      { row: 3, col: 4, strike: true },
+            'away-down':       { row: 4, col: 2, strike: true },
+            'mid-down':        { row: 4, col: 3, strike: true },
+            'inside-down':     { row: 4, col: 4, strike: true },
+            'away-out-down':   { row: 5, col: 1 },
+            'down-out':        { row: 5, col: 2 },
+            'inside-out-down': { row: 5, col: 5 },
+        };
+
         function getZoneLayouts(locations) {
             const names = new Set(locations.map(l => l.name));
-            if (names.has('glove-up')) return ZONE_LAYOUTS_C;
-            if (names.has('arm-side')) return ZONE_LAYOUTS_A;
-            if (names.has('up'))       return ZONE_LAYOUTS_B;
+            if (names.has('glove-up'))    return ZONE_LAYOUTS_C;
+            if (names.has('inside-up'))   return ZONE_LAYOUTS_C_IA;
+            if (names.has('arm-side'))    return ZONE_LAYOUTS_A;
+            if (names.has('inside-side')) return ZONE_LAYOUTS_A_IA;
+            if (names.has('up'))          return ZONE_LAYOUTS_B;
             return ZONE_LAYOUTS_C;
         }
 
         function isZoneC(locations) {
-            return new Set(locations.map(l => l.name)).has('glove-up');
+            const names = new Set(locations.map(l => l.name));
+            return names.has('glove-up') || names.has('inside-up');
         }
     </script>
 
@@ -309,66 +344,102 @@
             wrapper.appendChild(outline);
         }
 
+        // hCells → overlay width/x   vCells → overlay height/y
+        // covered → underlying cells that get pointer-events: none
         function drawOverlays(pitchIndex, pitch) {
             const grid    = document.getElementById(`grid-${pitchIndex}`);
             const wrapper = document.getElementById(`wrapper-${pitchIndex}`);
             if (!grid || !wrapper) return;
+
+            // Clear previous overlays and covered flags
             wrapper.querySelectorAll('.chase-overlay').forEach(el => el.remove());
+            grid.querySelectorAll('.loc-box.covered').forEach(el => el.classList.remove('covered'));
+
             if (!isZoneC(pitch.locations)) return;
 
-            const gridRect = grid.getBoundingClientRect();
-            const labelEl  = wrapper.querySelector('.pitchers-view-label');
-            const labelH   = labelEl ? labelEl.offsetHeight + 4 : 0;
+            const gr      = grid.getBoundingClientRect();
+            const labelEl = wrapper.querySelector('.pitchers-view-label');
+            const labelH  = labelEl ? labelEl.offsetHeight + 4 : 0;
 
-            function getCell(locName) {
-                return [...grid.querySelectorAll('.loc-box')]
-                    .find(el => el.dataset.locName === locName);
-            }
+            const getCell = name => [...grid.querySelectorAll('.loc-box')]
+                .find(el => el.dataset.locName === name);
 
-            function spanBounds(locNames) {
-                let top = Infinity, left = Infinity, right = -Infinity, bottom = -Infinity;
-                locNames.forEach(name => {
+            function spanBounds(names) {
+                let t = Infinity, l = Infinity, r = -Infinity, b = -Infinity;
+                names.forEach(name => {
                     const el = getCell(name);
                     if (!el) return;
-                    const r = el.getBoundingClientRect();
-                    top    = Math.min(top,    r.top    - gridRect.top);
-                    left   = Math.min(left,   r.left   - gridRect.left);
-                    right  = Math.max(right,  r.right  - gridRect.left);
-                    bottom = Math.max(bottom, r.bottom - gridRect.top);
+                    const cr = el.getBoundingClientRect();
+                    t = Math.min(t, cr.top    - gr.top);
+                    l = Math.min(l, cr.left   - gr.left);
+                    r = Math.max(r, cr.right  - gr.left);
+                    b = Math.max(b, cr.bottom - gr.top);
                 });
-                return { top, left, right, bottom };
+                return { t, l, r, b };
             }
 
-            function makeOverlay(locName, label, spanCells, heightCells) {
+            // hCells → overlay width/x   vCells → overlay height/y
+            // covered → underlying cells that get pointer-events: none
+            function makeOverlay(locName, label, hCells, vCells, covered) {
+                if (!pitch.locations.find(z => z.name === locName)) return;
+                const hb = spanBounds(hCells);
+                const vb = spanBounds(vCells);
+                if (!isFinite(hb.l) || !isFinite(vb.t)) return;
+
                 const locIndex = pitch.locations.findIndex(l => l.name === locName);
                 const loc      = pitch.locations[locIndex];
                 const enabled  = loc ? loc.enabled : true;
-                const hb = spanBounds(spanCells);
-                const vb = spanBounds(heightCells);
-                const overlay = document.createElement('div');
-                overlay.className    = 'chase-overlay' + (enabled ? '' : ' disabled');
-                overlay.textContent  = label;
-                overlay.style.top    = (vb.top  + labelH) + 'px';
-                overlay.style.left   = hb.left + 'px';
-                overlay.style.width  = (hb.right - hb.left) + 'px';
-                overlay.style.height = (vb.bottom - vb.top) + 'px';
-                wrapper.appendChild(overlay);
+
+                const el = document.createElement('div');
+                el.className           = 'chase-overlay' + (enabled ? '' : ' disabled');
+                el.textContent         = label;
+                el.dataset.locName     = locName;
+                el.dataset.pitchIndex  = pitchIndex;
+                el.dataset.locIndex    = locIndex;
+                Object.assign(el.style, {
+                    top:    (vb.t + labelH) + 'px',
+                    left:   hb.l + 'px',
+                    width:  (hb.r - hb.l) + 'px',
+                    height: (vb.b - vb.t) + 'px'
+                });
+                wrapper.appendChild(el);
+
+                covered.forEach(name => {
+                    const cell = getCell(name);
+                    if (cell) cell.classList.add('covered');
+                });
             }
 
-            makeOverlay('up-out',   'up out',
-                ['arm-up', 'mid-up', 'glove-up'], ['up-out']);
-            makeOverlay('down-out', 'down out',
-                ['arm-down', 'mid-down', 'glove-down'], ['down-out']);
+            // Detect inside/away vs arm/glove terminology
+            const locNames     = new Set(pitch.locations.map(l => l.name));
+            const isInsideAway = locNames.has('inside-up');
 
-            const armOutName   = isRHP ? 'arm-out-mid'   : 'glove-out-mid';
-            const gloveOutName = isRHP ? 'glove-out-mid' : 'arm-out-mid';
-            const armLabel     = isRHP ? 'arm out'       : 'glove out';
-            const gloveLabel   = isRHP ? 'glove out'     : 'arm out';
+            if (isInsideAway) {
+                // Inside/Away — fixed layout, no handedness flip
+                makeOverlay('up-out',         'up out',
+                    ['inside-up', 'mid-up', 'away-up'],       ['up-out'],   []);
+                makeOverlay('down-out',        'down out',
+                    ['inside-down', 'mid-down', 'away-down'],  ['down-out'], []);
+                makeOverlay('inside-out-mid', 'inside out',
+                    ['inside-out-mid'], ['inside-up', 'inside-mid', 'inside-down'], []);
+                makeOverlay('away-out-mid',   'away out',
+                    ['away-out-mid'],   ['away-up',   'away-mid',   'away-down'],   []);
+            } else {
+                // Arm/Glove — mirrors based on pitcher handedness
+                const armOutName   = isRHP ? 'arm-out-mid'   : 'glove-out-mid';
+                const gloveOutName = isRHP ? 'glove-out-mid' : 'arm-out-mid';
+                const armCells     = isRHP ? ['arm-up',   'arm-mid',   'arm-down']   : ['glove-up', 'glove-mid', 'glove-down'];
+                const gloveCells   = isRHP ? ['glove-up', 'glove-mid', 'glove-down'] : ['arm-up',   'arm-mid',   'arm-down'];
 
-            makeOverlay(armOutName,   armLabel,
-                [armOutName],   ['arm-up',   'arm-mid',   'arm-down']);
-            makeOverlay(gloveOutName, gloveLabel,
-                [gloveOutName], ['glove-up', 'glove-mid', 'glove-down']);
+                makeOverlay('up-out',      'up out',
+                    ['arm-up', 'mid-up', 'glove-up'],       ['up-out'],   []);
+                makeOverlay('down-out',    'down out',
+                    ['arm-down', 'mid-down', 'glove-down'],  ['down-out'], []);
+                makeOverlay(armOutName,   isRHP ? 'arm out'   : 'glove out',
+                    [armOutName],   armCells,   []);
+                makeOverlay(gloveOutName, isRHP ? 'glove out' : 'arm out',
+                    [gloveOutName], gloveCells, []);
+            }
         }
 
         function buildGrid(pitchIndex) {

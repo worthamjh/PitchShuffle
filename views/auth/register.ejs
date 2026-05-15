@@ -19,6 +19,41 @@
                     <label for="password" class="form-label fw-600">Password</label>
                     <input type="password" class="form-control form-control-lg" id="password" name="password" required>
                 </div>
+
+                <!-- Zone Terminology Preference -->
+                <div class="mb-4">
+                    <label class="form-label fw-600">Strike Zone Terminology</label>
+                    <p class="text-muted small mb-3">
+                        Choose how pitch locations are labeled in the strike zone. You can change this later in your profile settings.
+                    </p>
+                    <div class="row g-3">
+                        <div class="col-sm-6">
+                            <input type="radio" class="btn-check" name="zoneTerminology" id="termArmGlove"
+                                   value="arm-glove" checked>
+                            <label class="btn btn-outline-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3"
+                                   for="termArmGlove">
+                                <i class="bi bi-arrow-left-right fs-3 mb-2"></i>
+                                <span class="fw-bold">Arm Side / Glove Side</span>
+                                <small class="text-muted mt-1 text-center">
+                                    Relative to the pitcher's throwing hand. Zone mirrors for left- vs right-handed pitchers.
+                                </small>
+                            </label>
+                        </div>
+                        <div class="col-sm-6">
+                            <input type="radio" class="btn-check" name="zoneTerminology" id="termInsideAway"
+                                   value="inside-away">
+                            <label class="btn btn-outline-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3"
+                                   for="termInsideAway">
+                                <i class="bi bi-person-standing fs-3 mb-2"></i>
+                                <span class="fw-bold">Inside / Away</span>
+                                <small class="text-muted mt-1 text-center">
+                                    Relative to the batter. Fixed layout regardless of pitcher handedness.
+                                </small>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="d-grid">
                     <button type="submit" class="btn btn-primary btn-lg">
                         <i class="bi bi-person-check"></i> Create Account

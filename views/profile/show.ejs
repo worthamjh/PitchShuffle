@@ -142,6 +142,44 @@
                 </small>
             </div>
 
+            <!-- Zone Terminology -->
+            <div class="mb-4">
+                <label class="form-label fw-bold">Strike Zone Terminology</label>
+                <p class="text-muted small mb-3">
+                    Controls how pitch locations are labeled throughout the app.
+                    Existing pitchers won't be changed — only new pitchers will
+                    use the updated terminology.
+                </p>
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <input type="radio" class="btn-check" name="zoneTerminology"
+                               id="termArmGlove" value="arm-glove"
+                               <%= (!user.preferences || !user.preferences.zoneTerminology || user.preferences.zoneTerminology === 'arm-glove') ? 'checked' : '' %>>
+                        <label class="btn btn-outline-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3"
+                               for="termArmGlove">
+                            <i class="bi bi-arrow-left-right fs-4 mb-1"></i>
+                            <span class="fw-bold">Arm Side / Glove Side</span>
+                            <small class="text-muted mt-1 text-center">
+                                Relative to the pitcher's throwing hand. Zone mirrors for lefties vs righties.
+                            </small>
+                        </label>
+                    </div>
+                    <div class="col-sm-6">
+                        <input type="radio" class="btn-check" name="zoneTerminology"
+                               id="termInsideAway" value="inside-away"
+                               <%= (user.preferences && user.preferences.zoneTerminology === 'inside-away') ? 'checked' : '' %>>
+                        <label class="btn btn-outline-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3"
+                               for="termInsideAway">
+                            <i class="bi bi-person-standing fs-4 mb-1"></i>
+                            <span class="fw-bold">Inside / Away</span>
+                            <small class="text-muted mt-1 text-center">
+                                Relative to the batter. Fixed layout regardless of pitcher handedness.
+                            </small>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
             <button type="submit" class="btn btn-primary">
                 <i class="bi bi-check-circle"></i> Save Preferences
             </button>
@@ -152,6 +190,8 @@
 <script>
 // ── Restore defaults ──────────────────────────────────────────
 document.getElementById('restoreDefaultsBtn').addEventListener('click', () => {
+    document.getElementById('termArmGlove').checked  = true;
+    document.getElementById('termInsideAway').checked = false;
     document.getElementById('themeLight').checked = true;
     document.getElementById('themeDark').checked  = false;
     document.getElementById('font-sm').checked    = false;
