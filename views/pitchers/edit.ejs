@@ -174,12 +174,19 @@
                 <!-- Zone cards — clicking submits via JS to avoid nested forms -->
                 <div class="mb-4">
                     <div class="row row-cols-1 row-cols-md-3 g-3">
-                        <% for (let zone of zones) { %>
+                        <%
+                            const _userTerminology = (user && user.preferences && user.preferences.zoneTerminology)
+                                ? user.preferences.zoneTerminology
+                                : 'arm-glove';
+                            const _filteredZones = zones.filter(z => z.terminology === _userTerminology || z.terminology === 'both');
+                        %>
+                        <% for (let zone of _filteredZones) { %>
                             <% const isSelected = pitcher.zone && pitcher.zone._id.equals(zone._id); %>
                             <%
                                 const _zoneImageMap = { 'A': 'zone_a.png', 'B': 'zone_b.png', 'C': 'zone_c.png' };
                                 const _zoneLetter   = zone.name.match(/Zone ([A-Z])/)?.[1];
                                 const _zoneImg      = _zoneImageMap[_zoneLetter] || null;
+                                const _zoneLabel    = _zoneLetter ? 'Zone ' + _zoneLetter : zone.name;
                             %>
                             <div class="col">
                                 <% if (isSelected) { %>
@@ -189,7 +196,7 @@
                                                 style="width:80px;height:80px;object-fit:contain;">
                                         <% } %>
                                         <div class="zone-card-label">
-                                            <%= zone.name %>
+                                            <%= _zoneLabel %>
                                             <small><%= zone.availableLocations.length %> locations</small>
                                         </div>
                                     </div>
@@ -202,7 +209,7 @@
                                                 style="width:80px;height:80px;object-fit:contain;">
                                         <% } %>
                                         <div class="zone-card-label">
-                                            <%= zone.name %>
+                                            <%= _zoneLabel %>
                                             <small><%= zone.availableLocations.length %> locations</small>
                                         </div>
                                     </button>
