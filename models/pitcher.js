@@ -9,7 +9,6 @@ const PitchLocationSchema = new mongoose.Schema({
 const PitchTypeSchema = new mongoose.Schema({
     name:         { type: String, required: true },
     abbreviation: { type: String },
-    signalCode:   { type: String },
     locations:    [PitchLocationSchema]
 });
 

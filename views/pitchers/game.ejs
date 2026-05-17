@@ -1,14 +1,6 @@
 <%- layout('layouts/boilerplate') %>
 
 <style>
-    .pitch-signal-code {
-    display: block;
-    font-size: 0.7em;
-    font-weight: 400;
-    opacity: 0.7;
-    margin-top: 1px;
-}
-    /* ── Page-specific only: speaking dot animation ─────────── */
     .speaking-dot {
         display: inline-block; width: 8px; height: 8px; border-radius: 50%;
         background: #2ecc71; margin-left: 4px; vertical-align: middle;
@@ -16,30 +8,141 @@
     }
     @keyframes pulse { from { opacity: 0.3; transform: scale(0.8); } to { opacity: 1; transform: scale(1.2); } }
 
-    /* ── Call bar style for game.ejs (dark navy bar) ─────────── */
-    .call-bar {
-        flex-shrink: 0; min-height: 38px;
-        background: var(--ps-navy); color: #fff;
-        display: flex; align-items: center; justify-content: center; gap: 0.5rem;
-        padding: 0.5rem 1rem; font-size: 0.85rem; font-weight: 600;
+    .game-page {
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 56px);
+        max-width: 600px;
+        margin: 0 auto;
+        background: var(--ps-card-bg);
+        overflow: hidden;
     }
-    .call-bar .call-label { color: var(--ps-navy-muted); font-weight: 400; font-size: 0.75rem; }
 
-    /* ── Zone C: pin font size to fixed values (same as pitcher/edit view)
-       so the user's font-size preference doesn't shift the zone grid layout ── */
-    .zone-col .loc-box,
-    .zone-col .chase-overlay {
-        font-size: 0.55rem;
+    /* Pitch type buttons - horizontal scrollable row */
+    .pitch-row {
+        display: flex;
+        flex-direction: row;
+        gap: 0.4rem;
+        padding: 0.5rem 0.75rem;
+        overflow-x: auto;
+        background: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+        flex-shrink: 0;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
     }
-    @media (min-width: 576px) {
+    .pitch-row::-webkit-scrollbar { display: none; }
+
+    .pitch-btn {
+        flex-shrink: 0;
+        min-width: 56px;
+        padding: 0.5rem 0.75rem;
+        border-radius: var(--btn-radius);
+        font-size: 0.95rem;
+        font-weight: 700;
+        text-align: center;
+        cursor: pointer;
+        border: 2px solid #c0cfe0;
+        background: #eef2f7;
+        color: var(--ps-navy);
+        user-select: none;
+        transition: background 0.15s, border-color 0.15s, color 0.15s;
+        white-space: nowrap;
+    }
+    .pitch-btn:hover  { background: #dce6f0; border-color: #8fa8c8; }
+    .pitch-btn.active { background: var(--ps-navy); border-color: var(--ps-navy); color: var(--accent-text, #fff); }
+
+    /* Zone - full width centered */
+    .zone-area {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.75rem;
+        overflow: hidden;
+    }
+    .zone-col { width: 100%; display: flex; align-items: center; justify-content: center; }
+
+    /* Action buttons - three in a row */
+    .action-row {
+        display: flex;
+        flex-direction: row;
+        gap: 0.4rem;
+        padding: 0.5rem 0.75rem;
+        background: #f8f9fa;
+        border-top: 1px solid #dee2e6;
+        flex-shrink: 0;
+    }
+    .action-btn {
+        flex: 1;
+        padding: 0.6rem 0.25rem;
+        border-radius: var(--btn-radius);
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-align: center;
+        cursor: pointer;
+        border: 2px solid transparent;
+        user-select: none;
+        transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .btn-random { background: #e8f4fd; border-color: #4a9edd; color: #1a5f8a; }
+    .btn-random:hover { background: #4a9edd; color: #fff; }
+    .btn-clear  { background: #fde8e8; border-color: #dd4a4a; color: #8a1a1a; }
+    .btn-clear:hover  { background: #dd4a4a; color: #fff; }
+    .btn-repeat { background: #f0e8fd; border-color: #9a4add; color: #5a1a8a; }
+    .btn-repeat:hover { background: #9a4add; color: #fff; }
+    .btn-repeat.disabled-btn { opacity: 0.45; pointer-events: none; }
+
+    /* Call bar - pitch info left, call button right */
+    .call-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        padding: 0.6rem 0.75rem;
+        background: var(--ps-navy);
+        color: #fff;
+        flex-shrink: 0;
+        min-height: 56px;
+    }
+    .call-bar .call-label { color: var(--ps-navy-muted); font-size: 0.7rem; font-weight: 400; text-transform: uppercase; letter-spacing: 0.5px; }
+    .call-bar .call-text  { font-size: 0.95rem; font-weight: 700; line-height: 1.2; }
+    .call-bar .call-info  { flex: 1; min-width: 0; }
+    .btn-call {
+        flex-shrink: 0;
+        background: #fff;
+        color: var(--ps-navy);
+        border: 2px solid #fff;
+        border-radius: var(--btn-radius);
+        font-size: 0.85rem;
+        font-weight: 700;
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        transition: background 0.15s, color 0.15s;
+        user-select: none;
+        white-space: nowrap;
+    }
+    .btn-call:hover { background: var(--ps-navy-muted); color: #fff; }
+    .btn-call.disabled-btn { opacity: 0.45; pointer-events: none; }
+
+    /* Zone font sizes */
+    .zone-col .loc-box,
+    .zone-col .chase-overlay { font-size: 0.55rem; }
+    @media (min-width: 400px) {
         .zone-col .loc-box,
         .zone-col .chase-overlay { font-size: 0.6rem; }
     }
-    @media (min-width: 992px) {
+    @media (min-width: 600px) {
         .zone-col .loc-box,
         .zone-col .chase-overlay { font-size: 0.7rem; }
     }
+
+    [data-theme='dark'] .pitch-row,
+    [data-theme='dark'] .action-row { background: #1a2535; border-color: #2a3f5a; }
+    [data-theme='dark'] .pitch-btn  { background: #243350; border-color: #2a3f5a; color: var(--ps-navy-muted); }
+    [data-theme='dark'] .pitch-btn.active { background: var(--ps-navy); color: var(--accent-text, #fff); }
 </style>
+
 
 <!-- ── Header ──────────────────────────────────────────────────── -->
 <div class="game-header">
@@ -77,39 +180,43 @@
 </div>
 <% } %>
 
-<!-- ── Body ────────────────────────────────────────────────────── -->
-<div class="game-body">
+<div class="game-page">
 
-    <div class="pitch-col" id="pitchCol">
-        <% pitcher.pitchTypes.forEach(function(pt, i) { %>
-            <button class="pitch-btn" data-pitch-index="<%= i %>">
-                <%= pt.name %>
-                <% if (pt.signalCode) { %>
-                    <span class="pitch-signal-code"><%= pt.signalCode %></span>
-                <% } %>
-            </button>
-        <% }); %>
-    </div>
+<!-- Pitch buttons row -->
+<div class="pitch-row" id="pitchRow">
+    <% pitcher.pitchTypes.forEach(function(pt, i) { %>
+        <button class="pitch-btn" data-pitch-index="<%= i %>">
+            <%= pt.abbreviation || pt.name %>
+        </button>
+    <% }); %>
+</div>
 
+<!-- Zone -->
+<div class="zone-area">
     <div class="zone-col">
         <div class="zone-grid-wrapper" id="zoneWrapper">
             <div class="zone-grid" id="zoneGrid"></div>
         </div>
     </div>
-
-    <div class="action-col">
-        <button class="action-btn btn-random" id="btnRandom"><i class="bi bi-shuffle"></i><br>Random</button>
-        <button class="action-btn btn-clear"  id="btnClear"><i class="bi bi-x-circle"></i><br>Clear</button>
-        <button class="action-btn btn-repeat disabled-btn" id="btnRepeat"><i class="bi bi-arrow-repeat"></i><br>Repeat</button>
-        <button class="action-btn btn-call disabled-btn"   id="btnCall"><i class="bi bi-megaphone"></i><br>Call Pitch</button>
-    </div>
-
 </div>
 
-<!-- ── Bottom call bar ───────────────────────────────────────── -->
+<!-- Action buttons row -->
+<div class="action-row">
+    <button class="action-btn btn-random" id="btnRandom"><i class="bi bi-shuffle"></i> Random</button>
+    <button class="action-btn btn-clear"  id="btnClear"><i class="bi bi-x-circle"></i> Clear</button>
+    <button class="action-btn btn-repeat disabled-btn" id="btnRepeat"><i class="bi bi-arrow-repeat"></i> Repeat</button>
+</div>
+
+<!-- Call bar -->
 <div class="call-bar" id="callBar">
-    <span class="call-label">SELECT PITCH & LOCATION</span>
+    <div class="call-info">
+        <div class="call-label">SELECT PITCH &amp; LOCATION</div>
+        <div class="call-text" id="callText" style="display:none;"></div>
+    </div>
+    <button class="btn-call disabled-btn" id="btnCall"><i class="bi bi-megaphone"></i> Call Pitch</button>
 </div>
+
+</div><!-- end .game-page -->
 
 <!-- ── Data ─────────────────────────────────────────────────── -->
 <script type="application/json" id="pitcherJson"><%- JSON.stringify(pitcher) %></script>
@@ -206,7 +313,14 @@
         const layout  = getLayout(zoneLocations);
         const maxRow  = Math.max(...Object.values(layout).map(p => (p.row||1) + (p.rowSpan||1) - 1));
         const maxCol  = Math.max(...Object.values(layout).map(p => (p.col||1) + (p.colSpan||1) - 1));
-        _boxSize = window.innerWidth >= 992 ? 108 : window.innerWidth >= 576 ? 88 : 70;
+        // Available height = viewport - navbar - pitch row - action row - call bar
+        const _availH = window.innerHeight - 56 - 52 - 56 - 56;
+        _boxSize = Math.floor(_availH / maxRow);
+        // Also constrain by width
+        const _availW = Math.min(window.innerWidth, 600) - 16; // 16px padding
+        const _boxW   = Math.floor(_availW / maxCol);
+        _boxSize = Math.min(_boxSize, _boxW, 88);
+        _boxSize = Math.max(_boxSize, 44); // minimum touch target
 
         grid.style.gridTemplateRows    = `repeat(${maxRow}, ${_boxSize}px)`;
         grid.style.gridTemplateColumns = `repeat(${maxCol}, ${_boxSize}px)`;
@@ -418,18 +532,22 @@
     }
 
     function updateCallBar() {
-        const bar = document.getElementById('callBar');
+        const label = document.querySelector('#callBar .call-label');
+        const text  = document.getElementById('callText');
         if (selectedPitchIndex !== null && selectedLocation) {
             const name = pitchTypes[selectedPitchIndex].name;
-            const signal = pitchTypes[selectedPitchIndex].signalCode;
-            const signalStr = signal ? ` <span style="opacity:0.7;font-size:0.8em;">[${signal}]</span>` : '';
-            bar.innerHTML = `<span class="call-label">CALL:</span>${name}${signalStr} — ${locLabel(selectedLocation)}`;
+            label.textContent = 'CALL:';
+            text.textContent  = `${name} — ${locLabel(selectedLocation)}`;
+            text.style.display = '';
         } else if (selectedPitchIndex !== null) {
-            bar.innerHTML = `<span class="call-label">SELECT LOCATION</span>`;
+            label.textContent = 'SELECT LOCATION';
+            text.style.display = 'none';
         } else if (selectedLocation) {
-            bar.innerHTML = `<span class="call-label">SELECT PITCH TYPE</span>`;
+            label.textContent = 'SELECT PITCH TYPE';
+            text.style.display = 'none';
         } else {
-            bar.innerHTML = `<span class="call-label">SELECT PITCH & LOCATION</span>`;
+            label.textContent = 'SELECT PITCH & LOCATION';
+            text.style.display = 'none';
         }
     }
 
@@ -440,7 +558,7 @@
     }
 
     // ── Event listeners ───────────────────────────────────────
-    document.getElementById('pitchCol').addEventListener('click', e => {
+    document.getElementById('pitchRow').addEventListener('click', e => {
         const btn = e.target.closest('.pitch-btn');
         if (btn) selectPitch(Number(btn.dataset.pitchIndex));
     });
