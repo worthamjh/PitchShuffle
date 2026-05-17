@@ -10,8 +10,22 @@ const { upload, uploadToCloudinary } = require('../upload');
 // Show profile
 router.get('/', isLoggedIn, async (req, res) => {
     try {
-        const teams = await Team.find({ owner: req.user._id });
-        res.render('profile/show', { user: req.user, teams });
+        const teams = await Team.find({ owner: req.user._id }).populate({
+            path: 'pitchers',
+            populate: { path: 'zone' }
+        });
+        const currentTerm = req.user.preferences?.zoneTerminology || 'arm-glove';
+        let pitcherMismatchCount = 0;
+        const mismatchedPitchers = [];
+        for (const team of teams) {
+            for (const pitcher of team.pitchers) {
+                if (pitcher.zone && pitcher.zone.terminology !== 'both' && pitcher.zone.terminology !== currentTerm) {
+                    pitcherMismatchCount++;
+                    mismatchedPitchers.push({ name: pitcher.name, number: pitcher.number, team: team.name });
+                }
+            }
+        }
+        res.render('profile/show', { user: req.user, teams, pitcherMismatchCount, mismatchedPitchers });
     } catch (e) {
         console.error(e);
         res.redirect('/teams');
@@ -101,7 +115,9 @@ router.post('/preferences', isLoggedIn, async (req, res) => {
                 const oldLabel = currentTerminology === 'arm-glove' ? 'Arm/Glove' : 'Inside/Away';
                 const newLabel = safeTerminology    === 'arm-glove' ? 'Arm/Glove' : 'Inside/Away';
                 req.flash('warning',
-                    `${mismatchCount} pitcher${mismatchCount !== 1 ? 's' : ''} still use${mismatchCount === 1 ? 's' : ''} ${oldLabel} zones — they won't be affected by this change. Only new pitchers will use ${newLabel} terminology.`
+                    `${mismatchCount} of your pitcher${mismatchCount !== 1 ? 's' : ''} still use${mismatchCount === 1 ? 's' : ''} ${oldLabel} zones. `
+                    + `To update them, go to each pitcher's edit page and re-select their strike zone. `
+                    + `Only new pitchers will automatically use ${newLabel} terminology.`
                 );
             }
         }

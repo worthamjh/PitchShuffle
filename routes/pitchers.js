@@ -82,7 +82,7 @@ router.get('/:pitcherId', isLoggedIn, async (req, res) => {
         const pitcher = await Pitcher.findById(req.params.pitcherId).populate('zone');
         const team    = await Team.findById(req.params.teamId);
         setTeamLocals(res, team);
-        res.render('pitchers/show', { pitcher, team });
+        res.render('pitchers/show', { pitcher, team, user: req.user });
     } catch (e) {
         console.error(e);
         res.redirect(`/teams/${req.params.teamId}`);

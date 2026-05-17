@@ -78,7 +78,7 @@
         </button>
     </div>
     <div class="card-body">
-        <form action="/profile/preferences" method="POST">
+        <form action="/profile/preferences" method="POST" id="preferencesForm">
 
             <!-- Theme -->
             <div class="mb-4">
@@ -241,35 +241,6 @@ document.getElementById('testVoiceBtn').addEventListener('click', () => {
 </script>
 
 
-<script>
-document.getElementById('restoreDefaultsBtn').addEventListener('click', () => {
-    document.getElementById('themeLight').checked = true;
-    document.getElementById('themeDark').checked  = false;
-    document.getElementById('font-sm').checked    = false;
-    document.getElementById('font-md').checked    = true;
-    document.getElementById('font-lg').checked    = false;
-});
-</script>
-
-
-<script>
-document.getElementById('restoreDefaultsBtn').addEventListener('click', () => {
-    const teamColorInput = document.getElementById('teamColor');
-    if (teamColorInput) teamColorInput.value = '#1a2e4a';
-
-    const strikeColorInput = document.getElementById('strikeColor');
-    if (strikeColorInput) strikeColorInput.value = '#c8ecd4';
-
-    const chaseColorInput = document.getElementById('chaseColor');
-    if (chaseColorInput) chaseColorInput.value = '#fef3cd';
-
-    document.getElementById('themeLight').checked = true;
-
-    const fontMd = document.getElementById('fontMd');
-    if (fontMd) fontMd.checked = true;
-});
-</script>
-
 
 
 <!-- ── Update Email ───────────────────────────────────────────── -->
@@ -315,20 +286,89 @@ document.getElementById('restoreDefaultsBtn').addEventListener('click', () => {
     <i class="bi bi-arrow-left"></i> Back to My Teams
 </a>
 
+<!-- Terminology change confirmation modal -->
+<div class="modal fade" id="termChangeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center"
+                         style="width:40px;height:40px;background:rgba(255,193,7,0.15);">
+                        <i class="bi bi-exclamation-triangle-fill text-warning fs-5"></i>
+                    </div>
+                    <h5 class="modal-title fw-bold mb-0">Change Zone Terminology?</h5>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-3">
+                <p class="mb-2" id="termChangeMainMsg"></p>
+                <div id="termChangePitcherWarning" style="display:none;">
+                    <p class="mb-2 text-muted small">The following pitchers will need their strike zone re-selected on their edit page:</p>
+                    <ul class="list-group list-group-flush mb-2" id="termChangePitcherList"></ul>
+                    <div class="alert alert-warning py-2 px-3 mb-0 small">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Their pitch locations won't change automatically &mdash; you'll need to re-select a strike zone on each pitcher's edit page.
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-1"></i> Cancel
+                </button>
+                <button type="button" class="btn btn-primary" id="termChangeConfirmBtn">
+                    <i class="bi bi-check-circle me-1"></i> Yes, Switch Terminology
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
-    document.getElementById('restoreDefaultsBtn').addEventListener('click', () => {
-        // Colours
-        document.getElementById('accentColor').value = '#1a2e4a';
-        document.getElementById('strikeColor').value = '#c8ecd4';
-        document.getElementById('chaseColor').value  = '#fef3cd';
+(function () {
+    var form         = document.getElementById('preferencesForm');
+    var currentTerm  = '<%= (user.preferences && user.preferences.zoneTerminology) ? user.preferences.zoneTerminology : "arm-glove" %>';
+    var pitcherCount       = <%- (locals.pitcherMismatchCount || 0) %>;
+    var mismatchedPitchers = <%- JSON.stringify(locals.mismatchedPitchers || []) %>;
+    var confirmBtn         = document.getElementById('termChangeConfirmBtn');
+    var mainMsg      = document.getElementById('termChangeMainMsg');
+    var warningDiv   = document.getElementById('termChangePitcherWarning');
+    var pitcherMsg   = document.getElementById('termChangePitcherMsg');
+    var _modal       = null;
 
-        // Theme → Light
-        document.getElementById('themeLight').checked = true;
-        document.getElementById('themeDark').checked  = false;
+    if (!form) return;
 
-        // Font size → Medium
-        document.getElementById('font-sm').checked = false;
-        document.getElementById('font-md').checked = true;
-        document.getElementById('font-lg').checked = false;
+    form.addEventListener('submit', function (e) {
+        var selected = document.querySelector('input[name="zoneTerminology"]:checked');
+        if (!selected || selected.value === currentTerm) return;
+
+        e.preventDefault();
+
+        var fromLabel = currentTerm === 'arm-glove' ? 'Arm Side / Glove Side' : 'Inside / Away';
+        var toLabel   = selected.value === 'arm-glove' ? 'Arm Side / Glove Side' : 'Inside / Away';
+
+        mainMsg.textContent = 'Switch from ' + fromLabel + ' to ' + toLabel + ' terminology?';
+
+        if (pitcherCount > 0) {
+            var list = document.getElementById('termChangePitcherList');
+            list.innerHTML = '';
+            mismatchedPitchers.forEach(function(p) {
+                var li = document.createElement('li');
+                li.className = 'list-group-item py-1 px-2 small';
+                li.innerHTML = '<i class="bi bi-person-fill me-1 text-muted"></i><strong>#' + p.number + ' ' + p.name + '</strong><span class="text-muted ms-1">(' + p.team + ')</span>';
+                list.appendChild(li);
+            });
+            warningDiv.style.display = '';
+        } else {
+            warningDiv.style.display = 'none';
+        }
+
+        if (!_modal) _modal = new bootstrap.Modal(document.getElementById('termChangeModal'));
+        _modal.show();
     });
+
+    confirmBtn.addEventListener('click', function () {
+        if (_modal) _modal.hide();
+        form.submit();
+    });
+}());
 </script>

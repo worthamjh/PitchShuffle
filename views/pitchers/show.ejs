@@ -35,23 +35,12 @@
 
         .loc-box.strike   { background-color: var(--strike-bg); border: 1px solid var(--strike-border); color: var(--strike-text); }
         .loc-box.chase    { background-color: var(--chase-bg); border: 1px solid var(--chase-border); color: var(--chase-text); }
-        .loc-box.disabled { background: #e9ecef; border-color: #ced4da; color: #adb5bd; text-decoration: line-through; }
-        .loc-box.empty    { background: transparent; border-color: transparent; cursor: default; pointer-events: none; }
-        .loc-box.covered  { pointer-events: none; }
-
-        .loc-box.strike:hover   { background: var(--strike-hover); border-color: var(--strike-border); }
-        .loc-box.chase:hover    { background: var(--chase-hover); border-color: var(--chase-hover-border); }
-        .loc-box.disabled:hover { background: #e9ecef; }
-        .loc-box.empty:hover, .loc-box.covered:hover { background: inherit; }
-
-        /* Font size breakpoints applied to both cells and overlays at once */
-        @media (min-width: 576px) { .loc-box, .chase-overlay { font-size: 0.6rem; } }
-        @media (min-width: 992px) { .loc-box, .chase-overlay { font-size: 0.7rem; } }
+        .loc-box.disabled { background-color: #e9ecef; border: 1px solid #ced4da; color: #adb5bd; text-decoration: line-through; }
+        .loc-box.empty    { background: transparent; border-color: transparent; pointer-events: none; }
 
         .chase-overlay {
             position: absolute;
-            z-index: 5;
-            background: var(--chase-bg);
+            background-color: var(--chase-bg);
             border: 1px solid var(--chase-border);
             color: var(--chase-text);
             font-size: 0.55rem;
@@ -63,13 +52,17 @@
             align-items: center;
             justify-content: center;
             box-sizing: border-box;
-            cursor: pointer;
-            user-select: none;
-            transition: background-color 0.15s, border-color 0.15s;
+            z-index: 5;
+            pointer-events: none;
         }
-        .chase-overlay:hover          { background: var(--chase-hover); border-color: var(--chase-hover-border); }
-        .chase-overlay.disabled       { background: #e9ecef; border-color: #ced4da; color: #adb5bd; text-decoration: line-through; }
-        .chase-overlay.disabled:hover { background: #e9ecef; border-color: #ced4da; }
+        .chase-overlay.disabled {
+            background-color: #e9ecef;
+            border-color: #ced4da;
+            color: #adb5bd;
+            text-decoration: line-through;
+        }
+        @media (min-width: 576px) { .chase-overlay { font-size: 0.6rem; } }
+        @media (min-width: 992px) { .chase-overlay { font-size: 0.7rem; } }
 
         .strike-zone-outline {
             position: absolute;
@@ -96,6 +89,30 @@
         .zone-container { display: flex; justify-content: center; padding: 1rem 0; }
         .pitch-section  { border: 1px solid #dee2e6; border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; background: #fff; }
     </style>
+
+    <!-- Terminology mismatch banner -->
+    <%
+        const _userTerm    = (currentUser && currentUser.preferences && currentUser.preferences.zoneTerminology)
+            ? currentUser.preferences.zoneTerminology
+            : 'arm-glove';
+        const _pitcherTerm = pitcher.zone && pitcher.zone.terminology ? pitcher.zone.terminology : null;
+        const _termMismatch = _pitcherTerm && _pitcherTerm !== 'both' && _pitcherTerm !== _userTerm;
+        const _pitcherTermLabel = _pitcherTerm === 'arm-glove' ? 'Arm/Glove' : 'Inside/Away';
+        const _userTermLabel    = _userTerm    === 'arm-glove' ? 'Arm/Glove' : 'Inside/Away';
+    %>
+    <% if (_termMismatch) { %>
+        <div class="alert alert-warning d-flex align-items-center gap-2 mb-3" role="alert">
+            <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
+            <div>
+                <strong>Zone terminology mismatch:</strong> This pitcher's locations are saved as
+                <strong><%= _pitcherTermLabel %></strong> zones, but your preference is now
+                <strong><%= _userTermLabel %></strong>. The zone grid will still show the old terminology
+                until you update it.
+                <a href="/teams/<%= team._id %>/pitchers/<%= pitcher._id %>/edit" class="alert-link fw-bold">Edit this pitcher</a>,
+                choose a strike zone, and save &mdash; this will reset pitch locations to <strong><%= _userTermLabel %></strong> terminology.
+            </div>
+        </div>
+    <% } %>
 
     <!-- Page Header -->
     <div class="page-header d-flex justify-content-between align-items-center">
@@ -344,14 +361,11 @@
             wrapper.appendChild(outline);
         }
 
-        // hCells → overlay width/x   vCells → overlay height/y
-        // covered → underlying cells that get pointer-events: none
         function drawOverlays(pitchIndex, pitch) {
             const grid    = document.getElementById(`grid-${pitchIndex}`);
             const wrapper = document.getElementById(`wrapper-${pitchIndex}`);
             if (!grid || !wrapper) return;
 
-            // Clear previous overlays and covered flags
             wrapper.querySelectorAll('.chase-overlay').forEach(el => el.remove());
             grid.querySelectorAll('.loc-box.covered').forEach(el => el.classList.remove('covered'));
 
@@ -378,8 +392,6 @@
                 return { t, l, r, b };
             }
 
-            // hCells → overlay width/x   vCells → overlay height/y
-            // covered → underlying cells that get pointer-events: none
             function makeOverlay(locName, label, hCells, vCells, covered) {
                 if (!pitch.locations.find(z => z.name === locName)) return;
                 const hb = spanBounds(hCells);
@@ -410,12 +422,10 @@
                 });
             }
 
-            // Detect inside/away vs arm/glove terminology
             const locNames     = new Set(pitch.locations.map(l => l.name));
             const isInsideAway = locNames.has('inside-up');
 
             if (isInsideAway) {
-                // Inside/Away — fixed layout, no handedness flip
                 makeOverlay('up-out',         'up out',
                     ['inside-up', 'mid-up', 'away-up'],       ['up-out'],   []);
                 makeOverlay('down-out',        'down out',
@@ -425,7 +435,6 @@
                 makeOverlay('away-out-mid',   'away out',
                     ['away-out-mid'],   ['away-up',   'away-mid',   'away-down'],   []);
             } else {
-                // Arm/Glove — mirrors based on pitcher handedness
                 const armOutName   = isRHP ? 'arm-out-mid'   : 'glove-out-mid';
                 const gloveOutName = isRHP ? 'glove-out-mid' : 'arm-out-mid';
                 const armCells     = isRHP ? ['arm-up',   'arm-mid',   'arm-down']   : ['glove-up', 'glove-mid', 'glove-down'];

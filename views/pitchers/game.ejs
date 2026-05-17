@@ -55,6 +55,28 @@
     </a>
 </div>
 
+
+<%
+    const _gUserTerm    = (currentUser && currentUser.preferences && currentUser.preferences.zoneTerminology)
+        ? currentUser.preferences.zoneTerminology : 'arm-glove';
+    const _gPitcherTerm = pitcher.zone && pitcher.zone.terminology ? pitcher.zone.terminology : null;
+    const _gTermMismatch = _gPitcherTerm && _gPitcherTerm !== 'both' && _gPitcherTerm !== _gUserTerm;
+    const _gPitcherTermLabel = _gPitcherTerm === 'arm-glove' ? 'Arm/Glove' : 'Inside/Away';
+    const _gUserTermLabel    = _gUserTerm    === 'arm-glove' ? 'Arm/Glove' : 'Inside/Away';
+%>
+<% if (_gTermMismatch) { %>
+<div class="alert alert-warning d-flex align-items-center gap-2 mx-2 mt-2 mb-0" role="alert">
+    <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
+    <div class="small">
+        <strong>Zone terminology mismatch:</strong> This pitcher's locations are saved as
+        <strong><%= _gPitcherTermLabel %></strong> zones, but your preference is
+        <strong><%= _gUserTermLabel %></strong>. Pitch calls will use the old terminology.
+        <a href="/teams/<%= team._id %>/pitchers/<%= pitcher._id %>/edit" class="alert-link fw-bold">Edit this pitcher</a>
+        and re-select a strike zone to reset to <strong><%= _gUserTermLabel %></strong>.
+    </div>
+</div>
+<% } %>
+
 <!-- ── Body ────────────────────────────────────────────────────── -->
 <div class="game-body">
 
