@@ -1,18 +1,6 @@
 <%- layout('layouts/boilerplate') %>
 
 <style>
-    .setup-banner {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 0.5rem;
-        padding: 0.4rem 1rem;
-        background: #fff8e1;
-        border-bottom: 1px solid #ffe082;
-        font-size: 0.78rem;
-        color: #5d4037;
-        flex-shrink: 0;
-    }
     .speaking-dot {
         display: inline-block; width: 8px; height: 8px; border-radius: 50%;
         background: #2ecc71; margin-left: 4px; vertical-align: middle;
@@ -20,19 +8,25 @@
     }
     @keyframes pulse { from { opacity: 0.3; transform: scale(0.8); } to { opacity: 1; transform: scale(1.2); } }
 
-    /* Break out of boilerplate container/main padding */
-    main { padding: 0 !important; }
+    /* Lock the page — no scrolling, everything fits in viewport */
+    html, body { height: 100%; overflow: hidden; }
+    main { padding: 0 !important; overflow: hidden; }
     .container.mt-3 { display: none !important; }
+    .navbar { position: relative; z-index: 1050; }
+    .navbar-collapse { z-index: 1050; }
 
     .game-page {
         display: flex;
         flex-direction: column;
-        height: calc(100vh - 56px);
-        max-width: 600px;
+        height: calc(100vh - 56px); /* full viewport minus Bootstrap navbar */
+        width: 100%;
+        max-width: 100%;
         margin: 0 auto;
         background: var(--ps-card-bg);
         overflow: hidden;
     }
+
+    /* Pitch row — fixed height, no shrink */
     .pitch-row {
         display: flex;
         flex-direction: row;
@@ -46,10 +40,11 @@
         scrollbar-width: none;
     }
     .pitch-row::-webkit-scrollbar { display: none; }
+
     .pitch-btn {
-        flex-shrink: 0;
-        min-width: 56px;
-        padding: 0.35rem 0.75rem;
+        flex: 1;
+        min-width: 0;
+        padding: 0.35rem 0.5rem;
         border-radius: var(--btn-radius);
         font-size: 0.95rem;
         font-weight: 700;
@@ -65,16 +60,18 @@
     .pitch-btn:hover  { background: #dce6f0; border-color: #8fa8c8; }
     .pitch-btn.active { background: var(--ps-navy); border-color: var(--ps-navy); color: var(--accent-text, #fff); }
 
+    /* Zone — takes all remaining space between pitch row and action row */
     .zone-area {
         flex: 1;
         display: flex;
-        align-items: flex-end;
+        align-items: center;
         justify-content: center;
-        padding: 0;
         overflow: hidden;
+        background: var(--ps-card-bg);
     }
-    .zone-col { width: 100%; display: flex; align-items: flex-end; justify-content: center; }
+    .zone-col { width: 100%; display: flex; align-items: center; justify-content: center; }
 
+    /* Action row — fixed height, no shrink */
     .action-row {
         display: flex;
         flex-direction: row;
@@ -104,16 +101,17 @@
     .btn-repeat:hover { background: #9a4add; color: #fff; }
     .btn-repeat.disabled-btn { opacity: 0.45; pointer-events: none; }
 
+    /* Call bar — fixed height, no shrink, always last item */
     .call-bar {
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 0.75rem;
-        padding: 0.4rem 0.75rem;
+        padding: 0.6rem 0.75rem 0.75rem;
         background: var(--ps-navy);
         color: #fff;
+        min-height: 60px;
         flex-shrink: 0;
-        min-height: 48px;
     }
     .call-bar .call-label { color: var(--ps-navy-muted); font-size: 0.7rem; font-weight: 400; text-transform: uppercase; letter-spacing: 0.5px; }
     .call-bar .call-text  { font-size: 0.95rem; font-weight: 700; line-height: 1.2; }
@@ -126,7 +124,7 @@
         border-radius: var(--btn-radius);
         font-size: 0.85rem;
         font-weight: 700;
-        padding: 0.5rem 1rem;
+        padding: 0.6rem 1.25rem 0.85rem;
         cursor: pointer;
         transition: background 0.15s, color 0.15s;
         user-select: none;
@@ -135,6 +133,7 @@
     .btn-call:hover { background: var(--ps-navy-muted); color: #fff; }
     .btn-call.disabled-btn { opacity: 0.45; pointer-events: none; }
 
+    /* Zone font sizes */
     .zone-col .loc-box,
     .zone-col .chase-overlay { font-size: 0.55rem; }
     @media (min-width: 400px) {
@@ -145,35 +144,55 @@
         .zone-col .loc-box,
         .zone-col .chase-overlay { font-size: 0.7rem; }
     }
+
+    [data-theme='dark'] .pitch-row,
+    [data-theme='dark'] .action-row { background: #1a2535; border-color: #2a3f5a; }
+    [data-theme='dark'] .pitch-btn  { background: #243350; border-color: #2a3f5a; color: var(--ps-navy-muted); }
+    [data-theme='dark'] .pitch-btn.active { background: var(--ps-navy); color: var(--accent-text, #fff); }
+
+    .setup-banner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        padding: 0.4rem 1rem;
+        background: #fff8e1;
+        border-bottom: 1px solid #ffe082;
+        font-size: 0.78rem;
+        color: #5d4037;
+        flex-shrink: 0;
+    }
 </style>
 
 
-<!-- ── Header ─────────────────────────────────────────────────── -->
+<!-- ── Header + game page — one flex column filling the viewport below navbar -->
+<div class="game-page">
+
+<!-- Game header inside the flex column -->
 <div class="game-header">
     <a href="/" class="btn btn-sm btn-outline-light">
         <i class="bi bi-arrow-left"></i>
     </a>
     <div class="pitcher-info">
         <div class="pitcher-name">Quick Game</div>
-        <div class="pitcher-meta">RHP &middot; Zone C &middot; <%= (currentUser && currentUser.preferences && currentUser.preferences.zoneTerminology === 'inside-away') ? 'Inside/Away' : 'Arm/Glove' %></div>
+        <div class="pitcher-meta">RHP &middot; Zone C &middot; Arm/Glove</div>
     </div>
 </div>
 
-<!-- ── Onboarding banner ──────────────────────────────────────── -->
+<!-- Onboarding banner -->
 <div class="setup-banner">
     <span><i class="bi bi-lightning-fill me-1"></i> Enjoying PitchShuffle?
     <a href="/teams/new">Set up your team</a> to save pitchers and customise locations.</span>
-    <button type="button" class="btn-close btn-close" style="font-size:0.7rem;" aria-label="Close"
+    <button type="button" class="btn-close" style="font-size:0.7rem;" aria-label="Close"
             onclick="this.parentElement.style.display='none'"></button>
 </div>
 
-<div class="game-page">
-
 <!-- Pitch buttons row -->
 <div class="pitch-row" id="pitchRow">
-    <% pitcher.pitchTypes.forEach(function(pt, i) { %>
-        <button class="pitch-btn" data-pitch-index="<%= i %>"><%= pt.abbreviation || pt.name %></button>
-    <% }); %>
+    <button class="pitch-btn" data-pitch-index="0">FB</button>
+    <button class="pitch-btn" data-pitch-index="1">CB</button>
+    <button class="pitch-btn" data-pitch-index="2">CH</button>
+    <button class="pitch-btn" data-pitch-index="3">SL</button>
 </div>
 
 <!-- Zone -->
@@ -203,39 +222,47 @@
 
 </div><!-- end .game-page -->
 
-<!-- ── Data ───────────────────────────────────────────────────── -->
+<!-- ── Data ─────────────────────────────────────────────────── -->
 <script type="application/json" id="pitcherJson"><%- JSON.stringify(pitcher) %></script>
 
 <script>
     const pitcherData   = JSON.parse(document.getElementById('pitcherJson').textContent);
-    const isRHP         = pitcherData.throws === 'R';
-    const pitchTypes    = pitcherData.pitchTypes || [];
-    const zoneLocations = pitcherData.zone.availableLocations;
+    const isRHP         = true;
+    const pitchTypes    = [
+        { name: 'Fastball',   abbreviation: 'FB' },
+        { name: 'Curveball',  abbreviation: 'CB' },
+        { name: 'Changeup',   abbreviation: 'CH' },
+        { name: 'Slider',     abbreviation: 'SL' },
+    ];
+    const zoneLocations = pitcherData.zone ? pitcherData.zone.availableLocations : [];
 
     let selectedPitchIndex = null;
     let selectedLocation   = null;
     let lastCall           = null;
 
-    // ── Zone C layout ─────────────────────────────────────────
+    // ── Zone layouts ──────────────────────────────────────────
     const LAYOUTS_C = {
-        'glove-out-up':   { row: 1, col: isRHP ? 1 : 5 },
+        'glove-out-up':   { row: 1, col: 1 },
         'up-out':         { row: 1, col: 2 },
-        'arm-out-up':     { row: 1, col: isRHP ? 5 : 1 },
-        'glove-out-mid':  { row: 2, col: isRHP ? 1 : 5, rowSpan: 3 },
-        'glove-up':       { row: 2, col: isRHP ? 2 : 4, strike: true },
-        'mid-up':         { row: 2, col: 3,              strike: true },
-        'arm-up':         { row: 2, col: isRHP ? 4 : 2, strike: true },
-        'arm-out-mid':    { row: 2, col: isRHP ? 5 : 1, rowSpan: 3 },
-        'glove-mid':      { row: 3, col: isRHP ? 2 : 4, strike: true },
-        'mid-mid':        { row: 3, col: 3,              strike: true },
-        'arm-mid':        { row: 3, col: isRHP ? 4 : 2, strike: true },
-        'glove-down':     { row: 4, col: isRHP ? 2 : 4, strike: true },
-        'mid-down':       { row: 4, col: 3,              strike: true },
-        'arm-down':       { row: 4, col: isRHP ? 4 : 2, strike: true },
-        'glove-out-down': { row: 5, col: isRHP ? 1 : 5 },
+        'arm-out-up':     { row: 1, col: 5 },
+        'glove-out-mid':  { row: 2, col: 1, rowSpan: 3 },
+        'glove-up':       { row: 2, col: 2, strike: true },
+        'mid-up':         { row: 2, col: 3, strike: true },
+        'arm-up':         { row: 2, col: 4, strike: true },
+        'arm-out-mid':    { row: 2, col: 5, rowSpan: 3 },
+        'glove-mid':      { row: 3, col: 2, strike: true },
+        'mid-mid':        { row: 3, col: 3, strike: true },
+        'arm-mid':        { row: 3, col: 4, strike: true },
+        'glove-down':     { row: 4, col: 2, strike: true },
+        'mid-down':       { row: 4, col: 3, strike: true },
+        'arm-down':       { row: 4, col: 4, strike: true },
+        'glove-out-down': { row: 5, col: 1 },
         'down-out':       { row: 5, col: 2 },
-        'arm-out-down':   { row: 5, col: isRHP ? 5 : 1 },
+        'arm-out-down':   { row: 5, col: 5 },
     };
+
+    function getLayout(locs) { return LAYOUTS_C; }
+    const isZoneC = () => true;
 
     // ── Build grid ────────────────────────────────────────────
     let _boxSize = 70;
@@ -245,19 +272,23 @@
         const wrapper = document.getElementById('zoneWrapper');
         grid.innerHTML = '';
         wrapper.querySelectorAll('.chase-overlay, .strike-zone-outline').forEach(el => el.remove());
+        if (!zoneLocations.length) return;
 
-        const layout  = LAYOUTS_C;
+        const layout  = getLayout(zoneLocations);
         const maxRow  = Math.max(...Object.values(layout).map(p => (p.row||1) + (p.rowSpan||1) - 1));
         const maxCol  = Math.max(...Object.values(layout).map(p => (p.col||1) + (p.colSpan||1) - 1));
-        // Available height = viewport - navbar - setup-banner - pitch row - action row - call bar
-        // Rows tightened: pitch≈44, action≈44, callbar≈48, banner≈36
-        const _availH = window.innerHeight - 56 - 36 - 44 - 44 - 48;
+
+        // Measure zone-area after layout has settled
+        const zoneArea = document.querySelector('.zone-area');
+        const _availH  = (zoneArea && zoneArea.offsetHeight > 0)
+            ? zoneArea.offsetHeight
+            : window.innerHeight - 56 - 44 - 44 - 48;
         _boxSize = Math.floor(_availH / maxRow);
-        // zone-area has no padding now; only subtract grid border (2px each side = 4px)
-        const _availW = Math.min(window.innerWidth, 600) - 4;
+
+        const _availW = window.innerWidth - 4;
         const _boxW   = Math.floor(_availW / maxCol);
         _boxSize = Math.min(_boxSize, _boxW);
-        _boxSize = Math.max(_boxSize, 44); // minimum touch target
+        _boxSize = Math.max(_boxSize, 44);
 
         grid.style.gridTemplateRows    = `repeat(${maxRow}, ${_boxSize}px)`;
         grid.style.gridTemplateColumns = `repeat(${maxCol}, ${_boxSize}px)`;
@@ -276,8 +307,8 @@
         });
 
         drawOutline(layout);
+        if (isZoneC()) drawOverlays(layout);
         if (selectedLocation) highlightLocation(selectedLocation);
-        drawOverlays(layout);
     }
 
     function cellBounds(pos) {
@@ -285,21 +316,24 @@
         const left   = (pos.col - 1) * _boxSize;
         const height = (pos.rowSpan || 1) * _boxSize;
         const width  = (pos.colSpan || 1) * _boxSize;
-        return { top, left, bottom: top + height, right: left + width };
+        return { top, left, bottom: top + height, right: left + width, width, height };
     }
 
     function drawOutline(layout) {
         const wrapper    = document.getElementById('zoneWrapper');
-        const gridBorder = 2; // .zone-grid has border: 2px — offset into wrapper coords
+        const gridBorder = 2;
         const strikePosArr = Object.values(layout).filter(p => p.strike);
         if (!strikePosArr.length) return;
 
         let t = Infinity, l = Infinity, b = -Infinity, r = -Infinity;
         strikePosArr.forEach(pos => {
             const bnd = cellBounds(pos);
-            t = Math.min(t, bnd.top);    l = Math.min(l, bnd.left);
-            b = Math.max(b, bnd.bottom); r = Math.max(r, bnd.right);
+            t = Math.min(t, bnd.top);
+            l = Math.min(l, bnd.left);
+            b = Math.max(b, bnd.bottom);
+            r = Math.max(r, bnd.right);
         });
+
         const outline = document.createElement('div');
         outline.className = 'strike-zone-outline';
         Object.assign(outline.style, {
@@ -311,19 +345,11 @@
         wrapper.appendChild(outline);
     }
 
-    // ── Chase overlays (Zone C only) ──────────────────────────
-    // Positions span-overlay rectangles over up-out, down-out, arm-out-mid,
-    // glove-out-mid using the same math-based cellBounds — no getBoundingClientRect.
     function drawOverlays(layout) {
         const wrapper = document.getElementById('zoneWrapper');
         const grid    = document.getElementById('zoneGrid');
         wrapper.querySelectorAll('.chase-overlay').forEach(el => el.remove());
-
-        // The grid has a 2px border — overlays are relative to wrapper, so offset by that
         const gridBorder = 2;
-
-        const armOutName   = isRHP ? 'arm-out-mid'   : 'glove-out-mid';
-        const gloveOutName = isRHP ? 'glove-out-mid' : 'arm-out-mid';
 
         function spanBounds(names) {
             let t = Infinity, l = Infinity, b = -Infinity, r = -Infinity;
@@ -344,7 +370,6 @@
             const vb = spanBounds(vCellNames);
             if (!isFinite(hb.l) || !isFinite(vb.t)) return;
 
-            // Hide the underlying grid cell(s) — overlay takes over interaction
             const allToHide = [locName, ...coverAlso];
             allToHide.forEach(name => {
                 const cell = grid ? [...grid.querySelectorAll('.loc-box')]
@@ -365,31 +390,10 @@
             wrapper.appendChild(el);
         }
 
-        // Detect inside/away vs arm/glove terminology
-        const locNames     = new Set(zoneLocations.map(l => l.name));
-        const isInsideAway = locNames.has('inside-up');
-
-        if (isInsideAway) {
-            // Inside/Away — fixed layout, no handedness flip
-            makeOverlay('up-out',         'up out',
-                ['away-up', 'mid-up', 'inside-up'], ['up-out']);
-            makeOverlay('down-out',        'down out',
-                ['away-down', 'mid-down', 'inside-down'], ['down-out']);
-            makeOverlay('inside-out-mid', 'inside out',
-                ['inside-out-mid'], ['inside-up', 'inside-mid', 'inside-down']);
-            makeOverlay('away-out-mid',   'away out',
-                ['away-out-mid'], ['away-up', 'away-mid', 'away-down']);
-        } else {
-            // Arm/Glove — mirrors based on pitcher handedness
-            makeOverlay('up-out',   'up out',
-                ['glove-up', 'mid-up', 'arm-up'], ['up-out']);
-            makeOverlay('down-out', 'down out',
-                ['glove-down', 'mid-down', 'arm-down'], ['down-out']);
-            makeOverlay(armOutName,   isRHP ? 'arm out'   : 'glove out',
-                [armOutName], ['glove-up', 'glove-mid', 'glove-down']);
-            makeOverlay(gloveOutName, isRHP ? 'glove out' : 'arm out',
-                [gloveOutName], ['arm-up', 'arm-mid', 'arm-down']);
-        }
+        makeOverlay('up-out',        'up out',    ['glove-up', 'mid-up', 'arm-up'],       ['up-out']);
+        makeOverlay('down-out',      'down out',  ['glove-down', 'mid-down', 'arm-down'],  ['down-out']);
+        makeOverlay('arm-out-mid',   'arm out',   ['arm-out-mid'],   ['arm-up', 'arm-mid', 'arm-down']);
+        makeOverlay('glove-out-mid', 'glove out', ['glove-out-mid'], ['glove-up', 'glove-mid', 'glove-down']);
     }
 
     // ── Selection helpers ─────────────────────────────────────
@@ -423,23 +427,12 @@
     }
 
     const LOC_LABELS = {
-        'glove-up':       'glove side up',
-        'glove-mid':      'glove side middle',
-        'glove-down':     'glove side down',
-        'arm-up':         'arm side up',
-        'arm-mid':        'arm side middle',
-        'arm-down':       'arm side down',
-        'mid-up':         'middle up',
-        'mid-mid':        'middle middle',
-        'mid-down':       'middle down',
-        'glove-out-up':   'glove side up and out',
-        'glove-out-mid':  'glove side out',
-        'glove-out-down': 'glove side down and out',
-        'arm-out-up':     'arm side up and out',
-        'arm-out-mid':    'arm side out',
-        'arm-out-down':   'arm side down and out',
-        'up-out':         'up and out',
-        'down-out':       'down and out',
+        'glove-up': 'glove side up', 'glove-mid': 'glove side middle', 'glove-down': 'glove side down',
+        'arm-up': 'arm side up', 'arm-mid': 'arm side middle', 'arm-down': 'arm side down',
+        'mid-up': 'middle up', 'mid-mid': 'middle middle', 'mid-down': 'middle down',
+        'glove-out-up': 'glove side up and out', 'glove-out-mid': 'glove side out', 'glove-out-down': 'glove side down and out',
+        'arm-out-up': 'arm side up and out', 'arm-out-mid': 'arm side out', 'arm-out-down': 'arm side down and out',
+        'up-out': 'up and out', 'down-out': 'down and out',
     };
     function locLabel(locName) {
         return LOC_LABELS[locName] || locName.replace(/-/g, ' ');
@@ -471,6 +464,7 @@
         document.getElementById('btnRepeat').classList.toggle('disabled-btn', !lastCall);
     }
 
+    // ── Event listeners ───────────────────────────────────────
     document.getElementById('pitchRow').addEventListener('click', e => {
         const btn = e.target.closest('.pitch-btn');
         if (btn) selectPitch(Number(btn.dataset.pitchIndex));
@@ -482,7 +476,7 @@
     });
 
     document.getElementById('btnRandom').addEventListener('click', () => {
-        const locs = zoneLocations.filter(l => l.enabled);
+        const locs = zoneLocations.filter(l => l.enabled !== false);
         if (!pitchTypes.length || !locs.length) return;
         selectPitch(Math.floor(Math.random() * pitchTypes.length));
         selectLocation(locs[Math.floor(Math.random() * locs.length)].name);
@@ -508,8 +502,6 @@ function speak(pitchName, locName) {
     const utter = new SpeechSynthesisUtterance(`${pitchName}, ${locLabel(locName)}`);
     utter.rate  = 0.95;
 
-    // Apply saved voice — fetch voices fresh each time as they may not
-    // be loaded yet if called early, and use a small delay if list is empty
     function applyVoiceAndSpeak() {
         const savedURI = window.PS_VOICE_URI || '';
         if (savedURI) {
@@ -524,7 +516,6 @@ function speak(pitchName, locName) {
         window.speechSynthesis.speak(utter);
     }
 
-    // Voices may not be loaded yet on first call
     if (window.speechSynthesis.getVoices().length) {
         applyVoiceAndSpeak();
     } else {
@@ -537,7 +528,7 @@ function speak(pitchName, locName) {
 
     // ── Init ─────────────────────────────────────────────────
     let resizeTimer;
-    buildGrid();
+    requestAnimationFrame(buildGrid);
     window.addEventListener('resize', () => {
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(buildGrid, 100);
