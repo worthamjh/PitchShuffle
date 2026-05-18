@@ -20,6 +20,10 @@
     }
     @keyframes pulse { from { opacity: 0.3; transform: scale(0.8); } to { opacity: 1; transform: scale(1.2); } }
 
+    /* Break out of boilerplate container/main padding */
+    main { padding: 0 !important; }
+    .container.mt-3 { display: none !important; }
+
     .game-page {
         display: flex;
         flex-direction: column;
@@ -33,7 +37,7 @@
         display: flex;
         flex-direction: row;
         gap: 0.4rem;
-        padding: 0.5rem 0.75rem;
+        padding: 0.3rem 0.75rem;
         overflow-x: auto;
         background: #f8f9fa;
         border-bottom: 1px solid #dee2e6;
@@ -45,7 +49,7 @@
     .pitch-btn {
         flex-shrink: 0;
         min-width: 56px;
-        padding: 0.5rem 0.75rem;
+        padding: 0.35rem 0.75rem;
         border-radius: var(--btn-radius);
         font-size: 0.95rem;
         font-weight: 700;
@@ -64,25 +68,25 @@
     .zone-area {
         flex: 1;
         display: flex;
-        align-items: center;
+        align-items: flex-end;
         justify-content: center;
-        padding: 0.75rem;
+        padding: 0;
         overflow: hidden;
     }
-    .zone-col { width: 100%; display: flex; align-items: center; justify-content: center; }
+    .zone-col { width: 100%; display: flex; align-items: flex-end; justify-content: center; }
 
     .action-row {
         display: flex;
         flex-direction: row;
         gap: 0.4rem;
-        padding: 0.5rem 0.75rem;
+        padding: 0.3rem 0.75rem;
         background: #f8f9fa;
         border-top: 1px solid #dee2e6;
         flex-shrink: 0;
     }
     .action-btn {
         flex: 1;
-        padding: 0.6rem 0.25rem;
+        padding: 0.4rem 0.25rem;
         border-radius: var(--btn-radius);
         font-size: 0.8rem;
         font-weight: 700;
@@ -105,11 +109,11 @@
         align-items: center;
         justify-content: space-between;
         gap: 0.75rem;
-        padding: 0.6rem 0.75rem;
+        padding: 0.4rem 0.75rem;
         background: var(--ps-navy);
         color: #fff;
         flex-shrink: 0;
-        min-height: 56px;
+        min-height: 48px;
     }
     .call-bar .call-label { color: var(--ps-navy-muted); font-size: 0.7rem; font-weight: 400; text-transform: uppercase; letter-spacing: 0.5px; }
     .call-bar .call-text  { font-size: 0.95rem; font-weight: 700; line-height: 1.2; }
@@ -246,12 +250,13 @@
         const maxRow  = Math.max(...Object.values(layout).map(p => (p.row||1) + (p.rowSpan||1) - 1));
         const maxCol  = Math.max(...Object.values(layout).map(p => (p.col||1) + (p.colSpan||1) - 1));
         // Available height = viewport - navbar - setup-banner - pitch row - action row - call bar
-        const _availH = window.innerHeight - 56 - 36 - 52 - 56 - 56;
+        // Rows tightened: pitch≈44, action≈44, callbar≈48, banner≈36
+        const _availH = window.innerHeight - 56 - 36 - 44 - 44 - 48;
         _boxSize = Math.floor(_availH / maxRow);
-        // Also constrain by width
-        const _availW = Math.min(window.innerWidth, 600) - 16; // 16px padding
+        // zone-area has no padding now; only subtract grid border (2px each side = 4px)
+        const _availW = Math.min(window.innerWidth, 600) - 4;
         const _boxW   = Math.floor(_availW / maxCol);
-        _boxSize = Math.min(_boxSize, _boxW, 88);
+        _boxSize = Math.min(_boxSize, _boxW);
         _boxSize = Math.max(_boxSize, 44); // minimum touch target
 
         grid.style.gridTemplateRows    = `repeat(${maxRow}, ${_boxSize}px)`;
