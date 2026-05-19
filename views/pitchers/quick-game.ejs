@@ -18,7 +18,7 @@
     .game-page {
         display: flex;
         flex-direction: column;
-        height: calc(100vh - 56px); /* full viewport minus Bootstrap navbar */
+        height: calc(100vh - 56px);
         width: 100%;
         max-width: 100%;
         margin: 0 auto;
@@ -48,30 +48,48 @@
         border-radius: var(--btn-radius);
         font-size: 0.95rem;
         font-weight: 700;
-        text-align: center;
-        cursor: pointer;
         border: 2px solid #c0cfe0;
         background: #eef2f7;
         color: var(--ps-navy);
-        user-select: none;
+        cursor: pointer;
         transition: background 0.15s, border-color 0.15s, color 0.15s;
         white-space: nowrap;
     }
-    .pitch-btn:hover  { background: #dce6f0; border-color: #8fa8c8; }
+    .pitch-btn:hover  { background: #dce6f0; }
     .pitch-btn.active { background: var(--ps-navy); border-color: var(--ps-navy); color: var(--accent-text, #fff); }
 
-    /* Zone — takes all remaining space between pitch row and action row */
+    /* Zone area — fills remaining space */
     .zone-area {
         flex: 1;
         display: flex;
         align-items: center;
         justify-content: center;
         overflow: hidden;
-        background: var(--ps-card-bg);
+        padding: 0.25rem;
     }
-    .zone-col { width: 100%; display: flex; align-items: center; justify-content: center; }
 
-    /* Action row — fixed height, no shrink */
+    .zone-col {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+    }
+
+    .zone-grid-wrapper { display: inline-block; position: relative; }
+    .zone-grid         { display: grid; gap: 0; border: 2px solid #adb5bd; }
+
+    .pitchers-view-label {
+        font-size: 0.6rem;
+        font-weight: 600;
+        color: #6c757d;
+        text-align: center;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        margin-bottom: 2px;
+    }
+
+    /* Action row */
     .action-row {
         display: flex;
         flex-direction: row;
@@ -81,11 +99,12 @@
         border-top: 1px solid #dee2e6;
         flex-shrink: 0;
     }
+
     .action-btn {
         flex: 1;
-        padding: 0.4rem 0.25rem;
+        padding: 0.4rem 0.3rem;
         border-radius: var(--btn-radius);
-        font-size: 0.8rem;
+        font-size: 0.78rem;
         font-weight: 700;
         text-align: center;
         cursor: pointer;
@@ -101,41 +120,53 @@
     .btn-repeat:hover { background: #9a4add; color: #fff; }
     .btn-repeat.disabled-btn { opacity: 0.45; pointer-events: none; }
 
-    /* Call bar — fixed height, no shrink, always last item */
+    /* Call bar */
     .call-bar {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 0.75rem;
-        padding: 0.6rem 0.75rem 0.75rem;
+        gap: 0.5rem;
+        padding: 0.4rem 0.75rem;
         background: var(--ps-navy);
-        color: #fff;
-        min-height: 60px;
+        color: var(--accent-text, #fff);
         flex-shrink: 0;
+        min-height: 48px;
     }
-    .call-bar .call-label { color: var(--ps-navy-muted); font-size: 0.7rem; font-weight: 400; text-transform: uppercase; letter-spacing: 0.5px; }
-    .call-bar .call-text  { font-size: 0.95rem; font-weight: 700; line-height: 1.2; }
-    .call-bar .call-info  { flex: 1; min-width: 0; }
+    .call-info { flex: 1; min-width: 0; }
+    .call-label { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em; opacity: 0.8; }
+    .call-text  { font-size: 0.95rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
     .btn-call {
-        flex-shrink: 0;
         background: #fff;
         color: var(--ps-navy);
-        border: 2px solid #fff;
+        border: none;
         border-radius: var(--btn-radius);
-        font-size: 0.85rem;
+        padding: 0.45rem 0.9rem;
+        font-size: 0.8rem;
         font-weight: 700;
-        padding: 0.6rem 1.25rem 0.85rem;
         cursor: pointer;
-        transition: background 0.15s, color 0.15s;
-        user-select: none;
-        white-space: nowrap;
+        flex-shrink: 0;
+        transition: background 0.15s, opacity 0.15s;
     }
-    .btn-call:hover { background: var(--ps-navy-muted); color: #fff; }
+    .btn-call:hover { background: #e0ecf8; }
     .btn-call.disabled-btn { opacity: 0.45; pointer-events: none; }
 
-    /* Zone font sizes */
-    .zone-col .loc-box,
-    .zone-col .chase-overlay { font-size: 0.55rem; }
+    /* Zone cells — mirrors game.ejs */
+    .zone-col .loc-box {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.55rem;
+        font-weight: 600;
+        text-align: center;
+        cursor: pointer;
+        border: 1px solid #dee2e6;
+        user-select: none;
+        transition: background 0.12s, border-color 0.12s;
+        box-sizing: border-box;
+        line-height: 1.1;
+        padding: 2px;
+    }
     @media (min-width: 400px) {
         .zone-col .loc-box,
         .zone-col .chase-overlay { font-size: 0.6rem; }
@@ -143,6 +174,38 @@
     @media (min-width: 600px) {
         .zone-col .loc-box,
         .zone-col .chase-overlay { font-size: 0.7rem; }
+    }
+
+    .loc-box.strike         { background: var(--strike-bg); border-color: var(--strike-border); color: var(--strike-text); }
+    .loc-box.chase          { background: var(--chase-bg);  border-color: var(--chase-border);  color: var(--chase-text); }
+    .loc-box.covered        { visibility: hidden; pointer-events: none; }
+    .loc-box.selected-loc   { outline: 3px solid var(--ps-navy); outline-offset: -2px; z-index: 2; }
+
+    .chase-overlay {
+        position: absolute;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.55rem;
+        font-weight: 600;
+        text-align: center;
+        cursor: pointer;
+        background: var(--chase-bg);
+        border: 1px solid var(--chase-border);
+        color: var(--chase-text);
+        box-sizing: border-box;
+        z-index: 3;
+        user-select: none;
+        transition: background 0.12s;
+    }
+    .chase-overlay.selected-loc { outline: 3px solid var(--ps-navy); outline-offset: -2px; }
+
+    .strike-zone-outline {
+        position: absolute;
+        border: 3px solid var(--ps-navy);
+        pointer-events: none;
+        z-index: 4;
+        box-sizing: border-box;
     }
 
     [data-theme='dark'] .pitch-row,
@@ -164,63 +227,62 @@
     }
 </style>
 
-
-<!-- ── Header + game page — one flex column filling the viewport below navbar -->
 <div class="game-page">
 
-<!-- Game header inside the flex column -->
-<div class="game-header">
-    <a href="/" class="btn btn-sm btn-outline-light">
-        <i class="bi bi-arrow-left"></i>
-    </a>
-    <div class="pitcher-info">
-        <div class="pitcher-name">Quick Game</div>
-        <div class="pitcher-meta">RHP &middot; Zone C &middot; Arm/Glove</div>
-    </div>
-</div>
-
-<!-- Onboarding banner -->
-<div class="setup-banner">
-    <span><i class="bi bi-lightning-fill me-1"></i> Enjoying PitchShuffle?
-    <a href="/teams/new">Set up your team</a> to save pitchers and customise locations.</span>
-    <button type="button" class="btn-close" style="font-size:0.7rem;" aria-label="Close"
-            onclick="this.parentElement.style.display='none'"></button>
-</div>
-
-<!-- Pitch buttons row -->
-<div class="pitch-row" id="pitchRow">
-    <button class="pitch-btn" data-pitch-index="0">FB</button>
-    <button class="pitch-btn" data-pitch-index="1">CB</button>
-    <button class="pitch-btn" data-pitch-index="2">CH</button>
-    <button class="pitch-btn" data-pitch-index="3">SL</button>
-</div>
-
-<!-- Zone -->
-<div class="zone-area">
-    <div class="zone-col">
-        <div class="zone-grid-wrapper" id="zoneWrapper">
-            <div class="zone-grid" id="zoneGrid"></div>
+    <!-- Game header -->
+    <div class="game-header">
+        <a href="/" class="btn btn-sm btn-outline-light">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div class="pitcher-info">
+            <div class="pitcher-name">Quick Game</div>
+            <div class="pitcher-meta">RHP &middot; Zone C &middot; Arm/Glove</div>
         </div>
     </div>
-</div>
 
-<!-- Action buttons row -->
-<div class="action-row">
-    <button class="action-btn btn-random" id="btnRandom"><i class="bi bi-shuffle"></i> Random</button>
-    <button class="action-btn btn-clear"  id="btnClear"><i class="bi bi-x-circle"></i> Clear</button>
-    <button class="action-btn btn-repeat disabled-btn" id="btnRepeat"><i class="bi bi-arrow-repeat"></i> Repeat</button>
-</div>
-
-<!-- Call bar -->
-<div class="call-bar" id="callBar">
-    <div class="call-info">
-        <div class="call-label">SELECT PITCH &amp; LOCATION</div>
-        <div class="call-text" id="callText" style="display:none;"></div>
+    <!-- Onboarding banner -->
+    <div class="setup-banner">
+        <span><i class="bi bi-lightning-fill me-1"></i> Enjoying PitchShuffle?
+            <a href="/teams/new">Set up your team</a> to save pitchers and customise locations.</span>
+        <button type="button" class="btn-close" style="font-size:0.7rem;" aria-label="Close"
+                onclick="this.parentElement.style.display='none'"></button>
     </div>
-    <button class="btn-call disabled-btn" id="btnCall"><i class="bi bi-megaphone"></i> Call Pitch</button>
-</div>
 
-</div><!-- end .game-page -->
+    <!-- Pitch buttons row -->
+    <div class="pitch-row" id="pitchRow">
+        <button class="pitch-btn" data-pitch-index="0">FB</button>
+        <button class="pitch-btn" data-pitch-index="1">CB</button>
+        <button class="pitch-btn" data-pitch-index="2">CH</button>
+        <button class="pitch-btn" data-pitch-index="3">SL</button>
+    </div>
+
+    <!-- Zone -->
+    <div class="zone-area">
+        <div class="zone-col">
+            <div class="zone-grid-wrapper" id="zoneWrapper">
+                <div class="pitchers-view-label">Pitcher's View</div>
+                <div class="zone-grid" id="zoneGrid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action buttons row -->
+    <div class="action-row">
+        <button class="action-btn btn-random" id="btnRandom"><i class="bi bi-shuffle"></i> Random</button>
+        <button class="action-btn btn-clear"  id="btnClear"><i class="bi bi-x-circle"></i> Clear</button>
+        <button class="action-btn btn-repeat disabled-btn" id="btnRepeat"><i class="bi bi-arrow-repeat"></i> Repeat</button>
+    </div>
+
+    <!-- Call bar -->
+    <div class="call-bar" id="callBar">
+        <div class="call-info">
+            <div class="call-label">SELECT PITCH &amp; LOCATION</div>
+            <div class="call-text" id="callText" style="display:none;"></div>
+        </div>
+        <button class="btn-call disabled-btn" id="btnCall"><i class="bi bi-megaphone"></i> Call Pitch</button>
+    </div>
+
+</div>
 
 <!-- ── Data ─────────────────────────────────────────────────── -->
 <script type="application/json" id="pitcherJson"><%- JSON.stringify(pitcher) %></script>
@@ -234,8 +296,8 @@
         { name: 'Changeup',   abbreviation: 'CH' },
         { name: 'Slider',     abbreviation: 'SL' },
     ];
-    const zoneLocations = pitcherData.zone ? pitcherData.zone.availableLocations : [];
-
+const zoneLocations = pitcherData.zone ? pitcherData.zone.availableLocations : [];
+console.log('zoneLocations:', JSON.stringify(zoneLocations)); // ← add this
     let selectedPitchIndex = null;
     let selectedLocation   = null;
     let lastCall           = null;
@@ -274,17 +336,20 @@
         wrapper.querySelectorAll('.chase-overlay, .strike-zone-outline').forEach(el => el.remove());
         if (!zoneLocations.length) return;
 
-        const layout  = getLayout(zoneLocations);
-        const maxRow  = Math.max(...Object.values(layout).map(p => (p.row||1) + (p.rowSpan||1) - 1));
-        const maxCol  = Math.max(...Object.values(layout).map(p => (p.col||1) + (p.colSpan||1) - 1));
+        const layout = getLayout(zoneLocations);
+        const maxRow = Math.max(...Object.values(layout).map(p => (p.row||1) + (p.rowSpan||1) - 1));
+        const maxCol = Math.max(...Object.values(layout).map(p => (p.col||1) + (p.colSpan||1) - 1));
 
-        // Measure zone-area after layout has settled
+        // Account for the pitchers-view-label height above the grid
+        const labelEl = wrapper.querySelector('.pitchers-view-label');
+        const labelH  = labelEl ? labelEl.offsetHeight + 2 : 0;
+
         const zoneArea = document.querySelector('.zone-area');
-        const _availH  = (zoneArea && zoneArea.offsetHeight > 0)
+        const _availH  = ((zoneArea && zoneArea.offsetHeight > 0)
             ? zoneArea.offsetHeight
-            : window.innerHeight - 56 - 44 - 44 - 48;
-        _boxSize = Math.floor(_availH / maxRow);
+            : window.innerHeight - 56 - 44 - 44 - 48) - labelH;
 
+        _boxSize = Math.floor(_availH / maxRow);
         const _availW = window.innerWidth - 4;
         const _boxW   = Math.floor(_availW / maxCol);
         _boxSize = Math.min(_boxSize, _boxW);
@@ -320,8 +385,10 @@
     }
 
     function drawOutline(layout) {
-        const wrapper    = document.getElementById('zoneWrapper');
-        const gridBorder = 2;
+        const wrapper      = document.getElementById('zoneWrapper');
+        const gridBorder   = 2;
+        const labelEl      = wrapper.querySelector('.pitchers-view-label');
+        const labelH       = labelEl ? labelEl.offsetHeight + 2 : 0;
         const strikePosArr = Object.values(layout).filter(p => p.strike);
         if (!strikePosArr.length) return;
 
@@ -337,7 +404,7 @@
         const outline = document.createElement('div');
         outline.className = 'strike-zone-outline';
         Object.assign(outline.style, {
-            top:    (t + gridBorder) + 'px',
+            top:    (t + gridBorder + labelH) + 'px',
             left:   (l + gridBorder) + 'px',
             width:  (r - l) + 'px',
             height: (b - t) + 'px'
@@ -345,11 +412,17 @@
         wrapper.appendChild(outline);
     }
 
+    // ── Chase overlays (Zone C only) — mirrors game.ejs exactly ──
     function drawOverlays(layout) {
-        const wrapper = document.getElementById('zoneWrapper');
-        const grid    = document.getElementById('zoneGrid');
-        wrapper.querySelectorAll('.chase-overlay').forEach(el => el.remove());
+        const wrapper    = document.getElementById('zoneWrapper');
+        const grid       = document.getElementById('zoneGrid');
+        const labelEl    = wrapper.querySelector('.pitchers-view-label');
+        const labelH     = labelEl ? labelEl.offsetHeight + 2 : 0;
         const gridBorder = 2;
+        wrapper.querySelectorAll('.chase-overlay').forEach(el => el.remove());
+
+        const armOutName   = 'arm-out-mid';
+        const gloveOutName = 'glove-out-mid';
 
         function spanBounds(names) {
             let t = Infinity, l = Infinity, b = -Infinity, r = -Infinity;
@@ -378,11 +451,11 @@
             });
 
             const el = document.createElement('div');
-            el.className        = 'chase-overlay' + (loc.enabled === false ? ' disabled' : '');
-            el.textContent      = label;
-            el.dataset.locName  = locName;
+            el.className   = 'chase-overlay' + (loc.enabled === false ? ' disabled' : '');
+            el.textContent = label;
+            el.dataset.locName = locName;
             Object.assign(el.style, {
-                top:    (vb.t + gridBorder) + 'px',
+                top:    (vb.t + gridBorder + labelH) + 'px',
                 left:   (hb.l + gridBorder) + 'px',
                 width:  (hb.r - hb.l) + 'px',
                 height: (vb.b - vb.t) + 'px',
@@ -390,10 +463,14 @@
             wrapper.appendChild(el);
         }
 
-        makeOverlay('up-out',        'up out',    ['glove-up', 'mid-up', 'arm-up'],       ['up-out']);
-        makeOverlay('down-out',      'down out',  ['glove-down', 'mid-down', 'arm-down'],  ['down-out']);
-        makeOverlay('arm-out-mid',   'arm out',   ['arm-out-mid'],   ['arm-up', 'arm-mid', 'arm-down']);
-        makeOverlay('glove-out-mid', 'glove out', ['glove-out-mid'], ['glove-up', 'glove-mid', 'glove-down']);
+        makeOverlay('up-out',      'up out',
+            ['glove-up', 'mid-up', 'arm-up'],       ['up-out']);
+        makeOverlay('down-out',    'down out',
+            ['glove-down', 'mid-down', 'arm-down'],  ['down-out']);
+        makeOverlay(armOutName,   'arm out',
+            [armOutName],   ['arm-up', 'arm-mid', 'arm-down']);
+        makeOverlay(gloveOutName, 'glove out',
+            [gloveOutName], ['glove-up', 'glove-mid', 'glove-down']);
     }
 
     // ── Selection helpers ─────────────────────────────────────
@@ -496,35 +573,35 @@
         updateButtons();
     });
 
-function speak(pitchName, locName) {
-    if (!('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
-    const utter = new SpeechSynthesisUtterance(`${pitchName}, ${locLabel(locName)}`);
-    utter.rate  = 0.95;
+    function speak(pitchName, locName) {
+        if (!('speechSynthesis' in window)) return;
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(`${pitchName}, ${locLabel(locName)}`);
+        utter.rate  = 0.95;
 
-    function applyVoiceAndSpeak() {
-        const savedURI = window.PS_VOICE_URI || '';
-        if (savedURI) {
-            const voices = window.speechSynthesis.getVoices();
-            const match  = voices.find(v => v.voiceURI === savedURI);
-            if (match) utter.voice = match;
+        function applyVoiceAndSpeak() {
+            const savedURI = window.PS_VOICE_URI || '';
+            if (savedURI) {
+                const voices = window.speechSynthesis.getVoices();
+                const match  = voices.find(v => v.voiceURI === savedURI);
+                if (match) utter.voice = match;
+            }
+            const bar = document.getElementById('callBar');
+            const dot = Object.assign(document.createElement('span'), { className: 'speaking-dot' });
+            utter.onstart = () => bar.appendChild(dot);
+            utter.onend = utter.onerror = () => dot.parentNode?.removeChild(dot);
+            window.speechSynthesis.speak(utter);
         }
-        const bar = document.getElementById('callBar');
-        const dot = Object.assign(document.createElement('span'), { className: 'speaking-dot' });
-        utter.onstart = () => bar.appendChild(dot);
-        utter.onend = utter.onerror = () => dot.parentNode?.removeChild(dot);
-        window.speechSynthesis.speak(utter);
-    }
 
-    if (window.speechSynthesis.getVoices().length) {
-        applyVoiceAndSpeak();
-    } else {
-        window.speechSynthesis.onvoiceschanged = () => {
-            window.speechSynthesis.onvoiceschanged = null;
+        if (window.speechSynthesis.getVoices().length) {
             applyVoiceAndSpeak();
-        };
+        } else {
+            window.speechSynthesis.onvoiceschanged = () => {
+                window.speechSynthesis.onvoiceschanged = null;
+                applyVoiceAndSpeak();
+            };
+        }
     }
-}
 
     // ── Init ─────────────────────────────────────────────────
     let resizeTimer;

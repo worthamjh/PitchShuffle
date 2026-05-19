@@ -785,3 +785,230 @@ main {
     background: var(--ps-secondary, #4a7fa5);
     color: var(--ps-secondary-text, #ffffff);
 }
+/* =============================================================
+   DARK MODE POLISH — append to end of style.css
+   ============================================================= */
+
+/* ── Base body & headings ──────────────────────────────────── */
+[data-theme="dark"] body {
+    background-color: var(--ps-bg);
+    color: var(--ps-text);
+}
+
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] h4,
+[data-theme="dark"] h5,
+[data-theme="dark"] h6 {
+    color: var(--ps-text);
+}
+
+/* ── Home page ─────────────────────────────────────────────── */
+[data-theme="dark"] .home-hero .app-icon {
+    color: var(--ps-navy-muted);
+}
+[data-theme="dark"] .home-hero h1 {
+    color: var(--ps-text);
+}
+[data-theme="dark"] .or-divider {
+    color: var(--ps-muted);
+}
+[data-theme="dark"] .or-divider::before,
+[data-theme="dark"] .or-divider::after {
+    background: #2a3f5a;
+}
+[data-theme="dark"] .quick-link-card {
+    border-color: #2a3f5a;
+    background: var(--ps-card-bg);
+    color: var(--ps-text);
+}
+[data-theme="dark"] .quick-link-card i {
+    color: var(--ps-navy-muted);
+}
+[data-theme="dark"] .quick-link-card:hover {
+    background: var(--ps-navy);
+    border-color: var(--ps-navy);
+    color: var(--accent-text, #fff);
+}
+[data-theme="dark"] .quick-link-card:hover i {
+    color: var(--accent-text, #fff);
+}
+[data-theme="dark"] .btn-new-game {
+    background: var(--ps-card-bg);
+    color: var(--ps-text);
+    border-color: #2a3f5a;
+}
+[data-theme="dark"] .btn-new-game:hover {
+    background: var(--ps-navy);
+    color: var(--accent-text, #fff);
+    border-color: var(--ps-navy);
+}
+
+/* ── Game screen (game.ejs & quick-game.ejs) ───────────────── */
+[data-theme="dark"] .pitch-row,
+[data-theme="dark"] .action-row {
+    background: #1a2535;
+    border-color: #2a3f5a;
+}
+[data-theme="dark"] .zone-area {
+    background: var(--ps-bg);
+}
+[data-theme="dark"] .zone-grid {
+    border-color: #4a6080;
+}
+[data-theme="dark"] .game-page {
+    background: var(--ps-bg);
+}
+[data-theme="dark"] .setup-banner {
+    background: #1e2d1a;
+    border-color: #2d4a28;
+    color: #a8c8a0;
+}
+[data-theme="dark"] .setup-banner a {
+    color: #7ec87a;
+}
+
+/* ── Buttons ───────────────────────────────────────────────── */
+[data-theme="dark"] .btn-outline-secondary {
+    color: var(--ps-muted);
+    border-color: #2a3f5a;
+}
+[data-theme="dark"] .btn-outline-secondary:hover {
+    background: #2a3f5a;
+    color: var(--ps-text);
+    border-color: #2a3f5a;
+}
+[data-theme="dark"] .btn-outline-danger {
+    color: #e87a7a;
+    border-color: #7a3030;
+}
+[data-theme="dark"] .btn-outline-danger:hover {
+    background: #7a3030;
+    color: #fff;
+    border-color: #7a3030;
+}
+[data-theme="dark"] .btn-outline-warning {
+    color: #e8c87a;
+    border-color: #7a6030;
+}
+[data-theme="dark"] .btn-outline-light {
+    color: var(--ps-muted);
+    border-color: #2a3f5a;
+}
+[data-theme="dark"] .btn-outline-light:hover {
+    background: #2a3f5a;
+    color: var(--ps-text);
+}
+[data-theme="dark"] .btn-close {
+    filter: invert(1);
+}
+
+/* ── Forms ─────────────────────────────────────────────────── */
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select {
+    background-color: #1a2535;
+    border-color: #2a3f5a;
+    color: var(--ps-text);
+}
+[data-theme="dark"] .form-control:focus,
+[data-theme="dark"] .form-select:focus {
+    background-color: #1a2535;
+    border-color: var(--ps-navy-muted);
+    color: var(--ps-text);
+    box-shadow: 0 0 0 0.2rem rgba(143, 168, 200, 0.15);
+}
+[data-theme="dark"] .form-control::placeholder {
+    color: var(--ps-muted);
+    opacity: 0.7;
+}
+[data-theme="dark"] .input-group-text {
+    background-color: #243350;
+    border-color: #2a3f5a;
+    color: var(--ps-muted);
+}
+
+/* ── Tables ────────────────────────────────────────────────── */
+[data-theme="dark"] .table {
+    color: var(--ps-text);
+    border-color: #2a3f5a;
+}
+[data-theme="dark"] .table th,
+[data-theme="dark"] .table td {
+    border-color: #2a3f5a;
+}
+[data-theme="dark"] .table-striped > tbody > tr:nth-of-type(odd) > * {
+    background-color: rgba(255, 255, 255, 0.03);
+    color: var(--ps-text);
+}
+
+/* ── Badges ────────────────────────────────────────────────── */
+[data-theme="dark"] .badge.bg-light {
+    background-color: #243350 !important;
+    color: var(--ps-text) !important;
+}
+
+/* ── Modal ─────────────────────────────────────────────────── */
+[data-theme="dark"] .modal-content {
+    background-color: #1a2535;
+    color: var(--ps-text);
+    border-color: #2a3f5a;
+}
+[data-theme="dark"] .modal-header,
+[data-theme="dark"] .modal-footer {
+    border-color: #2a3f5a;
+}
+[data-theme="dark"] .modal-title {
+    color: var(--ps-text);
+}
+
+/* ── Profile page ──────────────────────────────────────────── */
+[data-theme="dark"] .form-check-input {
+    background-color: #1a2535;
+    border-color: #2a3f5a;
+}
+[data-theme="dark"] .form-check-input:checked {
+    background-color: var(--ps-navy-muted);
+    border-color: var(--ps-navy-muted);
+}
+
+/* ── Teams & pitchers ──────────────────────────────────────── */
+[data-theme="dark"] .pitcher-card,
+[data-theme="dark"] .team-card {
+    background: var(--ps-card-bg);
+    border-color: #2a3f5a;
+}
+[data-theme="dark"] .pitcher-card:hover,
+[data-theme="dark"] .team-card:hover {
+    border-color: var(--ps-navy-muted);
+}
+
+/* ── Loc boxes (game zone) ─────────────────────────────────── */
+[data-theme="dark"] .loc-box.strike {
+    background: color-mix(in srgb, var(--strike-bg) 25%, #1a2535);
+    border-color: color-mix(in srgb, var(--strike-border) 50%, #2a3f5a);
+    color: var(--ps-text);
+}
+[data-theme="dark"] .loc-box.chase {
+    background: color-mix(in srgb, var(--chase-bg) 20%, #1a2535);
+    border-color: color-mix(in srgb, var(--chase-border) 50%, #2a3f5a);
+    color: var(--ps-text);
+}
+[data-theme="dark"] .chase-overlay {
+    background: color-mix(in srgb, var(--chase-bg) 20%, #1a2535);
+    border-color: color-mix(in srgb, var(--chase-border) 50%, #2a3f5a);
+    color: var(--ps-text);
+}
+[data-theme="dark"] .strike-zone-outline {
+    border-color: var(--ps-navy-muted);
+}
+[data-theme="dark"] .pitchers-view-label {
+    color: var(--ps-muted);
+}
+
+/* ── Call bar (already dark navy — just ensure text is right) ── */
+[data-theme="dark"] .call-bar {
+    background: #0f1923;
+    border-top: 1px solid #2a3f5a;
+}
+

@@ -21,49 +21,6 @@ router.get('/', (req, res) => {
 
 // ── Quick Game ────────────────────────────────────────────────
 router.get('/quick-game', isLoggedIn, (req, res) => {
-    const terminology = req.user?.preferences?.zoneTerminology || 'arm-glove';
-    const isInsideAway = terminology === 'inside-away';
-
-    const armGloveLocations = [
-        { name: 'glove-up',       type: 'strike', enabled: true },
-        { name: 'mid-up',         type: 'strike', enabled: true },
-        { name: 'arm-up',         type: 'strike', enabled: true },
-        { name: 'glove-mid',      type: 'strike', enabled: true },
-        { name: 'mid-mid',        type: 'strike', enabled: true },
-        { name: 'arm-mid',        type: 'strike', enabled: true },
-        { name: 'glove-down',     type: 'strike', enabled: true },
-        { name: 'mid-down',       type: 'strike', enabled: true },
-        { name: 'arm-down',       type: 'strike', enabled: true },
-        { name: 'glove-out-up',   type: 'chase',  enabled: true },
-        { name: 'up-out',         type: 'chase',  enabled: true },
-        { name: 'arm-out-up',     type: 'chase',  enabled: true },
-        { name: 'glove-out-mid',  type: 'chase',  enabled: true },
-        { name: 'arm-out-mid',    type: 'chase',  enabled: true },
-        { name: 'glove-out-down', type: 'chase',  enabled: true },
-        { name: 'down-out',       type: 'chase',  enabled: true },
-        { name: 'arm-out-down',   type: 'chase',  enabled: true },
-    ];
-
-    const insideAwayLocations = [
-        { name: 'away-up',         type: 'strike', enabled: true },
-        { name: 'mid-up',          type: 'strike', enabled: true },
-        { name: 'inside-up',       type: 'strike', enabled: true },
-        { name: 'away-mid',        type: 'strike', enabled: true },
-        { name: 'mid-mid',         type: 'strike', enabled: true },
-        { name: 'inside-mid',      type: 'strike', enabled: true },
-        { name: 'away-down',       type: 'strike', enabled: true },
-        { name: 'mid-down',        type: 'strike', enabled: true },
-        { name: 'inside-down',     type: 'strike', enabled: true },
-        { name: 'away-out-up',     type: 'chase',  enabled: true },
-        { name: 'up-out',          type: 'chase',  enabled: true },
-        { name: 'inside-out-up',   type: 'chase',  enabled: true },
-        { name: 'away-out-mid',    type: 'chase',  enabled: true },
-        { name: 'inside-out-mid',  type: 'chase',  enabled: true },
-        { name: 'away-out-down',   type: 'chase',  enabled: true },
-        { name: 'down-out',        type: 'chase',  enabled: true },
-        { name: 'inside-out-down', type: 'chase',  enabled: true },
-    ];
-
     const quickPitcher = {
         number: 1,
         name:   'Pitcher',
@@ -75,7 +32,25 @@ router.get('/quick-game', isLoggedIn, (req, res) => {
             { name: 'Slider',    abbreviation: 'SL' },
         ],
         zone: {
-            availableLocations: isInsideAway ? insideAwayLocations : armGloveLocations
+            availableLocations: [
+                { name: 'glove-up',       type: 'strike', enabled: true },
+                { name: 'mid-up',         type: 'strike', enabled: true },
+                { name: 'arm-up',         type: 'strike', enabled: true },
+                { name: 'glove-mid',      type: 'strike', enabled: true },
+                { name: 'mid-mid',        type: 'strike', enabled: true },
+                { name: 'arm-mid',        type: 'strike', enabled: true },
+                { name: 'glove-down',     type: 'strike', enabled: true },
+                { name: 'mid-down',       type: 'strike', enabled: true },
+                { name: 'arm-down',       type: 'strike', enabled: true },
+                { name: 'glove-out-up',   type: 'chase',  enabled: true },
+                { name: 'up-out',         type: 'chase',  enabled: true },
+                { name: 'arm-out-up',     type: 'chase',  enabled: true },
+                { name: 'glove-out-mid',  type: 'chase',  enabled: true },
+                { name: 'arm-out-mid',    type: 'chase',  enabled: true },
+                { name: 'glove-out-down', type: 'chase',  enabled: true },
+                { name: 'down-out',       type: 'chase',  enabled: true },
+                { name: 'arm-out-down',   type: 'chase',  enabled: true },
+            ]
         }
     };
     res.render('pitchers/quick-game', { pitcher: quickPitcher });
