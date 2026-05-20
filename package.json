@@ -11,6 +11,7 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@resvg/resvg-js": "^2.6.2",
     "bcrypt": "^6.0.0",
     "cloudinary": "^2.9.0",
     "connect-flash": "^0.1.1",
@@ -30,6 +31,7 @@
     "mutter": "^1.0.1",
     "passport": "^0.7.0",
     "passport-local": "^1.0.0",
-    "passport-local-mongoose": "^9.0.1"
+    "passport-local-mongoose": "^9.0.1",
+    "sharp": "^0.34.5"
   }
 }
