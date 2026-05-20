@@ -151,6 +151,19 @@
     .btn-call:hover { background: #e0ecf8; }
     .btn-call.disabled-btn { opacity: 0.45; pointer-events: none; }
 
+
+    .random-hint {
+        text-align: center;
+        font-size: 0.7rem;
+        color: #6c757d;
+        padding: 0.2rem 0.75rem 0.1rem;
+        background: #f8f9fa;
+        border-top: 1px solid #dee2e6;
+        flex-shrink: 0;
+    }
+    .random-hint a { color: var(--ps-navy); font-weight: 700; text-decoration: none; }
+    .random-hint a:hover { text-decoration: underline; }
+
     /* Zone cells — mirrors game.ejs */
     .zone-col .loc-box {
         display: flex;
@@ -272,6 +285,12 @@
         <button class="action-btn btn-clear"  id="btnClear"><i class="bi bi-x-circle"></i> Clear</button>
         <button class="action-btn btn-repeat disabled-btn" id="btnRepeat"><i class="bi bi-arrow-repeat"></i> Repeat</button>
     </div>
+
+
+<!-- Upsell hint -->
+<div class="random-hint" id="randomHint">
+    <i class="bi bi-shuffle"></i> Random picks from all locations &mdash; <a href="/teams">set up a team</a> to customize which locations are available
+</div>
 
     <!-- Call bar -->
     <div class="call-bar" id="callBar">

@@ -289,14 +289,14 @@ main {
     flex-shrink: 0;
 }
 .game-header .pitcher-info { flex: 1; }
-.game-header .pitcher-name { font-size: 1.1rem; font-weight: 700; line-height: 1.2; }
-.game-header .pitcher-meta { font-size: 0.75rem; color: var(--ps-navy-muted); }
+.game-header .pitcher-name { font-size: 1.1rem; font-weight: 700; line-height: 1.2; color: var(--accent-text, #fff); }
+.game-header .pitcher-meta { font-size: 0.75rem; color: rgba(255,255,255,0.65); }
 
 .game-body {
     display: flex;
     flex: 1;
     overflow: hidden;
-    height: calc(100vh - 56px - 38px - 46px);
+    height: calc(100vh - 56px - 38px - 110px);
 }
 
 .pitch-col, .action-col {
@@ -438,11 +438,12 @@ main {
 
 /* ── 13. Call bar ──────────────────────────────────────────── */
 .call-bar {
-    padding: 0.6rem 1rem;
+    padding: 0.75rem 1rem 2.5rem;
     background: #f8f9fa;
     border-top: 1px solid #dee2e6;
     text-align: center;
     flex-shrink: 0;
+    min-height: 110px;
 }
 .call-label {
     font-size: 0.75rem;
