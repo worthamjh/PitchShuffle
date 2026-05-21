@@ -1,8 +1,8 @@
 const express = require('express');
 const router  = express.Router();
 const Team    = require('../models/team');
-const { isLoggedIn }          = require('../middleware');
-const { upload, uploadToCloudinary } = require('../upload');
+const { isLoggedIn, isOwner }         = require('../middleware');
+const { upload, uploadToCloudinary }  = require('../upload');
 
 const HEX_RE = /^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/;
 const sanitizeColor = (val, fallback) => HEX_RE.test(val) ? val : fallback;
@@ -20,8 +20,7 @@ router.get('/', isLoggedIn, async (req, res) => {
         const teams = await Team.find({ owner: req.user._id });
         res.render('teams/index', { teams });
     } catch (e) {
-        console.error(e);
-        res.redirect('/');
+        next(e);
     }
 });
 
@@ -31,11 +30,15 @@ router.get('/new', isLoggedIn, (req, res) => {
 });
 
 // Create team
-router.post('/', isLoggedIn, upload.single('logo'), async (req, res) => {
+router.post('/', isLoggedIn, upload.single('logo'), async (req, res, next) => {
     try {
         const t = req.body.team;
+        if (!t || !t.name || !t.name.trim()) {
+            req.flash('error', 'Team name is required.');
+            return res.redirect('/teams/new');
+        }
         const team = new Team({
-            name:           t.name,
+            name:           t.name.trim(),
             primaryColor:   sanitizeColor(t.primaryColor,   '#1a2e4a'),
             secondaryColor: sanitizeColor(t.secondaryColor, '#4a7fa5'),
             strikeColor:    sanitizeColor(t.strikeColor,    '#c8ecd4'),
@@ -52,47 +55,45 @@ router.post('/', isLoggedIn, upload.single('logo'), async (req, res) => {
         await team.save();
         req.user.teams.push(team);
         await req.user.save();
+        req.flash('success', `${team.name} created!`);
         res.redirect(`/teams/${team._id}`);
     } catch (e) {
-        console.error(e);
-        res.redirect('/teams');
+        next(e);
     }
 });
 
 // Show team
-router.get('/:id', isLoggedIn, async (req, res) => {
+router.get('/:id', isLoggedIn, isOwner, async (req, res, next) => {
     try {
         const team = await Team.findById(req.params.id).populate('pitchers');
         setTeamLocals(res, team);
         res.render('teams/show', { team });
     } catch (e) {
-        console.error(e);
-        res.redirect('/teams');
+        next(e);
     }
 });
 
 // Edit team form
-router.get('/:id/edit', isLoggedIn, async (req, res) => {
+router.get('/:id/edit', isLoggedIn, isOwner, async (req, res, next) => {
     try {
         const team = await Team.findById(req.params.id);
         setTeamLocals(res, team);
         res.render('teams/edit', { team });
     } catch (e) {
-        console.error(e);
-        res.redirect('/teams');
+        next(e);
     }
 });
 
 // Update team
-router.put('/:id', isLoggedIn, upload.single('logo'), async (req, res) => {
+router.put('/:id', isLoggedIn, isOwner, upload.single('logo'), async (req, res, next) => {
     try {
-        const team = await Team.findById(req.params.id);
         const t    = req.body.team;
-        team.name           = t.name;
-        team.primaryColor   = sanitizeColor(t.primaryColor,   team.primaryColor   || '#1a2e4a');
-        team.secondaryColor = sanitizeColor(t.secondaryColor, team.secondaryColor || '#4a7fa5');
-        team.strikeColor    = sanitizeColor(t.strikeColor,    team.strikeColor    || '#c8ecd4');
-        team.chaseColor     = sanitizeColor(t.chaseColor,     team.chaseColor     || '#fef3cd');
+        const team = await Team.findById(req.params.id);
+        team.name           = t.name?.trim() || team.name;
+        team.primaryColor   = sanitizeColor(t.primaryColor,   team.primaryColor);
+        team.secondaryColor = sanitizeColor(t.secondaryColor, team.secondaryColor);
+        team.strikeColor    = sanitizeColor(t.strikeColor,    team.strikeColor);
+        team.chaseColor     = sanitizeColor(t.chaseColor,     team.chaseColor);
         if (req.file) {
             team.logo = await uploadToCloudinary(req.file.buffer, 'pitchshuffle/logos', {
                 public_id:      `logo_${team._id}`,
@@ -101,21 +102,21 @@ router.put('/:id', isLoggedIn, upload.single('logo'), async (req, res) => {
             });
         }
         await team.save();
+        req.flash('success', 'Team updated.');
         res.redirect(`/teams/${team._id}`);
     } catch (e) {
-        console.error(e);
-        res.redirect('/teams');
+        next(e);
     }
 });
 
 // Delete team
-router.delete('/:id', isLoggedIn, async (req, res) => {
+router.delete('/:id', isLoggedIn, isOwner, async (req, res, next) => {
     try {
         await Team.findByIdAndDelete(req.params.id);
+        req.flash('success', 'Team deleted.');
         res.redirect('/teams');
     } catch (e) {
-        console.error(e);
-        res.redirect('/teams');
+        next(e);
     }
 });
 

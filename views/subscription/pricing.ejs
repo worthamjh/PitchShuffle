@@ -1,0 +1,48 @@
+<%- layout('layouts/boilerplate') %>
+
+<div class="container py-5" style="max-width: 480px;">
+    <div class="text-center mb-4">
+        <div style="font-size:2.5rem;">⚾</div>
+        <h1 class="fw-bold mt-2">PitchShuffle Pro</h1>
+        <p class="text-muted">Call pitches fast. Keep your catcher in sync.</p>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body p-4">
+            <ul class="list-unstyled mb-4">
+                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Unlimited teams & pitchers</li>
+                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Full strike zone customization</li>
+                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Voice pitch calls</li>
+                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Team color themes</li>
+                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>30-day free trial — no card required to start</li>
+            </ul>
+
+            <% if (!user.isActive()) { %>
+                <form action="/subscription/checkout" method="POST">
+                    <button type="submit" class="btn btn-primary w-100 py-3 fw-bold fs-5">
+                        Start Free Trial
+                    </button>
+                </form>
+                <p class="text-muted text-center small mt-2">30 days free, then billed monthly. Cancel anytime.</p>
+            <% } else { %>
+                <div class="alert alert-success text-center mb-3">
+                    <i class="bi bi-check-circle-fill me-1"></i>
+                    <% if (user.subscription.status === 'trialing') { %>
+                        Your trial is active until <%= new Date(user.subscription.trialEndsAt).toLocaleDateString() %>.
+                    <% } else { %>
+                        Your subscription is active.
+                    <% } %>
+                </div>
+                <form action="/subscription/portal" method="POST">
+                    <button type="submit" class="btn btn-outline-secondary w-100">
+                        Manage Subscription
+                    </button>
+                </form>
+            <% } %>
+        </div>
+    </div>
+
+    <p class="text-center text-muted small">
+        Secured by <strong>Stripe</strong>. We never store your card details.
+    </p>
+</div>

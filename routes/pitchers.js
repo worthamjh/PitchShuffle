@@ -3,7 +3,7 @@ const router = express.Router({ mergeParams: true });
 const Pitcher = require('../models/pitcher');
 const Team = require('../models/team');
 const StrikeZone = require('../models/strikeZone');
-const { isLoggedIn } = require('../middleware');
+const { isLoggedIn, isOwner, isPitcherInTeam } = require('../middleware');
 
 function setTeamLocals(res, team) {
     res.locals.teamColor          = team.primaryColor   || '#1a2e4a';
@@ -14,34 +14,35 @@ function setTeamLocals(res, team) {
 
 // ── Game routes ───────────────────────────────────────────────
 
-router.get('/game', isLoggedIn, async (req, res) => {
+router.get('/game', isLoggedIn, isOwner, async (req, res, next) => {
     try {
         const team = await Team.findById(req.params.teamId).populate('pitchers');
         setTeamLocals(res, team);
         const currentPitcherId = req.query.from || null;
         res.render('pitchers/game-select', { team, currentPitcherId });
     } catch (e) {
-        console.error(e);
-        res.redirect(`/teams/${req.params.teamId}`);
+        next(e);
     }
 });
 
-router.get('/game/:pitcherId', isLoggedIn, async (req, res) => {
+router.get('/game/:pitcherId', isLoggedIn, isOwner, isPitcherInTeam, async (req, res, next) => {
     try {
         const team    = await Team.findById(req.params.teamId);
         const pitcher = await Pitcher.findById(req.params.pitcherId).populate('zone');
-        if (!pitcher) return res.redirect(`/teams/${req.params.teamId}/pitchers/game`);
+        if (!pitcher) {
+            req.flash('error', 'Pitcher not found.');
+            return res.redirect(`/teams/${req.params.teamId}/pitchers/game`);
+        }
         setTeamLocals(res, team);
         res.render('pitchers/game', { team, pitcher });
     } catch (e) {
-        console.error(e);
-        res.redirect(`/teams/${req.params.teamId}`);
+        next(e);
     }
 });
 
 // ── Standard pitcher CRUD ─────────────────────────────────────
 
-router.get('/new', isLoggedIn, async (req, res) => {
+router.get('/new', isLoggedIn, isOwner, async (req, res, next) => {
     try {
         const team     = await Team.findById(req.params.teamId);
         const zones    = await StrikeZone.find({});
@@ -49,15 +50,18 @@ router.get('/new', isLoggedIn, async (req, res) => {
         setTeamLocals(res, team);
         res.render('pitchers/new', { team, zones, redirect, user: req.user });
     } catch (e) {
-        console.error(e);
-        res.redirect(`/teams/${req.params.teamId}`);
+        next(e);
     }
 });
 
-router.post('/', isLoggedIn, async (req, res) => {
+router.post('/', isLoggedIn, isOwner, async (req, res, next) => {
     try {
         const team = await Team.findById(req.params.teamId);
         const zone = await StrikeZone.findById(req.body.pitcher.zone);
+        if (!zone) {
+            req.flash('error', 'Please select a valid strike zone.');
+            return res.redirect(`/teams/${req.params.teamId}/pitchers/new`);
+        }
         const pitcher = new Pitcher({ ...req.body.pitcher });
         for (let pitchType of pitcher.pitchTypes) {
             pitchType.locations = zone.availableLocations.map(loc => ({
@@ -69,40 +73,46 @@ router.post('/', isLoggedIn, async (req, res) => {
         await pitcher.save();
         team.pitchers.push(pitcher);
         await team.save();
+        req.flash('success', `${pitcher.name} added.`);
         const redirect = req.body.redirect;
         res.redirect(redirect || `/teams/${team._id}/pitchers/${pitcher._id}`);
     } catch (e) {
-        console.error('CREATE ERROR:', e);
-        res.redirect(`/teams/${req.params.teamId}`);
+        next(e);
     }
 });
 
-router.get('/:pitcherId', isLoggedIn, async (req, res) => {
+router.get('/:pitcherId', isLoggedIn, isOwner, isPitcherInTeam, async (req, res, next) => {
     try {
         const pitcher = await Pitcher.findById(req.params.pitcherId).populate('zone');
         const team    = await Team.findById(req.params.teamId);
+        if (!pitcher) {
+            req.flash('error', 'Pitcher not found.');
+            return res.redirect(`/teams/${req.params.teamId}`);
+        }
         setTeamLocals(res, team);
         res.render('pitchers/show', { pitcher, team, user: req.user });
     } catch (e) {
-        console.error(e);
-        res.redirect(`/teams/${req.params.teamId}`);
+        next(e);
     }
 });
 
-router.get('/:pitcherId/edit', isLoggedIn, async (req, res) => {
+router.get('/:pitcherId/edit', isLoggedIn, isOwner, isPitcherInTeam, async (req, res, next) => {
     try {
         const pitcher = await Pitcher.findById(req.params.pitcherId).populate('zone');
         const team    = await Team.findById(req.params.teamId);
         const zones   = await StrikeZone.find({});
+        if (!pitcher) {
+            req.flash('error', 'Pitcher not found.');
+            return res.redirect(`/teams/${req.params.teamId}`);
+        }
         setTeamLocals(res, team);
         res.render('pitchers/edit', { pitcher, team, zones, user: req.user });
     } catch (e) {
-        console.error(e);
-        res.redirect(`/teams/${req.params.teamId}`);
+        next(e);
     }
 });
 
-router.put('/:pitcherId', isLoggedIn, async (req, res) => {
+router.put('/:pitcherId', isLoggedIn, isOwner, isPitcherInTeam, async (req, res, next) => {
     try {
         const pitcher   = await Pitcher.findById(req.params.pitcherId);
         const newZoneId = req.body.pitcher.zone;
@@ -133,14 +143,14 @@ router.put('/:pitcherId', isLoggedIn, async (req, res) => {
         pitcher.markModified('pitchTypes');
         pitcher.markModified('previousPitchTypes');
         await pitcher.save();
+        req.flash('success', 'Pitcher updated.');
         res.redirect(`/teams/${req.params.teamId}/pitchers/${pitcher._id}/edit`);
     } catch (e) {
-        console.error(e);
-        res.redirect(`/teams/${req.params.teamId}`);
+        next(e);
     }
 });
 
-router.post('/:pitcherId/change-zone', isLoggedIn, async (req, res) => {
+router.post('/:pitcherId/change-zone', isLoggedIn, isOwner, isPitcherInTeam, async (req, res, next) => {
     try {
         const pitcher   = await Pitcher.findById(req.params.pitcherId);
         const newZoneId = req.body.zoneId;
@@ -148,7 +158,10 @@ router.post('/:pitcherId/change-zone', isLoggedIn, async (req, res) => {
             return res.redirect(`/teams/${req.params.teamId}/pitchers/${pitcher._id}/edit`);
         }
         const newZone = await StrikeZone.findById(newZoneId);
-        if (!newZone) return res.redirect(`/teams/${req.params.teamId}/pitchers/${pitcher._id}/edit`);
+        if (!newZone) {
+            req.flash('error', 'Zone not found.');
+            return res.redirect(`/teams/${req.params.teamId}/pitchers/${pitcher._id}/edit`);
+        }
         if (!pitcher.previousZone) {
             pitcher.previousZone       = pitcher.zone;
             pitcher.previousPitchTypes = JSON.parse(JSON.stringify(pitcher.pitchTypes));
@@ -166,12 +179,11 @@ router.post('/:pitcherId/change-zone', isLoggedIn, async (req, res) => {
         await pitcher.save();
         res.redirect(`/teams/${req.params.teamId}/pitchers/${pitcher._id}/edit`);
     } catch (e) {
-        console.error(e);
-        res.redirect(`/teams/${req.params.teamId}`);
+        next(e);
     }
 });
 
-router.post('/:pitcherId/revert-zone', isLoggedIn, async (req, res) => {
+router.post('/:pitcherId/revert-zone', isLoggedIn, isOwner, isPitcherInTeam, async (req, res, next) => {
     try {
         const pitcher = await Pitcher.findById(req.params.pitcherId);
         if (pitcher.previousZone) {
@@ -185,20 +197,19 @@ router.post('/:pitcherId/revert-zone', isLoggedIn, async (req, res) => {
         }
         res.redirect(`/teams/${req.params.teamId}/pitchers/${pitcher._id}/edit`);
     } catch (e) {
-        console.error(e);
-        res.redirect(`/teams/${req.params.teamId}`);
+        next(e);
     }
 });
 
-router.delete('/:pitcherId', isLoggedIn, async (req, res) => {
+router.delete('/:pitcherId', isLoggedIn, isOwner, isPitcherInTeam, async (req, res, next) => {
     try {
         const { teamId, pitcherId } = req.params;
         await Team.findByIdAndUpdate(teamId, { $pull: { pitchers: pitcherId } });
         await Pitcher.findByIdAndDelete(pitcherId);
+        req.flash('success', 'Pitcher removed.');
         res.redirect(`/teams/${teamId}`);
     } catch (e) {
-        console.error(e);
-        res.redirect(`/teams/${req.params.teamId}`);
+        next(e);
     }
 });
 

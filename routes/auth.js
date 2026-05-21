@@ -58,25 +58,31 @@ router.get('/quick-game', isLoggedIn, (req, res) => {
 
 // ── Game flow ─────────────────────────────────────────────────
 
-router.get('/game', isLoggedIn, async (req, res) => {
+router.get('/game', isLoggedIn, async (req, res, next) => {
     try {
         const teams = await Team.find({ owner: req.user._id }).populate('pitchers');
         res.render('game/select-team', { teams });
     } catch (e) {
-        console.error(e);
-        res.redirect('/');
+        next(e);
     }
 });
 
-router.get('/game/:teamId', isLoggedIn, async (req, res) => {
+router.get('/game/:teamId', isLoggedIn, async (req, res, next) => {
     try {
         const team = await Team.findById(req.params.teamId).populate('pitchers');
-        if (!team) return res.redirect('/game');
+        if (!team) {
+            req.flash('error', 'Team not found.');
+            return res.redirect('/game');
+        }
+        // Ownership check — don't let users view other teams' game pages
+        if (!team.owner.equals(req.user._id)) {
+            req.flash('error', 'You do not have permission to do that.');
+            return res.redirect('/game');
+        }
         setTeamLocals(res, team);
         res.render('game/select-pitcher', { team });
     } catch (e) {
-        console.error(e);
-        res.redirect('/game');
+        next(e);
     }
 });
 
@@ -84,9 +90,19 @@ router.get('/game/:teamId', isLoggedIn, async (req, res) => {
 
 router.get('/register', (req, res) => res.render('auth/register'));
 
-router.post('/register', async (req, res) => {
+router.post('/register', async (req, res, next) => {
     try {
         const { email, username, password, zoneTerminology } = req.body;
+
+        if (!username || !username.trim()) {
+            req.flash('error', 'Username is required.');
+            return res.redirect('/register');
+        }
+        if (!password || password.length < 6) {
+            req.flash('error', 'Password must be at least 6 characters.');
+            return res.redirect('/register');
+        }
+
         const safeTerminology = ['arm-glove', 'inside-away'].includes(zoneTerminology)
             ? zoneTerminology
             : 'arm-glove';
@@ -100,9 +116,12 @@ router.post('/register', async (req, res) => {
         const registeredUser = await User.register(user, password);
         req.login(registeredUser, err => {
             if (err) return next(err);
+            req.flash('success', `Welcome to PitchShuffle, ${registeredUser.username}!`);
             res.redirect('/');
         });
     } catch (e) {
+        // passport-local-mongoose gives readable messages e.g. "A user with the given username is already registered"
+        req.flash('error', e.message || 'Registration failed. Please try again.');
         res.redirect('/register');
     }
 });
@@ -111,12 +130,17 @@ router.get('/login', (req, res) => res.render('auth/login'));
 
 router.post('/login', passport.authenticate('local', {
     failureRedirect: '/login',
+    failureFlash:    'Invalid username or password.',
     keepSessionInfo: true
-}), (req, res) => res.redirect('/'));
+}), (req, res) => {
+    req.flash('success', `Welcome back, ${req.user.username}!`);
+    res.redirect('/');
+});
 
-router.post('/logout', (req, res) => {
+router.post('/logout', (req, res, next) => {
     req.logout(function(err) {
         if (err) return next(err);
+        req.flash('success', 'Logged out successfully.');
         res.redirect('/login');
     });
 });

@@ -7,10 +7,13 @@ const UserSchema = new mongoose.Schema({
     subscription: {
         status: {
             type: String,
-            enum: ['free', 'active', 'past_due', 'cancelled'],
-            default: 'free'
+            enum: ['trialing', 'active', 'past_due', 'cancelled', 'none'],
+            default: 'none'
         },
-        stripeCustomerId: { type: String },
+        stripeCustomerId:  { type: String, default: null },
+        stripeSubId:       { type: String, default: null },
+        trialEndsAt:       { type: Date,   default: null },
+        currentPeriodEnds: { type: Date,   default: null },
     },
 
     // Profile picture (Cloudinary URL)
@@ -24,6 +27,14 @@ const UserSchema = new mongoose.Schema({
         zoneTerminology: { type: String, enum: ['arm-glove', 'inside-away'], default: 'arm-glove' },
     }
 });
+
+// Convenience: is this user currently allowed to use the app?
+UserSchema.methods.isActive = function () {
+    const s = this.subscription;
+    if (s.status === 'active') return true;
+    if (s.status === 'trialing' && s.trialEndsAt && s.trialEndsAt > new Date()) return true;
+    return false;
+};
 
 UserSchema.plugin(passportLocalMongoose);
 
