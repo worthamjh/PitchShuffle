@@ -34,7 +34,7 @@ app.use('/webhook/stripe', webhookRoutes);
 
 app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride('_method'));
-app.use(morgan('dev'));
+// app.use(morgan('dev'));
 app.use(express.static(path.join(__dirname, 'public')));
 
 const sessionConfig = { secret: process.env.SESSION_SECRET || 'yoursecret', resave: false, saveUninitialized: true };

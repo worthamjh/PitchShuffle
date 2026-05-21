@@ -286,27 +286,16 @@
                     <% for (var i = 0; i < pitcher.pitchTypes.length; i++) { %>
                         <% var pitch = pitcher.pitchTypes[i]; %>
                         <%
-                            var knownNames = ['Fastball','Two-Seam Fastball','Cutter','Sinker','Curveball','Slider','Sweeper','Slurve','Changeup','Splitter','Screwball','Knuckleball'];
+                            var knownNames = team.sport === 'softball'
+    ? ['Fastball','Riseball','Dropball','Curveball','Changeup','Screwball','Drop Curve','Offspeed']
+    : ['Fastball','Two-Seam Fastball','Cutter','Sinker','Curveball','Slider','Sweeper','Slurve','Changeup','Splitter','Screwball','Knuckleball'];
                             var presetValue = knownNames.includes(pitch.name) ? pitch.name : 'custom';
                         %>
                         <div class="pitch-section pitch-type-row">
                             <div class="pitch-section-header">
                                 <div class="d-flex align-items-center gap-2 flex-wrap">
                                     <select class="form-select pitch-preset" style="max-width:200px;">
-                                        <option value="">-- Select a pitch --</option>
-                                        <option value="Fastball|FB"              <%= presetValue === 'Fastball'           ? 'selected' : '' %>>Fastball (FB)</option>
-                                        <option value="Two-Seam Fastball|2FB"    <%= presetValue === 'Two-Seam Fastball'  ? 'selected' : '' %>>Two-Seam Fastball (2FB)</option>
-                                        <option value="Cutter|CUT"              <%= presetValue === 'Cutter'             ? 'selected' : '' %>>Cutter (CUT)</option>
-                                        <option value="Sinker|SIN"              <%= presetValue === 'Sinker'             ? 'selected' : '' %>>Sinker (SIN)</option>
-                                        <option value="Curveball|CB"            <%= presetValue === 'Curveball'          ? 'selected' : '' %>>Curveball (CB)</option>
-                                        <option value="Slider|SL"               <%= presetValue === 'Slider'             ? 'selected' : '' %>>Slider (SL)</option>
-                                        <option value="Sweeper|SWP"             <%= presetValue === 'Sweeper'            ? 'selected' : '' %>>Sweeper (SWP)</option>
-                                        <option value="Slurve|SLV"              <%= presetValue === 'Slurve'             ? 'selected' : '' %>>Slurve (SLV)</option>
-                                        <option value="Changeup|CH"             <%= presetValue === 'Changeup'           ? 'selected' : '' %>>Changeup (CH)</option>
-                                        <option value="Splitter|SPL"            <%= presetValue === 'Splitter'           ? 'selected' : '' %>>Splitter (SPL)</option>
-                                        <option value="Screwball|SCR"           <%= presetValue === 'Screwball'          ? 'selected' : '' %>>Screwball (SCR)</option>
-                                        <option value="Knuckleball|KN"          <%= presetValue === 'Knuckleball'        ? 'selected' : '' %>>Knuckleball (KN)</option>
-                                        <option value="custom|"                 <%= presetValue === 'custom'             ? 'selected' : '' %>>Custom</option>
+                                        <%- include('../partials/pitch-presets', { sport: team.sport, currentName: pitch.name }) %>
                                     </select>
                                     <input type="text" class="form-control pitch-name fw-bold"
                                         name="pitcher[pitchTypes][<%= i %>][name]" value="<%= pitch.name %>"
@@ -727,22 +716,10 @@
         });
 
         // ── Preset dropdown ───────────────────────────────────────
-        const PRESETS_HTML = `
-            <option value="">-- Select a pitch --</option>
-            <option value="Fastball|FB">Fastball (FB)</option>
-            <option value="Two-Seam Fastball|2FB">Two-Seam Fastball (2FB)</option>
-            <option value="Cutter|CUT">Cutter (CUT)</option>
-            <option value="Sinker|SIN">Sinker (SIN)</option>
-            <option value="Curveball|CB">Curveball (CB)</option>
-            <option value="Slider|SL">Slider (SL)</option>
-            <option value="Sweeper|SWP">Sweeper (SWP)</option>
-            <option value="Slurve|SLV">Slurve (SLV)</option>
-            <option value="Changeup|CH">Changeup (CH)</option>
-            <option value="Splitter|SPL">Splitter (SPL)</option>
-            <option value="Screwball|SCR">Screwball (SCR)</option>
-            <option value="Knuckleball|KN">Knuckleball (KN)</option>
-            <option value="custom|">Custom</option>
-        `;
+        const PRESETS_HTML = `<%= team.sport === 'softball'
+            ? '<option value="">-- Select a pitch --</option><option value="Fastball|FB">Fastball (FB)</option><option value="Riseball|RB">Riseball (RB)</option><option value="Dropball|DB">Dropball (DB)</option><option value="Curveball|CB">Curveball (CB)</option><option value="Changeup|CH">Changeup (CH)</option><option value="Screwball|SCR">Screwball (SCR)</option><option value="Drop Curve|DC">Drop Curve (DC)</option><option value="Offspeed|OS">Offspeed (OS)</option><option value="custom|">Custom</option>'
+            : '<option value="">-- Select a pitch --</option><option value="Fastball|FB">Fastball (FB)</option><option value="Two-Seam Fastball|2FB">Two-Seam Fastball (2FB)</option><option value="Cutter|CUT">Cutter (CUT)</option><option value="Sinker|SIN">Sinker (SIN)</option><option value="Curveball|CB">Curveball (CB)</option><option value="Slider|SL">Slider (SL)</option><option value="Sweeper|SWP">Sweeper (SWP)</option><option value="Slurve|SLV">Slurve (SLV)</option><option value="Changeup|CH">Changeup (CH)</option><option value="Splitter|SPL">Splitter (SPL)</option><option value="Screwball|SCR">Screwball (SCR)</option><option value="Knuckleball|KN">Knuckleball (KN)</option><option value="custom|">Custom</option>'
+        %>`;
 
         function applyPreset(select) {
             const row       = select.closest('.pitch-type-row');
@@ -770,59 +747,45 @@
         // ── Add / remove pitch type rows ──────────────────────────
         let pitchCount = <%= pitcher.pitchTypes.length %>;
         document.getElementById('addPitch').addEventListener('click', () => {
+            const rows = document.querySelectorAll('.pitch-type-row');
+            if (rows.length >= 8) {
+                const btn = document.getElementById('addPitch');
+                btn.disabled = true;
+                btn.innerHTML = '<i class="bi bi-slash-circle"></i> Maximum 8 pitches reached';
+                return;
+            }
             const container = document.getElementById('pitchTypes');
             const div = document.createElement('div');
             div.classList.add('pitch-section', 'pitch-type-row');
             div.innerHTML = `
-        <div class="pitch-section-header">
-            <div class="d-flex align-items-center gap-2 flex-wrap">
-                <select class="form-select pitch-preset" style="max-width:200px;">${PRESETS_HTML}</select>
-                <input type="text" class="form-control pitch-name fw-bold"
-                    name="pitcher[pitchTypes][${pitchCount}][name]"
-                    placeholder="Pitch name" style="max-width:160px;">
-                <input type="text" class="form-control pitch-abbr"
-                    name="pitcher[pitchTypes][${pitchCount}][abbreviation]"
-                    placeholder="Abbr." style="max-width:80px;">
-            </div>
-            <button type="button" class="btn btn-outline-danger btn-sm remove-pitch">
-                <i class="bi bi-trash"></i>
-            </button>
-        </div>
-        <p class="text-muted small">Save pitcher first to configure locations for new pitch types.</p>`;
+                <div class="pitch-section-header">
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <select class="form-select pitch-preset" style="max-width:200px;">${PRESETS_HTML}</select>
+                        <input type="text" class="form-control pitch-name fw-bold"
+                            name="pitcher[pitchTypes][${pitchCount}][name]"
+                            placeholder="Pitch name" style="max-width:160px;">
+                        <input type="text" class="form-control pitch-abbr"
+                            name="pitcher[pitchTypes][${pitchCount}][abbreviation]"
+                            placeholder="Abbr." style="max-width:80px;">
+                    </div>
+                    <button type="button" class="btn btn-outline-danger btn-sm remove-pitch">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+                <p class="text-muted small">Save pitcher first to configure locations for new pitch types.</p>`;
             container.appendChild(div);
             pitchCount++;
         });
 
         document.getElementById('pitchTypes').addEventListener('click', (e) => {
-            if (e.target.closest('.remove-pitch')) e.target.closest('.pitch-type-row').remove();
+            if (e.target.closest('.remove-pitch')) {
+                e.target.closest('.pitch-type-row').remove();
+                const rows = document.querySelectorAll('.pitch-type-row');
+                if (rows.length < 8) {
+                    const btn = document.getElementById('addPitch');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-plus-circle"></i> Add Another Pitch';
+                }
+            }
         });
-
-        // ── Zone card & revert — POST via JS to avoid nested forms ───
-        function postTo(url, body) {
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = url;
-            Object.entries(body).forEach(([k, v]) => {
-                const input = document.createElement('input');
-                input.type  = 'hidden';
-                input.name  = k;
-                input.value = v;
-                form.appendChild(input);
-            });
-            document.body.appendChild(form);
-            form.submit();
-        }
-
-        document.querySelectorAll('.zone-image-card-btn[data-zone-id]').forEach(btn => {
-            btn.addEventListener('click', () => {
-                postTo(btn.dataset.zoneUrl, { zoneId: btn.dataset.zoneId });
-            });
-        });
-
-        const revertBtn = document.getElementById('revertZoneBtn');
-        if (revertBtn) {
-            revertBtn.addEventListener('click', () => {
-                postTo('/teams/<%= team._id %>/pitchers/<%= pitcher._id %>/revert-zone', {});
-            });
-        }
     </script>

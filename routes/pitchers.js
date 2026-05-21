@@ -5,6 +5,8 @@ const Team = require('../models/team');
 const StrikeZone = require('../models/strikeZone');
 const { isLoggedIn, isOwner, isPitcherInTeam } = require('../middleware');
 
+const MAX_PITCH_TYPES = 8;
+
 function setTeamLocals(res, team) {
     res.locals.teamColor          = team.primaryColor   || '#1a2e4a';
     res.locals.teamSecondaryColor = team.secondaryColor || '#4a7fa5';
@@ -62,6 +64,11 @@ router.post('/', isLoggedIn, isOwner, async (req, res, next) => {
             req.flash('error', 'Please select a valid strike zone.');
             return res.redirect(`/teams/${req.params.teamId}/pitchers/new`);
         }
+        const pitchTypes = req.body.pitcher.pitchTypes || [];
+        if (pitchTypes.length > MAX_PITCH_TYPES) {
+            req.flash('error', `A pitcher can have a maximum of ${MAX_PITCH_TYPES} pitch types.`);
+            return res.redirect(`/teams/${req.params.teamId}/pitchers/new`);
+        }
         const pitcher = new Pitcher({ ...req.body.pitcher });
         for (let pitchType of pitcher.pitchTypes) {
             pitchType.locations = zone.availableLocations.map(loc => ({
@@ -114,6 +121,11 @@ router.get('/:pitcherId/edit', isLoggedIn, isOwner, isPitcherInTeam, async (req,
 
 router.put('/:pitcherId', isLoggedIn, isOwner, isPitcherInTeam, async (req, res, next) => {
     try {
+        const pitchTypes = req.body.pitcher.pitchTypes || [];
+        if (pitchTypes.length > MAX_PITCH_TYPES) {
+            req.flash('error', `A pitcher can have a maximum of ${MAX_PITCH_TYPES} pitch types.`);
+            return res.redirect(`/teams/${req.params.teamId}/pitchers/${req.params.pitcherId}/edit`);
+        }
         const pitcher   = await Pitcher.findById(req.params.pitcherId);
         const newZoneId = req.body.pitcher.zone;
         const zoneChanged = pitcher.zone?.toString() !== newZoneId?.toString();
@@ -125,7 +137,7 @@ router.put('/:pitcherId', isLoggedIn, isOwner, isPitcherInTeam, async (req, res,
         pitcher.number     = req.body.pitcher.number;
         pitcher.throws     = req.body.pitcher.throws;
         pitcher.zone       = newZoneId;
-        pitcher.pitchTypes = req.body.pitcher.pitchTypes || pitcher.pitchTypes;
+        pitcher.pitchTypes = pitchTypes;
         if (zoneChanged && newZoneId) {
             const newZone = await StrikeZone.findById(newZoneId);
             if (newZone) {

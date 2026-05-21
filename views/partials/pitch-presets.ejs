@@ -1,0 +1,45 @@
+<%
+// Expects `sport` variable to be set — defaults to baseball
+const _sport = typeof sport !== 'undefined' ? sport : 'baseball';
+const _isSoftball = _sport === 'softball';
+
+const _baseballPresets = [
+    { label: 'Fastball (FB)',           value: 'Fastball|FB' },
+    { label: 'Two-Seam Fastball (2FB)', value: 'Two-Seam Fastball|2FB' },
+    { label: 'Cutter (CUT)',            value: 'Cutter|CUT' },
+    { label: 'Sinker (SIN)',            value: 'Sinker|SIN' },
+    { label: 'Curveball (CB)',          value: 'Curveball|CB' },
+    { label: 'Slider (SL)',             value: 'Slider|SL' },
+    { label: 'Sweeper (SWP)',           value: 'Sweeper|SWP' },
+    { label: 'Slurve (SLV)',            value: 'Slurve|SLV' },
+    { label: 'Changeup (CH)',           value: 'Changeup|CH' },
+    { label: 'Splitter (SPL)',          value: 'Splitter|SPL' },
+    { label: 'Screwball (SCR)',         value: 'Screwball|SCR' },
+    { label: 'Knuckleball (KN)',        value: 'Knuckleball|KN' },
+];
+
+const _softballPresets = [
+    { label: 'Fastball (FB)',    value: 'Fastball|FB' },
+    { label: 'Riseball (RB)',    value: 'Riseball|RB' },
+    { label: 'Dropball (DB)',    value: 'Dropball|DB' },
+    { label: 'Curveball (CB)',   value: 'Curveball|CB' },
+    { label: 'Changeup (CH)',    value: 'Changeup|CH' },
+    { label: 'Screwball (SCR)',  value: 'Screwball|SCR' },
+    { label: 'Drop Curve (DC)',  value: 'Drop Curve|DC' },
+    { label: 'Offspeed (OS)',    value: 'Offspeed|OS' },
+];
+
+const _presets = _isSoftball ? _softballPresets : _baseballPresets;
+
+// currentName is optionally passed in to pre-select the matching preset
+const _knownNames = _presets.map(p => p.value.split('|')[0]);
+const _presetVal  = typeof currentName !== 'undefined' && _knownNames.includes(currentName)
+    ? currentName
+    : 'custom';
+%>
+<option value="">-- Select a pitch --</option>
+<% for (let _p of _presets) { %>
+    <% const _pName = _p.value.split('|')[0]; %>
+    <option value="<%= _p.value %>" <%= _presetVal === _pName ? 'selected' : '' %>><%= _p.label %></option>
+<% } %>
+<option value="custom|" <%= _presetVal === 'custom' ? 'selected' : '' %>>Custom</option>

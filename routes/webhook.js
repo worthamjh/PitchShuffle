@@ -35,7 +35,9 @@ router.post('/', express.raw({ type: 'application/json' }), async (req, res) => 
                 user.subscription.trialEndsAt       = sub.trial_end
                     ? new Date(sub.trial_end * 1000)
                     : null;
-                user.subscription.currentPeriodEnds = new Date(sub.current_period_end * 1000);
+                user.subscription.currentPeriodEnds = new Date(sub.current_period_end * 1000);user.subscription.currentPeriodEnds = sub.current_period_end
+                ? new Date(sub.current_period_end * 1000)
+                : null;
                 await user.save();
                 break;
             }
@@ -50,7 +52,9 @@ router.post('/', express.raw({ type: 'application/json' }), async (req, res) => 
                 user.subscription.trialEndsAt       = sub.trial_end
                     ? new Date(sub.trial_end * 1000)
                     : null;
-                user.subscription.currentPeriodEnds = new Date(sub.current_period_end * 1000);
+                user.subscription.currentPeriodEnds = sub.current_period_end
+                ? new Date(sub.current_period_end * 1000)
+                : null;
                 await user.save();
                 break;
             }

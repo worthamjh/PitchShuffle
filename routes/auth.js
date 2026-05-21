@@ -3,7 +3,6 @@ const router = express.Router();
 const passport = require('passport');
 const User = require('../models/user');
 const Team = require('../models/team');
-const Pitcher = require('../models/pitcher');
 const { isLoggedIn } = require('../middleware');
 
 function setTeamLocals(res, team) {
@@ -13,6 +12,20 @@ function setTeamLocals(res, team) {
     res.locals.teamChaseColor     = team.chaseColor     || '#fef3cd';
 }
 
+const BASEBALL_PITCHES = [
+    { name: 'Fastball',  abbreviation: 'FB' },
+    { name: 'Curveball', abbreviation: 'CB' },
+    { name: 'Changeup',  abbreviation: 'CH' },
+    { name: 'Slider',    abbreviation: 'SL' },
+];
+
+const SOFTBALL_PITCHES = [
+    { name: 'Fastball',  abbreviation: 'FB' },
+    { name: 'Riseball',  abbreviation: 'RB' },
+    { name: 'Dropball',  abbreviation: 'DB' },
+    { name: 'Changeup',  abbreviation: 'CH' },
+];
+
 // ── Home ──────────────────────────────────────────────────────
 router.get('/', (req, res) => {
     if (req.isAuthenticated()) return res.render('home');
@@ -21,16 +34,13 @@ router.get('/', (req, res) => {
 
 // ── Quick Game ────────────────────────────────────────────────
 router.get('/quick-game', isLoggedIn, (req, res) => {
+    const sport = req.query.sport === 'softball' ? 'softball' : 'baseball';
     const quickPitcher = {
         number: 1,
         name:   'Pitcher',
         throws: 'R',
-        pitchTypes: [
-            { name: 'Fastball',  abbreviation: 'FB' },
-            { name: 'Curveball', abbreviation: 'CB' },
-            { name: 'Changeup',  abbreviation: 'CH' },
-            { name: 'Slider',    abbreviation: 'SL' },
-        ],
+        sport,
+        pitchTypes: sport === 'softball' ? SOFTBALL_PITCHES : BASEBALL_PITCHES,
         zone: {
             availableLocations: [
                 { name: 'glove-up',       type: 'strike', enabled: true },
@@ -53,7 +63,7 @@ router.get('/quick-game', isLoggedIn, (req, res) => {
             ]
         }
     };
-    res.render('pitchers/quick-game', { pitcher: quickPitcher });
+    res.render('pitchers/quick-game', { pitcher: quickPitcher, sport });
 });
 
 // ── Game flow ─────────────────────────────────────────────────
@@ -74,7 +84,6 @@ router.get('/game/:teamId', isLoggedIn, async (req, res, next) => {
             req.flash('error', 'Team not found.');
             return res.redirect('/game');
         }
-        // Ownership check — don't let users view other teams' game pages
         if (!team.owner.equals(req.user._id)) {
             req.flash('error', 'You do not have permission to do that.');
             return res.redirect('/game');
@@ -93,7 +102,6 @@ router.get('/register', (req, res) => res.render('auth/register'));
 router.post('/register', async (req, res, next) => {
     try {
         const { email, username, password, zoneTerminology } = req.body;
-
         if (!username || !username.trim()) {
             req.flash('error', 'Username is required.');
             return res.redirect('/register');
@@ -102,16 +110,13 @@ router.post('/register', async (req, res, next) => {
             req.flash('error', 'Password must be at least 6 characters.');
             return res.redirect('/register');
         }
-
         const safeTerminology = ['arm-glove', 'inside-away'].includes(zoneTerminology)
             ? zoneTerminology
             : 'arm-glove';
         const user = new User({
             email,
             username,
-            preferences: {
-                zoneTerminology: safeTerminology,
-            }
+            preferences: { zoneTerminology: safeTerminology }
         });
         const registeredUser = await User.register(user, password);
         req.login(registeredUser, err => {
@@ -120,7 +125,6 @@ router.post('/register', async (req, res, next) => {
             res.redirect('/');
         });
     } catch (e) {
-        // passport-local-mongoose gives readable messages e.g. "A user with the given username is already registered"
         req.flash('error', e.message || 'Registration failed. Please try again.');
         res.redirect('/register');
     }

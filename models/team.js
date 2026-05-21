@@ -2,6 +2,11 @@ const mongoose = require('mongoose');
 
 const TeamSchema = new mongoose.Schema({
     name: { type: String, required: true },
+    sport: {
+        type: String,
+        enum: ['baseball', 'softball'],
+        default: 'baseball'
+    },
     owner: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
@@ -16,10 +21,10 @@ const TeamSchema = new mongoose.Schema({
     logo: { type: String, default: '' },
 
     // Team colors
-    primaryColor:   { type: String, default: '#1a2e4a' }, // navbar, headers, buttons
-    secondaryColor: { type: String, default: '#4a7fa5' }, // pitcher badge circles
-    strikeColor:    { type: String, default: '#c8ecd4' }, // strike zone cells
-    chaseColor:     { type: String, default: '#fef3cd' }, // chase zone cells
+    primaryColor:   { type: String, default: '#1a2e4a' },
+    secondaryColor: { type: String, default: '#4a7fa5' },
+    strikeColor:    { type: String, default: '#c8ecd4' },
+    chaseColor:     { type: String, default: '#fef3cd' },
 });
 
 module.exports = mongoose.model('Team', TeamSchema);

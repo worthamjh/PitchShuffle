@@ -6,6 +6,7 @@ const { upload, uploadToCloudinary }  = require('../upload');
 
 const HEX_RE = /^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/;
 const sanitizeColor = (val, fallback) => HEX_RE.test(val) ? val : fallback;
+const sanitizeSport = (val) => ['baseball', 'softball'].includes(val) ? val : 'baseball';
 
 function setTeamLocals(res, team) {
     res.locals.teamColor          = team.primaryColor   || '#1a2e4a';
@@ -15,7 +16,7 @@ function setTeamLocals(res, team) {
 }
 
 // All teams
-router.get('/', isLoggedIn, async (req, res) => {
+router.get('/', isLoggedIn, async (req, res, next) => {
     try {
         const teams = await Team.find({ owner: req.user._id });
         res.render('teams/index', { teams });
@@ -39,6 +40,7 @@ router.post('/', isLoggedIn, upload.single('logo'), async (req, res, next) => {
         }
         const team = new Team({
             name:           t.name.trim(),
+            sport:          sanitizeSport(t.sport),
             primaryColor:   sanitizeColor(t.primaryColor,   '#1a2e4a'),
             secondaryColor: sanitizeColor(t.secondaryColor, '#4a7fa5'),
             strikeColor:    sanitizeColor(t.strikeColor,    '#c8ecd4'),
@@ -90,6 +92,7 @@ router.put('/:id', isLoggedIn, isOwner, upload.single('logo'), async (req, res, 
         const t    = req.body.team;
         const team = await Team.findById(req.params.id);
         team.name           = t.name?.trim() || team.name;
+        team.sport          = sanitizeSport(t.sport);
         team.primaryColor   = sanitizeColor(t.primaryColor,   team.primaryColor);
         team.secondaryColor = sanitizeColor(t.secondaryColor, team.secondaryColor);
         team.strikeColor    = sanitizeColor(t.strikeColor,    team.strikeColor);
