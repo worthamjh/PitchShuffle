@@ -1,197 +1,517 @@
 <%- layout('layouts/boilerplate') %>
 
-    <div class="page-header">
-        <h1><i class="bi bi-person-plus"></i> Add Pitcher</h1>
-    </div>
+<style>
+    .zone-grid {
+        display: grid;
+        gap: 0;
+        margin: 0 auto;
+        border: 2px solid #adb5bd;
+    }
+    .loc-box {
+        width: 70px; height: 70px;
+        border-radius: 0;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        font-size: 0.55rem; font-weight: 700;
+        text-align: center; text-transform: uppercase;
+        letter-spacing: 0.4px; padding: 4px;
+        box-sizing: border-box;
+        border: 1px solid rgba(0,0,0,0.12);
+        transition: background-color 0.15s, border-color 0.15s;
+        user-select: none; cursor: pointer;
+    }
+    @media (min-width: 576px) { .loc-box { width: 88px; height: 88px; font-size: 0.6rem; } }
+    @media (min-width: 992px) { .loc-box { width: 108px; height: 108px; font-size: 0.7rem; } }
+    .loc-box.strike   { background: var(--strike-bg); border-color: var(--strike-border); color: var(--strike-text); }
+    .loc-box.chase    { background: var(--chase-bg); border-color: var(--chase-border); color: var(--chase-text); }
+    .loc-box.disabled { background: #e9ecef; border-color: #ced4da; color: #adb5bd; text-decoration: line-through; }
+    .loc-box.empty    { background: transparent; border-color: transparent; cursor: default; pointer-events: none; }
+    .loc-box.covered  { pointer-events: none; }
+    .loc-box.strike:hover   { background: var(--strike-hover); border-color: var(--strike-border); }
+    .loc-box.chase:hover    { background: var(--chase-hover); border-color: var(--chase-hover-border); }
+    .loc-box.disabled:hover { background: #e9ecef; }
+    .loc-box.empty:hover, .loc-box.covered:hover { background: inherit; }
+    @media (min-width: 576px) { .loc-box, .chase-overlay { font-size: 0.6rem; } }
+    @media (min-width: 992px) { .loc-box, .chase-overlay { font-size: 0.7rem; } }
+    .chase-overlay {
+        position: absolute; z-index: 5;
+        background: var(--chase-bg); border: 1px solid var(--chase-border); color: var(--chase-text);
+        font-size: 0.55rem; font-weight: 700; text-align: center;
+        text-transform: uppercase; letter-spacing: 0.4px;
+        display: flex; align-items: center; justify-content: center;
+        box-sizing: border-box; cursor: pointer; user-select: none;
+        transition: background-color 0.15s, border-color 0.15s;
+    }
+    .chase-overlay:hover          { background: var(--chase-hover); border-color: var(--chase-hover-border); }
+    .chase-overlay.disabled       { background: #e9ecef; border-color: #ced4da; color: #adb5bd; text-decoration: line-through; }
+    .chase-overlay.disabled:hover { background: #e9ecef; border-color: #ced4da; }
+    .strike-zone-outline { position: absolute; pointer-events: none; border: 3px solid var(--ps-navy); z-index: 10; }
+    .zone-grid-wrapper   { display: inline-block; position: relative; }
+    .pitchers-view-label { text-align: center; font-size: 0.7rem; font-weight: 600; color: #6c757d; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+    .zone-container  { display: flex; justify-content: center; padding: 1rem 0; }
+    .pitch-section   { border: 1px solid #dee2e6; border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; background: #fff; }
+    .pitch-section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+</style>
 
-    <div class="card">
-        <div class="card-body p-4">
-            <form action="/teams/<%= team._id %>/pitchers" method="POST">
+<div class="page-header">
+    <h1><i class="bi bi-person-plus"></i> Add Pitcher</h1>
+</div>
 
-                <!-- Basic Info -->
-                <h5 class="fw-bold mb-3">Basic Info</h5>
-                <div class="row mb-3">
-                    <div class="col-md-6 mb-3 mb-md-0">
-                        <label for="name" class="form-label fw-bold">Name</label>
-                        <input type="text" class="form-control form-control-lg" id="name" name="pitcher[name]" required>
-                    </div>
-                    <div class="col-md-3 mb-3 mb-md-0">
-                        <label for="number" class="form-label fw-bold">Jersey #</label>
-                        <input type="number" class="form-control form-control-lg" id="number" name="pitcher[number]">
-                    </div>
-                    <div class="col-md-3">
-                        <label for="throws" class="form-label fw-bold">Throws</label>
-                        <select class="form-select form-select-lg" id="throws" name="pitcher[throws]">
-                            <option value="R">Right</option>
-                            <option value="L">Left</option>
-                        </select>
-                    </div>
+<div class="card">
+    <div class="card-body p-4">
+        <form action="/teams/<%= team._id %>/pitchers" method="POST">
+
+            <!-- Basic Info -->
+            <h5 class="fw-bold mb-3">Basic Info</h5>
+            <div class="row mb-3">
+                <div class="col-md-6 mb-3 mb-md-0">
+                    <label for="name" class="form-label fw-bold">Name</label>
+                    <input type="text" class="form-control form-control-lg" id="name" name="pitcher[name]" required>
                 </div>
+                <div class="col-md-3 mb-3 mb-md-0">
+                    <label for="number" class="form-label fw-bold">Jersey #</label>
+                    <input type="number" class="form-control form-control-lg" id="number" name="pitcher[number]">
+                </div>
+                <div class="col-md-3">
+                    <label for="throws" class="form-label fw-bold">Throws</label>
+                    <select class="form-select form-select-lg" id="throws" name="pitcher[throws]">
+                        <option value="R">Right</option>
+                        <option value="L">Left</option>
+                    </select>
+                </div>
+            </div>
 
-                <!-- Zone Selection -->
-                <h5 class="fw-bold mb-3 mt-4">Strike Zone</h5>
-                <div class="mb-4">
-                    <div class="row row-cols-1 row-cols-md-3 g-3">
+            <!-- Zone Selection -->
+            <h5 class="fw-bold mb-3 mt-4">Strike Zone</h5>
+            <div class="mb-4">
+                <div class="row row-cols-1 row-cols-md-3 g-3">
+                    <%
+                        const userTerminology = (user && user.preferences && user.preferences.zoneTerminology)
+                            ? user.preferences.zoneTerminology
+                            : 'arm-glove';
+                        const filteredZones = zones
+                            .filter(z => z.terminology === userTerminology || z.terminology === 'both')
+                            .sort((a, b) => a.name.localeCompare(b.name));
+                    %>
+                    <% for (let zone of filteredZones) { %>
                         <%
-                            const userTerminology = (user && user.preferences && user.preferences.zoneTerminology)
-                                ? user.preferences.zoneTerminology
-                                : 'arm-glove';
-                            const filteredZones = zones
-                                .filter(z => z.terminology === userTerminology || z.terminology === 'both')
-                                .sort((a, b) => a.name.localeCompare(b.name));
+                            const _zoneImageMap = { 'A': 'zone_a.png', 'B': 'zone_b.png', 'C': 'zone_c.png' };
+                            const _zoneLetter   = zone.name.match(/Zone ([A-Z])/)?.[1];
+                            const _zoneImg      = _zoneImageMap[_zoneLetter] || null;
                         %>
-                        <% for (let zone of filteredZones) { %>
-                            <%
-                                const _zoneImageMap = { 'A': 'zone_a.png', 'B': 'zone_b.png', 'C': 'zone_c.png' };
-                                const _zoneLetter   = zone.name.match(/Zone ([A-Z])/)?.[1];
-                                const _zoneImg      = _zoneImageMap[_zoneLetter] || null;
-                            %>
-                            <div class="col">
-                                <input type="radio" class="btn-check" name="pitcher[zone]"
-                                    id="zone-<%= zone._id %>" value="<%= zone._id %>" required>
-                                <label class="zone-image-card" for="zone-<%= zone._id %>">
-                                    <% if (_zoneImg) { %>
-                                        <img src="/images/<%= _zoneImg %>" alt="<%= zone.name %>"
-                                            style="width:80px;height:80px;object-fit:contain;">
-                                    <% } %>
-                                    <div class="zone-card-label">
-                                        <%= zone.name %>
-                                        <small><%= zone.availableLocations.length %> locations</small>
-                                    </div>
-                                </label>
-                            </div>
-                        <% } %>
-                    </div>
+                        <div class="col">
+                            <input type="radio" class="btn-check" name="pitcher[zone]"
+                                id="zone-<%= zone._id %>" value="<%= zone._id %>" required>
+                            <label class="zone-image-card" for="zone-<%= zone._id %>">
+                                <% if (_zoneImg) { %>
+                                    <img src="/images/<%= _zoneImg %>" alt="<%= zone.name %>"
+                                        style="width:80px;height:80px;object-fit:contain;">
+                                <% } %>
+                                <div class="zone-card-label">
+                                    <%= zone.name %>
+                                    <small><%= zone.availableLocations.length %> locations</small>
+                                </div>
+                            </label>
+                        </div>
+                    <% } %>
                 </div>
+            </div>
 
-                <!-- Pitch Types -->
-                <h5 class="fw-bold mb-3 mt-4">Pitch Types</h5>
-                <div id="pitchTypes">
-                    <div class="pitch-type-row card mb-3">
-                        <div class="card-body">
-                            <div class="row align-items-end">
-                                <div class="col-md-4 mb-2 mb-md-0">
-                                    <label class="form-label fw-bold">Preset</label>
-                                    <select class="form-select pitch-preset">
-                                        <%- include('../partials/pitch-presets', { sport: team.sport, currentName: '' }) %>
-                                    </select>
-                                </div>
-                                <div class="col-md-4 mb-2 mb-md-0">
-                                    <label class="form-label fw-bold">Pitch Name</label>
-                                    <input type="text" class="form-control pitch-name"
-                                        name="pitcher[pitchTypes][0][name]" placeholder="e.g. Fastball">
-                                </div>
-                                <div class="col-md-3 mb-2 mb-md-0">
-                                    <label class="form-label fw-bold">Abbreviation</label>
-                                    <input type="text" class="form-control pitch-abbr"
-                                        name="pitcher[pitchTypes][0][abbreviation]" placeholder="e.g. FB">
-                                </div>
+            <!-- Pitch Types -->
+            <h5 class="fw-bold mb-3 mt-4">Pitch Types</h5>
+            <div id="pitchTypes">
+                <div class="pitch-type-row pitch-section">
+                    <div class="pitch-section-header">
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <select class="form-select pitch-preset" style="max-width:200px;">
+                                <%- include('../partials/pitch-presets', { sport: team.sport, currentName: '' }) %>
+                            </select>
+                            <input type="text" class="form-control pitch-name fw-bold"
+                                name="pitcher[pitchTypes][0][name]" placeholder="Pitch name" style="max-width:160px;">
+                            <input type="text" class="form-control pitch-abbr"
+                                name="pitcher[pitchTypes][0][abbreviation]" placeholder="Abbr." style="max-width:80px;">
+                        </div>
+                    </div>
+                    <div class="visual-view">
+                        <div class="zone-container">
+                            <div class="zone-grid-wrapper" id="wrapper-0">
+                                <div class="pitchers-view-label">Pitcher's View</div>
+                                <div class="zone-grid" id="grid-0"></div>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <button type="button" class="btn btn-outline-secondary mb-4" id="addPitch">
-                    <i class="bi bi-plus-circle"></i> Add Another Pitch
+            <button type="button" class="btn btn-outline-secondary mb-4" id="addPitch">
+                <i class="bi bi-plus-circle"></i> Add Another Pitch
+            </button>
+
+            <% if (redirect) { %>
+                <input type="hidden" name="redirect" value="<%= redirect %>">
+            <% } %>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="bi bi-check-circle"></i> Save Pitcher
                 </button>
+                <a href="<%= redirect || '/teams/' + team._id %>" class="btn btn-outline-secondary btn-lg">
+                    <i class="bi bi-x-circle"></i> Cancel
+                </a>
+            </div>
 
-                <script>
-                    const PRESETS_HTML = `<%= team.sport === 'softball'
-                        ? '<option value="">-- Select a pitch --</option><option value="Fastball|FB">Fastball (FB)</option><option value="Riseball|RB">Riseball (RB)</option><option value="Dropball|DB">Dropball (DB)</option><option value="Curveball|CB">Curveball (CB)</option><option value="Changeup|CH">Changeup (CH)</option><option value="Screwball|SCR">Screwball (SCR)</option><option value="Drop Curve|DC">Drop Curve (DC)</option><option value="Offspeed|OS">Offspeed (OS)</option><option value="custom|">Custom</option>'
-                        : '<option value="">-- Select a pitch --</option><option value="Fastball|FB">Fastball (FB)</option><option value="Two-Seam Fastball|2FB">Two-Seam Fastball (2FB)</option><option value="Cutter|CUT">Cutter (CUT)</option><option value="Sinker|SIN">Sinker (SIN)</option><option value="Curveball|CB">Curveball (CB)</option><option value="Slider|SL">Slider (SL)</option><option value="Sweeper|SWP">Sweeper (SWP)</option><option value="Slurve|SLV">Slurve (SLV)</option><option value="Changeup|CH">Changeup (CH)</option><option value="Splitter|SPL">Splitter (SPL)</option><option value="Screwball|SCR">Screwball (SCR)</option><option value="Knuckleball|KN">Knuckleball (KN)</option><option value="custom|">Custom</option>'
-                    %>`;
-
-                    function applyPreset(select) {
-                        const row = select.closest('.pitch-type-row');
-                        const nameInput = row.querySelector('.pitch-name');
-                        const abbrInput = row.querySelector('.pitch-abbr');
-                        const val = select.value;
-                        if (!val) return;
-                        if (val === 'custom|') {
-                            nameInput.value = '';
-                            abbrInput.value = '';
-                            nameInput.readOnly = false;
-                            abbrInput.readOnly = false;
-                            nameInput.placeholder = 'Type pitch name';
-                            abbrInput.placeholder = 'Type abbr.';
-                            nameInput.focus();
-                        } else {
-                            const [name, abbr] = val.split('|');
-                            nameInput.value = name;
-                            abbrInput.value = abbr;
-                            nameInput.readOnly = false;
-                            abbrInput.readOnly = false;
-                        }
-                    }
-
-                    document.getElementById('pitchTypes').addEventListener('change', (e) => {
-                        if (e.target.classList.contains('pitch-preset')) applyPreset(e.target);
-                    });
-
-                    let pitchCount = 1;
-                    document.getElementById('addPitch').addEventListener('click', () => {
-                        const rows = document.querySelectorAll('.pitch-type-row');
-                        if (rows.length >= 8) {
-                            const btn = document.getElementById('addPitch');
-                            btn.disabled = true;
-                            btn.innerHTML = '<i class="bi bi-slash-circle"></i> Maximum 8 pitches reached';
-                            return;
-                        }
-                        const container = document.getElementById('pitchTypes');
-                        const div = document.createElement('div');
-                        div.classList.add('pitch-type-row', 'card', 'mb-3');
-                        div.innerHTML = `
-                            <div class="card-body">
-                                <div class="row align-items-end">
-                                    <div class="col-md-4 mb-2 mb-md-0">
-                                        <label class="form-label fw-bold">Preset</label>
-                                        <select class="form-select pitch-preset">${PRESETS_HTML}</select>
-                                    </div>
-                                    <div class="col-md-4 mb-2 mb-md-0">
-                                        <label class="form-label fw-bold">Pitch Name</label>
-                                        <input type="text" class="form-control pitch-name"
-                                            name="pitcher[pitchTypes][${pitchCount}][name]" placeholder="e.g. Curveball">
-                                    </div>
-                                    <div class="col-md-3 mb-2 mb-md-0">
-                                        <label class="form-label fw-bold">Abbreviation</label>
-                                        <input type="text" class="form-control pitch-abbr"
-                                            name="pitcher[pitchTypes][${pitchCount}][abbreviation]" placeholder="e.g. CB">
-                                    </div>
-                                    <div class="col-md-1 d-flex align-items-end">
-                                        <button type="button" class="btn btn-outline-danger w-100 remove-pitch">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>`;
-                        container.appendChild(div);
-                        pitchCount++;
-                    });
-
-                    document.getElementById('pitchTypes').addEventListener('click', (e) => {
-                        if (e.target.closest('.remove-pitch')) {
-                            e.target.closest('.pitch-type-row').remove();
-                            const rows = document.querySelectorAll('.pitch-type-row');
-                            if (rows.length < 8) {
-                                const btn = document.getElementById('addPitch');
-                                btn.disabled = false;
-                                btn.innerHTML = '<i class="bi bi-plus-circle"></i> Add Another Pitch';
-                            }
-                        }
-                    });
-                </script>
-                <% if (redirect) { %>
-                    <input type="hidden" name="redirect" value="<%= redirect %>">
-                <% } %>
-                <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-primary btn-lg">
-                        <i class="bi bi-check-circle"></i> Save Pitcher
-                    </button>
-                    <a href="<%= redirect || '/teams/' + team._id %>" class="btn btn-outline-secondary btn-lg">
-                        <i class="bi bi-x-circle"></i> Cancel
-                    </a>
-                </div>
-
-            </form>
-        </div>
+        </form>
     </div>
+</div>
+
+<script type="application/json" id="allZoneDataJson"><%- JSON.stringify(zones.map(z => ({ id: z._id.toString(), locations: z.availableLocations }))) %></script>
+
+<script>
+    // ── Handedness (default RHP until throws changes) ─────────
+    let isRHP = true;
+    document.getElementById('throws').addEventListener('change', (e) => {
+        isRHP = e.target.value === 'R';
+        rebuildAllGrids();
+    });
+
+    // ── Zone layouts ──────────────────────────────────────────
+    function getZONE_LAYOUTS_C() {
+        return {
+            'glove-out-up':   { row: 1, col: isRHP ? 1 : 5 },
+            'up-out':         { row: 1, col: 2 },
+            'arm-out-up':     { row: 1, col: isRHP ? 5 : 1 },
+            'glove-out-mid':  { row: 2, col: isRHP ? 1 : 5, rowSpan: 3 },
+            'glove-up':       { row: 2, col: isRHP ? 2 : 4, strike: true },
+            'mid-up':         { row: 2, col: 3,              strike: true },
+            'arm-up':         { row: 2, col: isRHP ? 4 : 2, strike: true },
+            'arm-out-mid':    { row: 2, col: isRHP ? 5 : 1, rowSpan: 3 },
+            'glove-mid':      { row: 3, col: isRHP ? 2 : 4, strike: true },
+            'mid-mid':        { row: 3, col: 3,              strike: true },
+            'arm-mid':        { row: 3, col: isRHP ? 4 : 2, strike: true },
+            'glove-down':     { row: 4, col: isRHP ? 2 : 4, strike: true },
+            'mid-down':       { row: 4, col: 3,              strike: true },
+            'arm-down':       { row: 4, col: isRHP ? 4 : 2, strike: true },
+            'glove-out-down': { row: 5, col: isRHP ? 1 : 5 },
+            'down-out':       { row: 5, col: 2 },
+            'arm-out-down':   { row: 5, col: isRHP ? 5 : 1 },
+        };
+    }
+    const ZONE_LAYOUTS_A = () => ({
+        'arm-side':   { row: 1, col: isRHP ? 2 : 1, strike: true },
+        'glove-side': { row: 1, col: isRHP ? 1 : 2, strike: true },
+    });
+    const ZONE_LAYOUTS_B = { 'up': { row: 1, col: 1, strike: true }, 'down': { row: 2, col: 1, strike: true } };
+    const ZONE_LAYOUTS_C_IA = {
+        'away-out-up': { row: 1, col: 1 }, 'up-out': { row: 1, col: 2 }, 'inside-out-up': { row: 1, col: 5 },
+        'away-out-mid': { row: 2, col: 1, rowSpan: 3 },
+        'away-up': { row: 2, col: 2, strike: true }, 'mid-up': { row: 2, col: 3, strike: true }, 'inside-up': { row: 2, col: 4, strike: true },
+        'inside-out-mid': { row: 2, col: 5, rowSpan: 3 },
+        'away-mid': { row: 3, col: 2, strike: true }, 'mid-mid': { row: 3, col: 3, strike: true }, 'inside-mid': { row: 3, col: 4, strike: true },
+        'away-down': { row: 4, col: 2, strike: true }, 'mid-down': { row: 4, col: 3, strike: true }, 'inside-down': { row: 4, col: 4, strike: true },
+        'away-out-down': { row: 5, col: 1 }, 'down-out': { row: 5, col: 2 }, 'inside-out-down': { row: 5, col: 5 },
+    };
+    const ZONE_LAYOUTS_A_IA = { 'away-side': { row: 1, col: 1, strike: true }, 'inside-side': { row: 1, col: 2, strike: true } };
+
+    function getZoneLayouts(locations) {
+        const names = new Set(locations.map(l => l.name));
+        if (names.has('glove-up'))    return getZONE_LAYOUTS_C();
+        if (names.has('inside-up'))   return ZONE_LAYOUTS_C_IA;
+        if (names.has('arm-side'))    return ZONE_LAYOUTS_A();
+        if (names.has('inside-side')) return ZONE_LAYOUTS_A_IA;
+        if (names.has('up'))          return ZONE_LAYOUTS_B;
+        return getZONE_LAYOUTS_C();
+    }
+
+    const isZoneC = locations => {
+        const names = new Set(locations.map(l => l.name));
+        return names.has('glove-up') || names.has('inside-up');
+    };
+
+    // ── Zone tracking ─────────────────────────────────────────
+    const allZoneData = JSON.parse(document.getElementById('allZoneDataJson').textContent);
+    let zoneLocations = [];
+    const pitchData = [{ locations: [] }]; // one slot for the first row
+
+    document.querySelectorAll('input[name="pitcher[zone]"]').forEach(radio => {
+        radio.addEventListener('change', () => {
+            const selected = allZoneData.find(z => z.id === radio.value);
+            zoneLocations = selected ? selected.locations : [];
+            // Update all existing rows with new zone locations
+            pitchData.forEach((p, i) => {
+                p.locations = zoneLocations.map(loc => ({ ...loc, enabled: true }));
+                updateLocInputs(i);
+                buildGrid(i);
+            });
+        });
+    });
+
+    function updateLocInputs(pitchIndex) {
+        // Remove old location inputs for this pitch index
+        document.querySelectorAll(`input[name^="pitcher[pitchTypes][${pitchIndex}][locations]"]`).forEach(el => el.remove());
+        // Add new ones
+        const container = document.getElementById(`grid-${pitchIndex}`)?.closest('.pitch-type-row');
+        if (!container) return;
+        zoneLocations.forEach((loc, j) => {
+            const mkInput = (name, value, id) => {
+                const inp = document.createElement('input');
+                inp.type = 'hidden'; inp.name = name; inp.value = value;
+                if (id) inp.id = id;
+                container.appendChild(inp);
+            };
+            mkInput(`pitcher[pitchTypes][${pitchIndex}][locations][${j}][name]`, loc.name);
+            mkInput(`pitcher[pitchTypes][${pitchIndex}][locations][${j}][type]`, loc.type);
+            mkInput(`pitcher[pitchTypes][${pitchIndex}][locations][${j}][enabled]`, 'true', `enabled-${pitchIndex}-${j}`);
+        });
+    }
+
+    function getBoxClass(loc) {
+        if (!loc.enabled) return 'disabled';
+        if (loc.type === 'chase') return 'chase';
+        return 'strike';
+    }
+
+    function drawOutline(pitchIndex) {
+        const grid    = document.getElementById(`grid-${pitchIndex}`);
+        const wrapper = document.getElementById(`wrapper-${pitchIndex}`);
+        if (!grid || !wrapper) return;
+        const cells = [...grid.querySelectorAll('[data-is-strike="true"]')];
+        if (!cells.length) return;
+        const gr = grid.getBoundingClientRect();
+        let t = Infinity, l = Infinity, b = -Infinity, r = -Infinity;
+        cells.forEach(c => {
+            const cr = c.getBoundingClientRect();
+            t = Math.min(t, cr.top - gr.top); l = Math.min(l, cr.left - gr.left);
+            b = Math.max(b, cr.bottom - gr.top); r = Math.max(r, cr.right - gr.left);
+        });
+        const old = wrapper.querySelector('.strike-zone-outline');
+        if (old) old.remove();
+        const labelEl = wrapper.querySelector('.pitchers-view-label');
+        const labelH  = labelEl ? labelEl.offsetHeight + 4 : 0;
+        const outline = document.createElement('div');
+        outline.className = 'strike-zone-outline';
+        Object.assign(outline.style, { top: (t + labelH) + 'px', left: l + 'px', width: (r - l) + 'px', height: (b - t) + 'px' });
+        wrapper.appendChild(outline);
+    }
+
+    function drawOverlays(pitchIndex, pitch) {
+        const grid    = document.getElementById(`grid-${pitchIndex}`);
+        const wrapper = document.getElementById(`wrapper-${pitchIndex}`);
+        if (!grid || !wrapper) return;
+        wrapper.querySelectorAll('.chase-overlay').forEach(el => el.remove());
+        grid.querySelectorAll('.loc-box.covered').forEach(el => el.classList.remove('covered'));
+        if (!isZoneC(pitch.locations)) return;
+        const gr      = grid.getBoundingClientRect();
+        const labelEl = wrapper.querySelector('.pitchers-view-label');
+        const labelH  = labelEl ? labelEl.offsetHeight + 4 : 0;
+        const getCell = name => [...grid.querySelectorAll('.loc-box')].find(el => el.dataset.locName === name);
+        function spanBounds(names) {
+            let t = Infinity, l = Infinity, r = -Infinity, b = -Infinity;
+            names.forEach(name => {
+                const el = getCell(name); if (!el) return;
+                const cr = el.getBoundingClientRect();
+                t = Math.min(t, cr.top - gr.top); l = Math.min(l, cr.left - gr.left);
+                r = Math.max(r, cr.right - gr.left); b = Math.max(b, cr.bottom - gr.top);
+            });
+            return { t, l, r, b };
+        }
+        function makeOverlay(locName, label, hCells, vCells, covered) {
+            if (!pitch.locations.find(z => z.name === locName)) return;
+            const hb = spanBounds(hCells); const vb = spanBounds(vCells);
+            if (!isFinite(hb.l) || !isFinite(vb.t)) return;
+            const locIndex = pitch.locations.findIndex(l => l.name === locName);
+            const loc = pitch.locations[locIndex];
+            const el = document.createElement('div');
+            el.className = 'chase-overlay' + (loc && !loc.enabled ? ' disabled' : '');
+            el.textContent = label; el.dataset.locName = locName;
+            el.dataset.pitchIndex = pitchIndex; el.dataset.locIndex = locIndex;
+            Object.assign(el.style, { top: (vb.t + labelH) + 'px', left: hb.l + 'px', width: (hb.r - hb.l) + 'px', height: (vb.b - vb.t) + 'px' });
+            wrapper.appendChild(el);
+            covered.forEach(name => { const cell = getCell(name); if (cell) cell.classList.add('covered'); });
+        }
+        const locNames = new Set(pitch.locations.map(l => l.name));
+        const isInsideAway = locNames.has('inside-up');
+        if (isInsideAway) {
+            makeOverlay('up-out',        'up out',     ['inside-up','mid-up','away-up'],       ['up-out'],   []);
+            makeOverlay('down-out',      'down out',   ['inside-down','mid-down','away-down'],  ['down-out'], []);
+            makeOverlay('inside-out-mid','inside out', ['inside-out-mid'], ['inside-up','inside-mid','inside-down'], []);
+            makeOverlay('away-out-mid',  'away out',   ['away-out-mid'],   ['away-up','away-mid','away-down'],       []);
+        } else {
+            const armOutName   = isRHP ? 'arm-out-mid'   : 'glove-out-mid';
+            const gloveOutName = isRHP ? 'glove-out-mid' : 'arm-out-mid';
+            const armCells     = isRHP ? ['arm-up','arm-mid','arm-down']     : ['glove-up','glove-mid','glove-down'];
+            const gloveCells   = isRHP ? ['glove-up','glove-mid','glove-down'] : ['arm-up','arm-mid','arm-down'];
+            makeOverlay('up-out',      'up out',   ['arm-up','mid-up','glove-up'],       ['up-out'],   []);
+            makeOverlay('down-out',    'down out', ['arm-down','mid-down','glove-down'],  ['down-out'], []);
+            makeOverlay(armOutName,   isRHP ? 'arm out'   : 'glove out', [armOutName],   armCells,   []);
+            makeOverlay(gloveOutName, isRHP ? 'glove out' : 'arm out',  [gloveOutName], gloveCells, []);
+        }
+    }
+
+    function buildGrid(pitchIndex) {
+        const pitch = pitchData[pitchIndex];
+        if (!pitch || !pitch.locations || !pitch.locations.length) return;
+        const grid    = document.getElementById(`grid-${pitchIndex}`);
+        const wrapper = document.getElementById(`wrapper-${pitchIndex}`);
+        if (!grid || !wrapper) return;
+        grid.innerHTML = '';
+        wrapper.querySelectorAll('.chase-overlay, .strike-zone-outline').forEach(el => el.remove());
+        const layout  = getZoneLayouts(pitch.locations);
+        const maxRow  = Math.max(...Object.values(layout).map(p => (p.row || 1) + (p.rowSpan || 1) - 1));
+        const maxCol  = Math.max(...Object.values(layout).map(p => (p.col || 1) + (p.colSpan || 1) - 1));
+        const boxSize = window.innerWidth >= 992 ? 108 : window.innerWidth >= 576 ? 88 : 70;
+        grid.style.gridTemplateRows    = `repeat(${maxRow}, ${boxSize}px)`;
+        grid.style.gridTemplateColumns = `repeat(${maxCol}, ${boxSize}px)`;
+        pitch.locations.forEach((loc, locIndex) => {
+            const pos = layout[loc.name]; if (!pos) return;
+            const box = document.createElement('div');
+            box.className        = `loc-box ${getBoxClass(loc)}`;
+            box.textContent      = loc.name.replace(/-/g, ' ');
+            box.dataset.locName  = loc.name;
+            box.dataset.isStrike = pos.strike ? 'true' : 'false';
+            box.dataset.pitch    = pitchIndex;
+            box.dataset.loc      = locIndex;
+            box.dataset.enabled  = loc.enabled;
+            box.style.gridRow    = pos.rowSpan ? `${pos.row} / span ${pos.rowSpan}` : String(pos.row);
+            box.style.gridColumn = pos.colSpan ? `${pos.col} / span ${pos.colSpan}` : String(pos.col);
+            grid.appendChild(box);
+        });
+        requestAnimationFrame(() => { drawOutline(pitchIndex); drawOverlays(pitchIndex, pitch); });
+    }
+
+    function rebuildAllGrids() {
+        pitchData.forEach((p, i) => buildGrid(i));
+    }
+
+    window.addEventListener('resize', rebuildAllGrids);
+
+    // ── Click handler — toggle location enabled ───────────────
+    document.addEventListener('click', (e) => {
+        const overlay = e.target.closest('.chase-overlay');
+        if (overlay) {
+            const pitchIndex = parseInt(overlay.dataset.pitchIndex);
+            const locIndex   = parseInt(overlay.dataset.locIndex);
+            const pitch = pitchData[pitchIndex];
+            if (!pitch || locIndex < 0) return;
+            const loc = pitch.locations[locIndex];
+            const newEnabled = !loc.enabled;
+            loc.enabled = newEnabled;
+            const enabledInput = document.getElementById(`enabled-${pitchIndex}-${locIndex}`);
+            if (enabledInput) enabledInput.value = newEnabled;
+            overlay.classList.toggle('disabled', !newEnabled);
+            const grid = document.getElementById(`grid-${pitchIndex}`);
+            const box  = grid ? [...grid.querySelectorAll('.loc-box')].find(el => el.dataset.locName === overlay.dataset.locName) : null;
+            if (box) { box.dataset.enabled = newEnabled; box.classList.remove('strike','chase','disabled'); box.classList.add(newEnabled ? 'chase' : 'disabled'); }
+            return;
+        }
+        const box = e.target.closest('.loc-box');
+        if (!box || box.classList.contains('empty') || box.classList.contains('covered')) return;
+        const pitchIdx   = box.dataset.pitch;
+        const locIdx     = box.dataset.loc;
+        const newEnabled = !(box.dataset.enabled === 'true');
+        box.dataset.enabled = newEnabled;
+        const typeInput = document.querySelector(`input[name="pitcher[pitchTypes][${pitchIdx}][locations][${locIdx}][type]"]`);
+        const type = typeInput ? typeInput.value : '';
+        box.classList.remove('strike','chase','disabled');
+        if (!newEnabled) box.classList.add('disabled');
+        else if (type === 'chase') box.classList.add('chase');
+        else box.classList.add('strike');
+        const enabledInput = document.getElementById(`enabled-${pitchIdx}-${locIdx}`);
+        if (enabledInput) enabledInput.value = newEnabled;
+        drawOverlays(parseInt(pitchIdx), pitchData[parseInt(pitchIdx)]);
+    });
+
+    // ── Preset dropdown ───────────────────────────────────────
+    const PRESETS_HTML = `<%- team.sport === 'softball'
+        ? '<option value="">-- Select a pitch --</option><option value="Fastball|FB">Fastball (FB)</option><option value="Riseball|RB">Riseball (RB)</option><option value="Dropball|DB">Dropball (DB)</option><option value="Curveball|CB">Curveball (CB)</option><option value="Changeup|CH">Changeup (CH)</option><option value="Screwball|SCR">Screwball (SCR)</option><option value="Drop Curve|DC">Drop Curve (DC)</option><option value="Offspeed|OS">Offspeed (OS)</option><option value="custom|">Custom</option>'
+        : '<option value="">-- Select a pitch --</option><option value="Fastball|FB">Fastball (FB)</option><option value="Two-Seam Fastball|2FB">Two-Seam Fastball (2FB)</option><option value="Cutter|CUT">Cutter (CUT)</option><option value="Sinker|SIN">Sinker (SIN)</option><option value="Curveball|CB">Curveball (CB)</option><option value="Slider|SL">Slider (SL)</option><option value="Sweeper|SWP">Sweeper (SWP)</option><option value="Slurve|SLV">Slurve (SLV)</option><option value="Changeup|CH">Changeup (CH)</option><option value="Splitter|SPL">Splitter (SPL)</option><option value="Screwball|SCR">Screwball (SCR)</option><option value="Knuckleball|KN">Knuckleball (KN)</option><option value="custom|">Custom</option>'
+    %>`;
+
+    function applyPreset(select) {
+        const row = select.closest('.pitch-type-row');
+        const nameInput = row.querySelector('.pitch-name');
+        const abbrInput = row.querySelector('.pitch-abbr');
+        const val = select.value;
+        if (!val) return;
+        if (val === 'custom|') {
+            nameInput.value = ''; abbrInput.value = '';
+            nameInput.placeholder = 'Type pitch name'; abbrInput.placeholder = 'Type abbr.';
+            nameInput.focus();
+        } else {
+            const [name, abbr] = val.split('|');
+            nameInput.value = name; abbrInput.value = abbr;
+        }
+    }
+
+    document.getElementById('pitchTypes').addEventListener('change', (e) => {
+        if (e.target.classList.contains('pitch-preset')) applyPreset(e.target);
+    });
+
+    // ── Add / remove pitch type rows ──────────────────────────
+    let pitchCount = 1;
+
+    document.getElementById('addPitch').addEventListener('click', () => {
+        const rows = document.querySelectorAll('.pitch-type-row');
+        if (rows.length >= 8) {
+            const btn = document.getElementById('addPitch');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-slash-circle"></i> Maximum 8 pitches reached';
+            return;
+        }
+        const container = document.getElementById('pitchTypes');
+        const div = document.createElement('div');
+        div.classList.add('pitch-section', 'pitch-type-row');
+
+        const locInputs = zoneLocations.map((loc, j) => `
+            <input type="hidden" name="pitcher[pitchTypes][${pitchCount}][locations][${j}][name]" value="${loc.name}">
+            <input type="hidden" name="pitcher[pitchTypes][${pitchCount}][locations][${j}][type]" value="${loc.type}">
+            <input type="hidden" id="enabled-${pitchCount}-${j}"
+                name="pitcher[pitchTypes][${pitchCount}][locations][${j}][enabled]" value="true">
+        `).join('');
+
+        div.innerHTML = `
+            <div class="pitch-section-header">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <select class="form-select pitch-preset" style="max-width:200px;">${PRESETS_HTML}</select>
+                    <input type="text" class="form-control pitch-name fw-bold"
+                        name="pitcher[pitchTypes][${pitchCount}][name]"
+                        placeholder="Pitch name" style="max-width:160px;">
+                    <input type="text" class="form-control pitch-abbr"
+                        name="pitcher[pitchTypes][${pitchCount}][abbreviation]"
+                        placeholder="Abbr." style="max-width:80px;">
+                </div>
+                <button type="button" class="btn btn-outline-danger btn-sm remove-pitch">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+            <div class="visual-view">
+                <div class="zone-container">
+                    <div class="zone-grid-wrapper" id="wrapper-${pitchCount}">
+                        <div class="pitchers-view-label">Pitcher's View</div>
+                        <div class="zone-grid" id="grid-${pitchCount}"></div>
+                    </div>
+                </div>
+            </div>
+            ${locInputs}`;
+
+        container.appendChild(div);
+        const syntheticPitch = { locations: zoneLocations.map(loc => ({ ...loc, enabled: true })) };
+        pitchData.push(syntheticPitch);
+        buildGrid(pitchCount);
+        pitchCount++;
+    });
+
+    document.getElementById('pitchTypes').addEventListener('click', (e) => {
+        if (e.target.closest('.remove-pitch')) {
+            const row = e.target.closest('.pitch-type-row');
+            const allRows = [...document.querySelectorAll('.pitch-type-row')];
+            const idx = allRows.indexOf(row);
+            if (idx >= 0) pitchData.splice(idx, 1);
+            row.remove();
+            const rows = document.querySelectorAll('.pitch-type-row');
+            if (rows.length < 8) {
+                const btn = document.getElementById('addPitch');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-plus-circle"></i> Add Another Pitch';
+            }
+        }
+    });
+</script>

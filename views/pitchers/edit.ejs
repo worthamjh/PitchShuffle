@@ -365,6 +365,7 @@
     </div>
 
     <script type="application/json" id="pitchDataJson"><%- JSON.stringify(pitcher.pitchTypes || []) %></script>
+    <script type="application/json" id="zoneDataJson"><%- JSON.stringify(pitcher.zone ? pitcher.zone.availableLocations : []) %></script>
     <script>
         const throws = '<%= pitcher.throws %>';
         const isRHP = throws === 'R';
@@ -438,6 +439,7 @@
         };
 
         const pitchData = JSON.parse(document.getElementById('pitchDataJson').textContent);
+        const zoneLocations = JSON.parse(document.getElementById('zoneDataJson').textContent);
 
         function getBoxClass(loc) {
             if (!loc.enabled) return 'disabled';
@@ -716,7 +718,7 @@
         });
 
         // ── Preset dropdown ───────────────────────────────────────
-        const PRESETS_HTML = `<%= team.sport === 'softball'
+        const PRESETS_HTML = `<%- team.sport === 'softball'
             ? '<option value="">-- Select a pitch --</option><option value="Fastball|FB">Fastball (FB)</option><option value="Riseball|RB">Riseball (RB)</option><option value="Dropball|DB">Dropball (DB)</option><option value="Curveball|CB">Curveball (CB)</option><option value="Changeup|CH">Changeup (CH)</option><option value="Screwball|SCR">Screwball (SCR)</option><option value="Drop Curve|DC">Drop Curve (DC)</option><option value="Offspeed|OS">Offspeed (OS)</option><option value="custom|">Custom</option>'
             : '<option value="">-- Select a pitch --</option><option value="Fastball|FB">Fastball (FB)</option><option value="Two-Seam Fastball|2FB">Two-Seam Fastball (2FB)</option><option value="Cutter|CUT">Cutter (CUT)</option><option value="Sinker|SIN">Sinker (SIN)</option><option value="Curveball|CB">Curveball (CB)</option><option value="Slider|SL">Slider (SL)</option><option value="Sweeper|SWP">Sweeper (SWP)</option><option value="Slurve|SLV">Slurve (SLV)</option><option value="Changeup|CH">Changeup (CH)</option><option value="Splitter|SPL">Splitter (SPL)</option><option value="Screwball|SCR">Screwball (SCR)</option><option value="Knuckleball|KN">Knuckleball (KN)</option><option value="custom|">Custom</option>'
         %>`;
@@ -744,48 +746,82 @@
             if (e.target.classList.contains('pitch-preset')) applyPreset(e.target);
         });
 
-        // ── Add / remove pitch type rows ──────────────────────────
-        let pitchCount = <%= pitcher.pitchTypes.length %>;
-        document.getElementById('addPitch').addEventListener('click', () => {
-            const rows = document.querySelectorAll('.pitch-type-row');
-            if (rows.length >= 8) {
-                const btn = document.getElementById('addPitch');
-                btn.disabled = true;
-                btn.innerHTML = '<i class="bi bi-slash-circle"></i> Maximum 8 pitches reached';
-                return;
-            }
-            const container = document.getElementById('pitchTypes');
-            const div = document.createElement('div');
-            div.classList.add('pitch-section', 'pitch-type-row');
-            div.innerHTML = `
-                <div class="pitch-section-header">
-                    <div class="d-flex align-items-center gap-2 flex-wrap">
-                        <select class="form-select pitch-preset" style="max-width:200px;">${PRESETS_HTML}</select>
-                        <input type="text" class="form-control pitch-name fw-bold"
-                            name="pitcher[pitchTypes][${pitchCount}][name]"
-                            placeholder="Pitch name" style="max-width:160px;">
-                        <input type="text" class="form-control pitch-abbr"
-                            name="pitcher[pitchTypes][${pitchCount}][abbreviation]"
-                            placeholder="Abbr." style="max-width:80px;">
-                    </div>
-                    <button type="button" class="btn btn-outline-danger btn-sm remove-pitch">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </div>
-                <p class="text-muted small">Save pitcher first to configure locations for new pitch types.</p>`;
-            container.appendChild(div);
-            pitchCount++;
-        });
+// ── Add / remove pitch type rows ──────────────────────────────
+let pitchCount = <%= pitcher.pitchTypes.length %>;
 
-        document.getElementById('pitchTypes').addEventListener('click', (e) => {
-            if (e.target.closest('.remove-pitch')) {
-                e.target.closest('.pitch-type-row').remove();
-                const rows = document.querySelectorAll('.pitch-type-row');
-                if (rows.length < 8) {
-                    const btn = document.getElementById('addPitch');
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="bi bi-plus-circle"></i> Add Another Pitch';
-                }
-            }
-        });
+document.getElementById('addPitch').addEventListener('click', () => {
+    const rows = document.querySelectorAll('.pitch-type-row');
+    if (rows.length >= 8) {
+        const btn = document.getElementById('addPitch');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bi bi-slash-circle"></i> Maximum 8 pitches reached';
+        return;
+    }
+
+    const container = document.getElementById('pitchTypes');
+    const div = document.createElement('div');
+    div.classList.add('pitch-section', 'pitch-type-row');
+
+    // Build location hidden inputs + enabled inputs for the new pitch
+    const locInputs = zoneLocations.map((loc, j) => `
+        <input type="hidden" name="pitcher[pitchTypes][${pitchCount}][locations][${j}][name]" value="${loc.name}">
+        <input type="hidden" name="pitcher[pitchTypes][${pitchCount}][locations][${j}][type]" value="${loc.type}">
+        <input type="hidden" id="enabled-${pitchCount}-${j}"
+            name="pitcher[pitchTypes][${pitchCount}][locations][${j}][enabled]" value="true">
+    `).join('');
+
+    div.innerHTML = `
+        <div class="pitch-section-header">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <select class="form-select pitch-preset" style="max-width:200px;">${PRESETS_HTML}</select>
+                <input type="text" class="form-control pitch-name fw-bold"
+                    name="pitcher[pitchTypes][${pitchCount}][name]"
+                    placeholder="Pitch name" style="max-width:160px;">
+                <input type="text" class="form-control pitch-abbr"
+                    name="pitcher[pitchTypes][${pitchCount}][abbreviation]"
+                    placeholder="Abbr." style="max-width:80px;">
+            </div>
+            <button type="button" class="btn btn-outline-danger btn-sm remove-pitch">
+                <i class="bi bi-trash"></i>
+            </button>
+        </div>
+        <div class="visual-view">
+            <div class="zone-container">
+                <div class="zone-grid-wrapper" id="wrapper-${pitchCount}">
+                    <div class="pitchers-view-label">Pitcher's View</div>
+                    <div class="zone-grid" id="grid-${pitchCount}"></div>
+                </div>
+            </div>
+        </div>
+        ${locInputs}`;
+
+    container.appendChild(div);
+
+    // Build a synthetic pitch object and render the grid immediately
+    const syntheticPitch = {
+        locations: zoneLocations.map(loc => ({ ...loc, enabled: true }))
+    };
+    pitchData.push(syntheticPitch);
+    buildGrid(pitchCount);
+
+    pitchCount++;
+});
+
+document.getElementById('pitchTypes').addEventListener('click', (e) => {
+    if (e.target.closest('.remove-pitch')) {
+        const row = e.target.closest('.pitch-type-row');
+        // Find the index of this row among all pitch-type-rows
+        const allRows = [...document.querySelectorAll('.pitch-type-row')];
+        const idx = allRows.indexOf(row);
+        if (idx >= 0) pitchData.splice(idx, 1);
+        row.remove();
+        const rows = document.querySelectorAll('.pitch-type-row');
+        if (rows.length < 8) {
+            const btn = document.getElementById('addPitch');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-plus-circle"></i> Add Another Pitch';
+        }
+    }
+});
+
     </script>

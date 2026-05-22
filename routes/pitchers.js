@@ -70,6 +70,7 @@ router.post('/', isLoggedIn, isOwner, async (req, res, next) => {
             return res.redirect(`/teams/${req.params.teamId}/pitchers/new`);
         }
         const pitcher = new Pitcher({ ...req.body.pitcher });
+        pitcher.pitchTypes = (pitcher.pitchTypes || []).filter(pt => pt.name && pt.name.trim());
         for (let pitchType of pitcher.pitchTypes) {
             pitchType.locations = zone.availableLocations.map(loc => ({
                 name:    loc.name,
@@ -138,6 +139,21 @@ router.put('/:pitcherId', isLoggedIn, isOwner, isPitcherInTeam, async (req, res,
         pitcher.throws     = req.body.pitcher.throws;
         pitcher.zone       = newZoneId;
         pitcher.pitchTypes = pitchTypes;
+
+        // Populate locations for any pitch types that have none
+        const currentZone = await StrikeZone.findById(newZoneId || pitcher.zone);
+        if (currentZone) {
+            for (let pitchType of pitcher.pitchTypes) {
+                if (!pitchType.locations || pitchType.locations.length === 0) {
+                    pitchType.locations = currentZone.availableLocations.map(loc => ({
+                        name:    loc.name,
+                        type:    loc.type,
+                        enabled: true
+                    }));
+                }
+            }
+        }
+
         if (zoneChanged && newZoneId) {
             const newZone = await StrikeZone.findById(newZoneId);
             if (newZone) {

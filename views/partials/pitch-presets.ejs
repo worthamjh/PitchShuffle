@@ -35,7 +35,7 @@ const _presets = _isSoftball ? _softballPresets : _baseballPresets;
 const _knownNames = _presets.map(p => p.value.split('|')[0]);
 const _presetVal  = typeof currentName !== 'undefined' && _knownNames.includes(currentName)
     ? currentName
-    : 'custom';
+    : '';
 %>
 <option value="">-- Select a pitch --</option>
 <% for (let _p of _presets) { %>
