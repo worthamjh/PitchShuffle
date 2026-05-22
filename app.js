@@ -20,7 +20,7 @@ const profileRoutes      = require('./routes/profile');
 const subscriptionRoutes = require('./routes/subscription');
 const webhookRoutes      = require('./routes/webhook');
 
-mongoose.connect('mongodb://localhost:27017/pitchShuffle');
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/pitchShuffle');
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error:'));
 db.once('open', () => { console.log('Database connected'); });
