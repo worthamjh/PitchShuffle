@@ -20,7 +20,7 @@ const profileRoutes      = require('./routes/profile');
 const subscriptionRoutes = require('./routes/subscription');
 const webhookRoutes      = require('./routes/webhook');
 
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/pitchShuffle');
+mongoose.connect(process.env.MONGODB_URI);
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error:'));
 db.once('open', () => { console.log('Database connected'); });
@@ -78,4 +78,5 @@ app.use((err, req, res, next) => {
     res.status(statusCode).render('error', { statusCode, message });
 });
 
-app.listen(3000, () => { console.log('App is listening on port 3000'); });
+const port = process.env.PORT || 3000;
+app.listen(port, () => { console.log(`App is listening on port ${port}`); });
