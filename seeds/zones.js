@@ -79,7 +79,8 @@ const zones = [
     },
 ];
 
-mongoose.connect('mongodb://localhost:27017/pitchShuffle')
+require('dotenv').config();
+mongoose.connect(process.env.MONGODB_URI)
     .then(async () => {
         console.log('Database connected');
         await StrikeZone.deleteMany({});
