@@ -97,7 +97,6 @@
         }
 
         .zone-container  { display: flex; justify-content: center; padding: 1rem 0; }
-        .pitch-section   { border: 1px solid #dee2e6; border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; background: #fff; }
         .pitch-section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
 
         /* Zone card button — matches the label style used in new.ejs */
@@ -123,6 +122,31 @@
             border: 2px solid var(--ps-navy) !important;
             box-shadow: 0 0 0 3px rgba(26,46,74,0.15);
             background: #eef2f7;
+        }
+        /* Replace the hardcoded white */
+        .pitch-section { 
+            border: 1px solid #dee2e6; 
+            border-radius: 12px; 
+            padding: 1.25rem; 
+            margin-bottom: 1.5rem; 
+            background: var(--ps-card-bg, #fff); 
+        }
+
+        /* Fix disabled in dark mode */
+        [data-theme="dark"] .loc-box.disabled { 
+            background: #2a3f5a; 
+            border-color: #3a5070; 
+            color: #5a7a9a; 
+        }
+
+        [data-theme="dark"] .chase-overlay.disabled { 
+            background: #2a3f5a; 
+            border-color: #3a5070; 
+            color: #5a7a9a; 
+        }
+
+        [data-theme="dark"] .pitch-section {
+            border-color: #2a3f5a;
         }
     </style>
 
