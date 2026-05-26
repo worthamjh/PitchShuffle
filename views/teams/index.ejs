@@ -79,6 +79,9 @@
                     <div class="team-info">
                         <div class="team-name"><%= team.name %></div>
                         <div class="team-meta">
+                            <%= team.sport === 'softball' ? '🥎' : '⚾' %>
+                            <%= team.sport === 'softball' ? 'Softball' : 'Baseball' %>
+                            &middot;
                             <i class="bi bi-person-fill"></i>
                             <%= team.pitchers.length %> pitcher<%= team.pitchers.length !== 1 ? 's' : '' %>
                         </div>
