@@ -138,7 +138,7 @@ router.put('/:pitcherId', isLoggedIn, isOwner, isPitcherInTeam, async (req, res,
         pitcher.number     = req.body.pitcher.number;
         pitcher.throws     = req.body.pitcher.throws;
         pitcher.zone       = newZoneId;
-        pitcher.pitchTypes = pitchTypes;
+        pitcher.pitchTypes = pitchTypes.filter(pt => pt.name && pt.name.trim());
 
         // Populate locations for any pitch types that have none
         const currentZone = await StrikeZone.findById(newZoneId || pitcher.zone);
