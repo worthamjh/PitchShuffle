@@ -112,6 +112,37 @@
         [data-theme="dark"] .pitch-section {
             border-color: #2a3f5a;
         }
+        [data-theme="dark"] .loc-box.strike {
+            background: var(--strike-bg);
+            border-color: var(--strike-border);
+            color: var(--strike-text);
+            filter: brightness(0.6) saturate(0.9);
+        }
+        [data-theme="dark"] .loc-box.strike:hover {
+            filter: brightness(0.8) saturate(1);
+        }
+        [data-theme="dark"] .loc-box.chase {
+            background: var(--chase-bg);
+            border-color: var(--chase-border);
+            color: var(--chase-text);
+            filter: brightness(0.6) saturate(0.9);
+        }
+        [data-theme="dark"] .loc-box.chase:hover {
+            filter: brightness(0.8) saturate(1);
+        }
+        [data-theme="dark"] .chase-overlay {
+            background: var(--chase-bg);
+            border-color: var(--chase-border);
+            color: var(--chase-text);
+            filter: brightness(0.6) saturate(0.9);
+        }
+        [data-theme="dark"] .chase-overlay:hover {
+            filter: brightness(0.8) saturate(1);
+        }
+        [data-theme="dark"] .loc-box.disabled,
+        [data-theme="dark"] .chase-overlay.disabled {
+            filter: none;
+        }
     </style>
 
     <!-- Terminology mismatch banner -->

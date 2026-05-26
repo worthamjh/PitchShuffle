@@ -986,25 +986,22 @@ main {
 
 /* ── Loc boxes (game zone) ─────────────────────────────────── */
 [data-theme="dark"] .loc-box.strike {
-    background: color-mix(in srgb, var(--strike-bg) 25%, #1a2535);
-    border-color: color-mix(in srgb, var(--strike-border) 50%, #2a3f5a);
-    color: var(--ps-text);
+    background: var(--strike-bg);
+    border-color: var(--strike-border);
+    color: var(--strike-text);
+    filter: brightness(0.55) saturate(0.85);
 }
 [data-theme="dark"] .loc-box.chase {
-    background: color-mix(in srgb, var(--chase-bg) 20%, #1a2535);
-    border-color: color-mix(in srgb, var(--chase-border) 50%, #2a3f5a);
-    color: var(--ps-text);
+    background: var(--chase-bg);
+    border-color: var(--chase-border);
+    color: var(--chase-text);
+    filter: brightness(0.55) saturate(0.85);
 }
 [data-theme="dark"] .chase-overlay {
-    background: color-mix(in srgb, var(--chase-bg) 20%, #1a2535);
-    border-color: color-mix(in srgb, var(--chase-border) 50%, #2a3f5a);
-    color: var(--ps-text);
-}
-[data-theme="dark"] .strike-zone-outline {
-    border-color: var(--ps-navy-muted);
-}
-[data-theme="dark"] .pitchers-view-label {
-    color: var(--ps-muted);
+    background: var(--chase-bg);
+    border-color: var(--chase-border);
+    color: var(--chase-text);
+    filter: brightness(0.55) saturate(0.85);
 }
 
 /* ── Call bar (already dark navy — just ensure text is right) ── */
