@@ -612,14 +612,7 @@ console.log('zoneLocations:', JSON.stringify(zoneLocations)); // ← add this
             window.speechSynthesis.speak(utter);
         }
 
-        if (window.speechSynthesis.getVoices().length) {
-            applyVoiceAndSpeak();
-        } else {
-            window.speechSynthesis.onvoiceschanged = () => {
-                window.speechSynthesis.onvoiceschanged = null;
-                applyVoiceAndSpeak();
-            };
-        }
+        applyVoiceAndSpeak();
     }
 
     // ── Init ─────────────────────────────────────────────────

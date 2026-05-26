@@ -677,15 +677,7 @@ function speak(pitchName, locName) {
         window.speechSynthesis.speak(utter);
     }
 
-    // Voices may not be loaded yet on first call
-    if (window.speechSynthesis.getVoices().length) {
-        applyVoiceAndSpeak();
-    } else {
-        window.speechSynthesis.onvoiceschanged = () => {
-            window.speechSynthesis.onvoiceschanged = null;
-            applyVoiceAndSpeak();
-        };
-    }
+    applyVoiceAndSpeak();
 }
 
 

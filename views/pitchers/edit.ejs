@@ -847,5 +847,33 @@ document.getElementById('pitchTypes').addEventListener('click', (e) => {
         }
     }
 });
+// ── Zone card click — POST to change-zone ─────────────────────
+document.querySelectorAll('.zone-image-card-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const zoneId = btn.dataset.zoneId;
+        const url    = btn.dataset.zoneUrl;
+        const form   = document.createElement('form');
+        form.method  = 'POST';
+        form.action  = url;
+        const input  = document.createElement('input');
+        input.type   = 'hidden';
+        input.name   = 'zoneId';
+        input.value  = zoneId;
+        form.appendChild(input);
+        document.body.appendChild(form);
+        form.submit();
+    });
+});
 
+// ── Revert zone button ────────────────────────────────────────
+const revertBtn = document.getElementById('revertZoneBtn');
+if (revertBtn) {
+    revertBtn.addEventListener('click', () => {
+        const form  = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/teams/<%= team._id %>/pitchers/<%= pitcher._id %>/revert-zone`;
+        document.body.appendChild(form);
+        form.submit();
+    });
+}
     </script>
