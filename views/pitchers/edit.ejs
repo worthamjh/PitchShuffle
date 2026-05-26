@@ -96,7 +96,7 @@
             margin-bottom: 4px;
         }
 
-        .zone-container  { display: flex; justify-content: center; padding: 1rem 0; }
+        .zone-container  { display: flex; justify-content: center; padding: 1rem 0; overflow: hidden; }
         .pitch-section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
 
         /* Zone card button — matches the label style used in new.ejs */
@@ -645,7 +645,12 @@
             const layout  = getZoneLayouts(pitch.locations);
             const maxRow  = Math.max(...Object.values(layout).map(p => (p.row || 1) + (p.rowSpan || 1) - 1));
             const maxCol  = Math.max(...Object.values(layout).map(p => (p.col || 1) + (p.colSpan || 1) - 1));
-            const boxSize = window.innerWidth >= 992 ? 108 : window.innerWidth >= 576 ? 88 : 70;
+            // Fit the grid to the card's actual available width, not the screen width.
+            // Card has ~1rem padding each side (32px total), wrapper is centered.
+            const cardBody   = grid.closest('.card-body') || grid.closest('.card') || document.body;
+            const available  = cardBody.clientWidth - 32; // subtract card padding
+            const maxBoxSize = window.innerWidth >= 992 ? 108 : window.innerWidth >= 576 ? 88 : 70;
+            const boxSize    = Math.min(maxBoxSize, Math.floor(available / maxCol));
 
             grid.style.gridTemplateRows    = `repeat(${maxRow}, ${boxSize}px)`;
             grid.style.gridTemplateColumns = `repeat(${maxCol}, ${boxSize}px)`;
