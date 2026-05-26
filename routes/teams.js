@@ -1,8 +1,8 @@
 const express = require('express');
 const router  = express.Router();
 const Team    = require('../models/team');
+const { upload, uploadToCloudinary, deleteFromCloudinary } = require('../upload');
 const { isLoggedIn, isOwner }         = require('../middleware');
-const { upload, uploadToCloudinary }  = require('../upload');
 
 const HEX_RE = /^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/;
 const sanitizeColor = (val, fallback) => HEX_RE.test(val) ? val : fallback;
@@ -115,6 +115,19 @@ router.put('/:id', isLoggedIn, isOwner, upload.single('logo'), async (req, res, 
 // Delete team
 router.delete('/:id', isLoggedIn, isOwner, async (req, res, next) => {
     try {
+        const team = await Team.findById(req.params.id).populate('pitchers');
+        if (!team) return res.redirect('/teams');
+
+        // Delete all pitcher photos from Cloudinary
+        for (const pitcher of team.pitchers) {
+            if (pitcher.photo) await deleteFromCloudinary(pitcher.photo);
+        }
+        // Delete pitcher documents
+        await Pitcher.deleteMany({ _id: { $in: team.pitchers.map(p => p._id) } });
+
+        // Delete team logo from Cloudinary
+        if (team.logo) await deleteFromCloudinary(team.logo);
+
         await Team.findByIdAndDelete(req.params.id);
         req.flash('success', 'Team deleted.');
         res.redirect('/teams');

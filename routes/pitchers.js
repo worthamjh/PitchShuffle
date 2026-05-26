@@ -3,6 +3,7 @@ const router = express.Router({ mergeParams: true });
 const Pitcher = require('../models/pitcher');
 const Team = require('../models/team');
 const StrikeZone = require('../models/strikeZone');
+const { upload, uploadToCloudinary, deleteFromCloudinary } = require('../upload');
 const { isLoggedIn, isOwner, isPitcherInTeam } = require('../middleware');
 
 const MAX_PITCH_TYPES = 8;
@@ -232,6 +233,8 @@ router.post('/:pitcherId/revert-zone', isLoggedIn, isOwner, isPitcherInTeam, asy
 router.delete('/:pitcherId', isLoggedIn, isOwner, isPitcherInTeam, async (req, res, next) => {
     try {
         const { teamId, pitcherId } = req.params;
+        const pitcher = await Pitcher.findById(pitcherId);
+        if (pitcher?.photo) await deleteFromCloudinary(pitcher.photo);
         await Team.findByIdAndUpdate(teamId, { $pull: { pitchers: pitcherId } });
         await Pitcher.findByIdAndDelete(pitcherId);
         req.flash('success', 'Pitcher removed.');
