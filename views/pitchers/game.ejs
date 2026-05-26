@@ -115,20 +115,21 @@
     }
     .call-bar .call-label { color: var(--ps-navy-muted); font-size: 0.7rem; font-weight: 400; text-transform: uppercase; letter-spacing: 0.5px; }
     .call-bar .call-text  { font-size: 0.95rem; font-weight: 700; line-height: 1.2; }
-    .call-bar .call-info  { flex: 1; min-width: 0; }
+    .call-bar .call-info  { flex: 0 0 auto; min-width: 0; }
     .btn-call {
-        flex-shrink: 0;
+        flex: 1;
         background: #fff;
         color: var(--ps-navy);
         border: 2px solid #fff;
         border-radius: var(--btn-radius);
-        font-size: 0.85rem;
+        font-size: 1rem;
         font-weight: 700;
-        padding: 0.6rem 1.25rem 0.85rem;
+        padding: 1.5rem 1.5rem;
         cursor: pointer;
         transition: background 0.15s, color 0.15s;
         user-select: none;
         white-space: nowrap;
+        align-self: stretch;
     }
     .btn-call:hover { background: var(--ps-navy-muted); color: #fff; }
     .btn-call.disabled-btn { opacity: 0.45; pointer-events: none; }
