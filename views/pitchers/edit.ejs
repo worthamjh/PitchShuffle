@@ -179,6 +179,12 @@
             background: #1a2535;
             border-color: #2a3f5a;
             color: var(--ps-text);
+        }.pitch-type-row {
+            margin-left: -1rem;
+            margin-right: -1rem;
+            border-radius: 0;
+            border-left: none;
+            border-right: none;
         }
     </style>
 
@@ -214,7 +220,7 @@
     </div>
 
     <div class="card">
-        <div class="card-body">
+        <div class="card-body px-3 pt-3">
             <form action="/teams/<%= team._id %>/pitchers/<%= pitcher._id %>?_method=PUT" method="POST" id="pitcherForm">
 
                 <!-- Basic Info -->
@@ -675,6 +681,47 @@
         pitchData.forEach((pitch, i) => buildGrid(i));
         window.addEventListener('resize', () => pitchData.forEach((pitch, i) => buildGrid(i)));
 
+        // ── Re-index rows after a pitch is removed ────────────────
+        function reindexRows() {
+            document.querySelectorAll('.pitch-type-row').forEach((row, newIdx) => {
+                const grid    = row.querySelector('.zone-grid');
+                const wrapper = row.querySelector('.zone-grid-wrapper');
+                if (!grid) return;
+
+                const oldIdx = parseInt(grid.id.replace('grid-', ''));
+                if (oldIdx === newIdx) return;
+
+                grid.id    = `grid-${newIdx}`;
+                wrapper.id = `wrapper-${newIdx}`;
+
+                grid.querySelectorAll('.loc-box').forEach(c => { c.dataset.pitch = newIdx; });
+                wrapper.querySelectorAll('.chase-overlay').forEach(el => { el.dataset.pitchIndex = newIdx; });
+
+                const re = new RegExp(`\\[pitchTypes\\]\\[${oldIdx}\\]`, 'g');
+                row.querySelectorAll('[name]').forEach(el => {
+                    el.name = el.name.replace(re, `[pitchTypes][${newIdx}]`);
+                });
+
+                row.querySelectorAll('input[id^="enabled-"]').forEach(inp => {
+                    const locIdx = inp.id.split('-')[2];
+                    inp.id = `enabled-${newIdx}-${locIdx}`;
+                });
+
+                row.querySelectorAll('.list-checkbox').forEach(cb => {
+                    const locIdx     = cb.dataset.loc;
+                    cb.id            = `list-loc-${newIdx}-${locIdx}`;
+                    cb.dataset.pitch = newIdx;
+                });
+                row.querySelectorAll('label[for^="list-loc-"]').forEach(lbl => {
+                    const locIdx = lbl.htmlFor.split('-')[3];
+                    lbl.htmlFor  = `list-loc-${newIdx}-${locIdx}`;
+                });
+
+                drawOutline(newIdx);
+                drawOverlays(newIdx, pitchData[newIdx]);
+            });
+        }
+
         // ── View toggle ───────────────────────────────────────────
         document.getElementById('visualMode').addEventListener('change', () => {
             document.querySelectorAll('.visual-view').forEach(el => el.style.display = 'block');
@@ -825,6 +872,18 @@ document.getElementById('addPitch').addEventListener('click', () => {
             name="pitcher[pitchTypes][${pitchCount}][locations][${j}][enabled]" value="true">
     `).join('');
 
+    const listChecks = zoneLocations.map((loc, j) => {
+        const badgeClass = loc.type === 'chase' ? 'bg-warning text-dark' : 'bg-success';
+        return `
+            <div class="form-check form-check-inline">
+                <input class="form-check-input list-checkbox" type="checkbox"
+                    id="list-loc-${pitchCount}-${j}" data-pitch="${pitchCount}"
+                    data-loc="${j}" checked>
+                <label class="form-check-label badge p-2 ${badgeClass}"
+                    for="list-loc-${pitchCount}-${j}">${loc.name}</label>
+            </div>`;
+    }).join('');
+
     div.innerHTML = `
         <div class="pitch-section-header">
             <div class="d-flex align-items-center gap-2 flex-wrap">
@@ -848,9 +907,19 @@ document.getElementById('addPitch').addEventListener('click', () => {
                 </div>
             </div>
         </div>
+        <div class="list-view" style="display:none;">
+            <div class="d-flex flex-wrap gap-2 mt-2">
+                ${listChecks}
+            </div>
+        </div>
         ${locInputs}`;
 
     container.appendChild(div);
+
+    // Respect current view mode
+    const isListMode = document.getElementById('listMode').checked;
+    div.querySelector('.visual-view').style.display = isListMode ? 'none' : 'block';
+    div.querySelector('.list-view').style.display   = isListMode ? 'block' : 'none';
 
     // Build a synthetic pitch object and render the grid immediately
     const syntheticPitch = {
@@ -870,6 +939,7 @@ document.getElementById('pitchTypes').addEventListener('click', (e) => {
         const idx = allRows.indexOf(row);
         if (idx >= 0) pitchData.splice(idx, 1);
         row.remove();
+        reindexRows();
         const rows = document.querySelectorAll('.pitch-type-row');
         if (rows.length < 8) {
             const btn = document.getElementById('addPitch');
