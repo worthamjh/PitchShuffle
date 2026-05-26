@@ -149,7 +149,70 @@
     [data-theme='dark'] .action-row { background: #1a2535; border-color: #2a3f5a; }
     [data-theme='dark'] .pitch-btn  { background: #243350; border-color: #2a3f5a; color: var(--ps-navy-muted); }
     [data-theme='dark'] .pitch-btn.active { background: var(--ps-navy); color: var(--accent-text, #fff); }
+    /* ── Pickoff / Pitchout row ──────────────────────────────── */
+    .special-row {
+        display: flex;
+        gap: 0.4rem;
+        padding: 0.3rem 0.75rem;
+        background: var(--ps-card-bg);
+        border-top: 1px solid #dee2e6;
+        flex-shrink: 0;
+    }
+    .btn-pickoff  { background: #e8f4fd; border: 2px solid #4a9edd; color: #1a5f8a; flex: 1; border-radius: var(--btn-radius); padding: 0.35rem 0.5rem; font-size: 0.95rem; font-weight: 700; cursor: pointer; }
+    .btn-pitchout { background: #fff3e0; border: 2px solid #e67e22; color: #7d4000; flex: 1; border-radius: var(--btn-radius); padding: 0.35rem 0.5rem; font-size: 0.95rem; font-weight: 700; cursor: pointer; }
+    .btn-pickoff:hover  { background: #4a9edd; color: #fff; }
+    .btn-pitchout:hover { background: #e67e22; color: #fff; }
 
+    /* ── Pickoff base selector overlay ──────────────────────── */
+    .pickoff-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.55);
+        z-index: 200;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .pickoff-diamond {
+        background: var(--ps-card-bg);
+        border-radius: 16px;
+        padding: 2rem 1.5rem 1.5rem;
+        width: 280px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto auto auto;
+        gap: 0.75rem;
+        text-align: center;
+    }
+    .pickoff-diamond .base-2nd {
+        grid-column: 1 / span 2;
+        justify-self: center;
+        width: 50%;
+    }
+    .pickoff-diamond .base-btn {
+        padding: 0.75rem 0.5rem;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        border: 2px solid #4a9edd;
+        background: #e8f4fd;
+        color: #1a5f8a;
+    }
+    .pickoff-diamond .base-btn:hover { background: #4a9edd; color: #fff; }
+    .pickoff-diamond .btn-cancel-pickoff {
+        padding: 0.75rem 0.5rem;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        border: 2px solid #adb5bd;
+        background: #f8f9fa;
+        color: #495057;
+    }
+    .pickoff-diamond .btn-cancel-pickoff:hover { background: #dee2e6; }
+    [data-theme="dark"] .pickoff-diamond { background: #1a2535; }
+    [data-theme="dark"] .special-row { background: #1a2535; border-color: #2a3f5a; }
     /* ── Tour ── */
     .ps-tour-overlay {
         position: fixed; inset: 0; z-index: 3000;
@@ -270,6 +333,28 @@
             <div class="zone-grid" id="zoneGrid"></div>
         </div>
     </div>
+</div>
+
+<!-- Action buttons row -->
+ <!-- Pickoff overlay -->
+<div class="pickoff-overlay" id="pickoffOverlay" style="display:none;">
+    <div class="pickoff-diamond">
+        <div class="base-2nd">
+            <button class="base-btn" data-base="2nd">2nd Base</button>
+        </div>
+        <button class="base-btn" data-base="3rd">3rd Base</button>
+        <button class="base-btn" data-base="1st">1st Base</button>
+        <button class="btn-cancel-pickoff" id="btnCancelPickoff"><i class="bi bi-x-circle"></i> Cancel</button>
+        <button class="base-btn" id="btnConfirmPickoff" style="display:none;" data-base="">
+            <i class="bi bi-megaphone"></i> Pickoff
+        </button>
+    </div>
+</div>
+
+<!-- Pickoff / Pitchout row -->
+<div class="special-row">
+    <button class="btn-pickoff" id="btnPickoff"><i class="bi bi-person-fill-slash"></i> Pickoff</button>
+    <button class="btn-pitchout" id="btnPitchout"><i class="bi bi-slash-circle"></i> Pitchout</button>
 </div>
 
 <!-- Action buttons row -->
@@ -678,18 +763,11 @@
         if (lastCall) speak(lastCall.pitchName, lastCall.locName);
     });
 
-    document.getElementById('btnCall').addEventListener('click', () => {
-        if (selectedPitchIndex === null || !selectedLocation) return;
-        const pitchName = pitchTypes[selectedPitchIndex].name;
-        lastCall = { pitchName, locName: selectedLocation };
-        speak(pitchName, selectedLocation);
-        updateButtons();
-    });
 
 function speak(pitchName, locName) {
     if (!('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
-    const utter = new SpeechSynthesisUtterance(`${pitchName}, ${locLabel(locName)}`);
+    const utter = new SpeechSynthesisUtterance(locName ? `${pitchName}, ${locLabel(locName)}` : pitchName);
     utter.rate  = 0.95;
 
     // Apply saved voice — fetch voices fresh each time as they may not
@@ -830,4 +908,77 @@ function speak(pitchName, locName) {
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(buildGrid, 100);
     });
+    // ── Pickoff / Pitchout ────────────────────────────────────
+    const pickoffOverlay = document.getElementById('pickoffOverlay');
+
+    document.getElementById('btnPickoff').addEventListener('click', () => {
+        pickoffOverlay.style.display = 'flex';
+    });
+
+    document.getElementById('btnCancelPickoff').addEventListener('click', () => {
+        pickoffOverlay.style.display = 'none';
+    });
+
+    pickoffOverlay.querySelectorAll('.base-btn[data-base]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const base = btn.dataset.base;
+            if (!base) return;
+            pickoffOverlay.style.display = 'none';
+
+            // Populate call bar
+            const label = document.querySelector('#callBar .call-label');
+            const text  = document.getElementById('callText');
+            label.textContent    = 'CALL:';
+            text.textContent     = `Pickoff — ${base} Base`;
+            text.style.display   = '';
+
+            // Enable Call Pitch
+            const btnCall = document.getElementById('btnCall');
+            btnCall.classList.remove('disabled-btn');
+
+            // Override btnCall for this pickoff call
+            function handlePickoffCall() {
+                const baseLabel = base === '1st' ? 'first base' : base === '2nd' ? 'second base' : 'third base';
+                speak('Pickoff', baseLabel);
+                btnCall.removeEventListener('click', handlePickoffCall);
+                // Restore normal handler after call
+                btnCall.addEventListener('click', normalCallHandler);
+            }
+            btnCall.removeEventListener('click', normalCallHandler);
+            btnCall.addEventListener('click', handlePickoffCall);
+        });
+    });
+
+    document.getElementById('btnPitchout').addEventListener('click', () => {
+        // Clear any pitch/location selection
+        clearSelection();
+
+        // Populate call bar directly
+        const label = document.querySelector('#callBar .call-label');
+        const text  = document.getElementById('callText');
+        label.textContent  = 'CALL:';
+        text.textContent   = 'Pitchout';
+        text.style.display = '';
+
+        const btnCall = document.getElementById('btnCall');
+        btnCall.classList.remove('disabled-btn');
+
+        function handlePitchoutCall() {
+            speak('Pitchout', '');
+            btnCall.removeEventListener('click', handlePitchoutCall);
+            btnCall.addEventListener('click', normalCallHandler);
+        }
+        btnCall.removeEventListener('click', normalCallHandler);
+        btnCall.addEventListener('click', handlePitchoutCall);
+    });
+
+    // Save reference to the normal call handler so we can restore it
+    function normalCallHandler() {
+        if (selectedPitchIndex === null || !selectedLocation) return;
+        const pitchName = pitchTypes[selectedPitchIndex].name;
+        lastCall = { pitchName, locName: selectedLocation };
+        speak(pitchName, selectedLocation);
+        updateButtons();
+    }
+    document.getElementById('btnCall').addEventListener('click', normalCallHandler);
 </script>
