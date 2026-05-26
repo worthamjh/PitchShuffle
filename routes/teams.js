@@ -1,6 +1,7 @@
 const express = require('express');
 const router  = express.Router();
 const Team    = require('../models/team');
+const Pitcher = require('../models/pitcher');
 const { upload, uploadToCloudinary, deleteFromCloudinary } = require('../upload');
 const { isLoggedIn, isOwner }         = require('../middleware');
 
@@ -129,6 +130,7 @@ router.delete('/:id', isLoggedIn, isOwner, async (req, res, next) => {
         if (team.logo) await deleteFromCloudinary(team.logo);
 
         await Team.findByIdAndDelete(req.params.id);
+        await req.user.updateOne({ $pull: { teams: req.params.id } });
         req.flash('success', 'Team deleted.');
         res.redirect('/teams');
     } catch (e) {

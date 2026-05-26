@@ -67,6 +67,33 @@
         <a href="/teams/<%= team._id %>/pitchers/new" class="btn btn-outline-light">
             <i class="bi bi-plus-circle"></i> Add Pitcher
         </a>
+        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteTeamModal">
+            <i class="bi bi-trash"></i> Delete Team
+        </button>
+    </div>
+</div>
+<div class="modal fade" id="deleteTeamModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:14px;overflow:hidden;">
+            <div class="modal-header" style="background:var(--ps-navy);color:var(--accent-text,#fff);border:none;">
+                <h5 class="modal-title">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Delete Team
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body py-4">
+                <p class="mb-1">Are you sure you want to delete <strong><%= team.name %></strong>?</p>
+                <p class="text-muted small mb-0">This will permanently remove the team and all <%= team.pitchers.length %> pitcher<%= team.pitchers.length !== 1 ? 's' : '' %> on it. This cannot be undone.</p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="/teams/<%= team._id %>?_method=DELETE" method="POST" style="margin:0;">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash"></i> Yes, Delete Team
+                    </button>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 
