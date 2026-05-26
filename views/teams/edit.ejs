@@ -80,5 +80,35 @@
             </div>
 
         </form>
+        <script>
+            const primaryColor   = document.getElementById('primaryColor');
+            const secondaryColor = document.getElementById('secondaryColor');
+            const strikeColor    = document.getElementById('strikeColor');
+            const chaseColor     = document.getElementById('chaseColor');
+
+            // Insert warning elements after each color pair
+            const navWarning = document.createElement('div');
+            navWarning.className = 'alert alert-warning py-2 px-3 mt-2 mb-0 small';
+            navWarning.style.display = 'none';
+            navWarning.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-1"></i> Primary and secondary colors are the same — pitcher badges won\'t be visible.';
+            secondaryColor.closest('.col-sm-6').appendChild(navWarning);
+
+            const zoneWarning = document.createElement('div');
+            zoneWarning.className = 'alert alert-warning py-2 px-3 mt-2 mb-0 small';
+            zoneWarning.style.display = 'none';
+            zoneWarning.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-1"></i> Strike and chase zone colors are the same — they won\'t be distinguishable.';
+            chaseColor.closest('.col-sm-6').appendChild(zoneWarning);
+
+            function checkColors() {
+                navWarning.style.display  = primaryColor.value === secondaryColor.value ? '' : 'none';
+                zoneWarning.style.display = strikeColor.value  === chaseColor.value     ? '' : 'none';
+            }
+
+            [primaryColor, secondaryColor, strikeColor, chaseColor].forEach(el =>
+                el.addEventListener('input', checkColors)
+            );
+
+            checkColors(); // run on load in case colors are already matching
+        </script>
     </div>
 </div>
