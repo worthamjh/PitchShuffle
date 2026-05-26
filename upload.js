@@ -57,4 +57,3 @@ async function deleteFromCloudinary(urlOrPublicId) {
 }
 
 module.exports = { upload, uploadToCloudinary, deleteFromCloudinary };
-module.exports = { upload, uploadToCloudinary };
