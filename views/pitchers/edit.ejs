@@ -213,8 +213,11 @@
     <% } %>
 
     <div class="page-header">
+        <div class="small fw-semibold mb-1 opacity-75">
+            <i class="bi bi-pencil"></i> Edit
+        </div>
         <h1 class="mb-2">
-            <i class="bi bi-pencil"></i> Edit <%= pitcher.name %> #<%= pitcher.number %>
+            <%= pitcher.name %> #<%= pitcher.number %>
         </h1>
         <div class="d-flex gap-2 flex-wrap">
             <a href="/teams/<%= team._id %>" class="btn btn-outline-light">
