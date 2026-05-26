@@ -276,6 +276,10 @@
         [data-theme="dark"] .chase-overlay.disabled {
             filter: none;
         }
+        /* Remove grid border in game view — cells are full width, border causes side artifacts */
+    #zoneGrid {
+        border: none;
+    }
 </style>
 
 
@@ -534,7 +538,7 @@
 
     function drawOutline(layout) {
         const wrapper    = document.getElementById('zoneWrapper');
-        const gridBorder = 2; // .zone-grid has border: 2px — offset overlays into wrapper coords
+        const gridBorder = 0;
         const strikePosArr = Object.values(layout).filter(p => p.strike);
         if (!strikePosArr.length) return;
 
@@ -567,7 +571,7 @@
         wrapper.querySelectorAll('.chase-overlay').forEach(el => el.remove());
 
         // The grid has a 2px border — overlays are relative to wrapper, so offset by that
-        const gridBorder = 2;
+        const gridBorder = 0;
 
         const armOutName   = isRHP ? 'arm-out-mid'   : 'glove-out-mid';
         const gloveOutName = isRHP ? 'glove-out-mid' : 'arm-out-mid';
