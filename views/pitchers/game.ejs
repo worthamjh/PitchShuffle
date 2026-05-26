@@ -494,10 +494,12 @@
             : window.innerHeight - 56 - 44 - 44 - 48;
 
         // Height first — fill the zone, then cap by width
-        _boxSize = Math.floor(_availH / maxRow);
         const _availW = window.innerWidth - 4;
         const _boxW   = Math.floor(_availW / maxCol);
-        _boxSize = Math.min(_boxSize, _boxW);
+        const _boxH   = Math.floor(_availH / maxRow);
+        // For wide zones (5 cols), fill width and let height follow.
+        // For narrow zones (1-2 cols), let height drive instead.
+        _boxSize = maxCol >= 4 ? _boxW : Math.min(_boxW, _boxH);
         _boxSize = Math.max(_boxSize, 44); // minimum touch target
 
         grid.style.gridTemplateRows    = `repeat(${maxRow}, ${_boxSize}px)`;
