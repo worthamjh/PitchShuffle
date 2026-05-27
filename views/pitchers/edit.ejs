@@ -1,5 +1,8 @@
 <%- layout('layouts/boilerplate') %>
-
+<style>
+    .page-content { padding: 0 0.75rem; }
+</style>
+<div class="page-content">
     <style>
         .zone-grid {
             display: grid;
@@ -129,7 +132,7 @@
             border-radius: 12px; 
             padding: 1.25rem; 
             margin-bottom: 1.5rem; 
-            background: var(--ps-card-bg, #fff); 
+            background: var(--ps-card-bg, #fff);
         }
 
         /* Fix disabled in dark mode */
@@ -985,3 +988,4 @@ if (revertBtn) {
     });
 }
     </script>
+</div>
