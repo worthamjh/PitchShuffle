@@ -36,33 +36,24 @@
     .pitch-row {
         display: flex;
         flex-direction: row;
+        flex-wrap: wrap;
         gap: 0.4rem;
         padding: 0.3rem 0.75rem;
-        overflow-x: auto;
         background: #f8f9fa;
         border-bottom: 1px solid #dee2e6;
         flex-shrink: 0;
-        -webkit-overflow-scrolling: touch;
+        max-height: 96px;
+        overflow-y: auto;
         scrollbar-width: none;
     }
     .pitch-row::-webkit-scrollbar { display: none; }
 
     .pitch-btn {
-        flex: 1;
-        min-width: 0;
-        padding: 0.35rem 0.5rem;
-        border-radius: var(--btn-radius);
-        font-size: 0.95rem;
-        font-weight: 700;
-        border: 2px solid #c0cfe0;
-        background: #eef2f7;
-        color: var(--ps-navy);
-        cursor: pointer;
-        transition: background 0.15s, border-color 0.15s, color 0.15s;
-        white-space: nowrap;
-    }
+        flex: 1 1 calc(25% - 0.4rem);
+        min-width: calc(25% - 0.4rem);
     .pitch-btn:hover  { background: #dce6f0; }
     .pitch-btn.active { background: var(--ps-navy); border-color: var(--ps-navy); color: var(--accent-text, #fff); }
+    }
 
     /* Zone area — fills remaining space */
     .zone-area {

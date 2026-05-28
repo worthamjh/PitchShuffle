@@ -136,6 +136,33 @@
         .modal-content { background-color: #1a2535; color: #e8edf2; }
         .modal-footer, .modal-header { border-color: #2a3f5a; }
         <% } %>
+        <%
+            // Detect if team color is red-ish (hue between 340-360 or 0-20)
+            function isRedish(hex) {
+                const h = hex.replace('#', '');
+                const r = parseInt(h.substring(0,2), 16) / 255;
+                const g = parseInt(h.substring(2,4), 16) / 255;
+                const b = parseInt(h.substring(4,6), 16) / 255;
+                const max = Math.max(r,g,b), min = Math.min(r,g,b);
+                if (max === min) return false;
+                let hue;
+                if (max === r) hue = ((g - b) / (max - min)) % 6;
+                else if (max === g) hue = (b - r) / (max - min) + 2;
+                else hue = (r - g) / (max - min) + 4;
+                hue = Math.round(hue * 60);
+                if (hue < 0) hue += 360;
+                return (hue >= 340 || hue <= 20) && (max - min) > 0.3;
+            }
+            const deleteStyle = isRedish(navyHex)
+                ? 'color:#fff;border-color:#fff;background:transparent;'          // white outline on red
+                : 'color:#dc3545;border-color:#dc3545;background:transparent;';   // normal red danger
+        %>
+        .btn-delete-adaptive { <%= deleteStyle %> }
+        .btn-delete-adaptive:hover {
+            <%= isRedish(navyHex)
+                ? 'background:#fff;color:var(--ps-navy);'
+                : 'background:#dc3545;color:#fff;border-color:#dc3545;' %>
+        }
     </style>
     <% } %>
     <% if (currentUser) { %>
@@ -204,22 +231,22 @@
 
     <div class="container mt-3">
         <% if (success && success.length) { %>
-            <div class="alert alert-success alert-dismissible fade show">
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
                 <i class="bi bi-check-circle-fill"></i> <%= success %>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         <% } %>
         <% if (error && error.length) { %>
-            <div class="alert alert-danger alert-dismissible fade show">
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
                 <i class="bi bi-exclamation-triangle-fill"></i> <%= error %>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         <% } %>
         <% if (warning && warning.length) { %>
             <% for (let msg of warning) { %>
             <div class="alert alert-warning alert-dismissible fade show" role="alert">
                 <i class="bi bi-exclamation-triangle"></i> <%= msg %>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
             <% } %>
         <% } %>
