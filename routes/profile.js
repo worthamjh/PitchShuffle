@@ -86,19 +86,21 @@ router.post('/avatar', isLoggedIn, upload.single('avatar'), async (req, res) => 
 // Save visual preferences
 router.post('/preferences', isLoggedIn, async (req, res) => {
     try {
-        const { theme, gameFontSize, voiceURI, zoneTerminology } = req.body;
-        const safeTheme       = ['light', 'dark'].includes(theme)              ? theme            : 'light';
-        const safeFontSize    = ['sm', 'md', 'lg'].includes(gameFontSize)      ? gameFontSize      : 'md';
-        const safeTerminology = ['arm-glove', 'inside-away'].includes(zoneTerminology)
-            ? zoneTerminology
-            : 'arm-glove';
+        const { theme, gameFontSize, voiceURI, zoneTerminology, showQuickGame } = req.body;
+        
+        console.log('showQuickGame from body:', req.body.showQuickGame);
+        
+        const safeTheme         = ['light', 'dark'].includes(theme)                       ? theme           : 'light';
+        const safeFontSize      = ['sm', 'md', 'lg'].includes(gameFontSize)               ? gameFontSize    : 'md';
+        const safeTerminology   = ['arm-glove', 'inside-away'].includes(zoneTerminology)  ? zoneTerminology : 'arm-glove';
+        const safeShowQuickGame = showQuickGame === 'true';
+
+        console.log('safeShowQuickGame:', safeShowQuickGame);
 
         const currentTerminology = req.user.preferences?.zoneTerminology || 'arm-glove';
         const terminologyChanged = safeTerminology !== currentTerminology;
 
         if (terminologyChanged) {
-            // Count pitchers that use zones from the OLD terminology
-            // so we can warn the user they won't be affected
             const teams = await Team.find({ owner: req.user._id }).populate({
                 path: 'pitchers',
                 populate: { path: 'zone' }
@@ -122,14 +124,16 @@ router.post('/preferences', isLoggedIn, async (req, res) => {
             }
         }
 
-        await User.findByIdAndUpdate(req.user._id, {
-            preferences: {
-                theme:           safeTheme,
-                gameFontSize:    safeFontSize,
-                voiceURI:        voiceURI || '',
-                zoneTerminology: safeTerminology,
-            }
-        });
+        // Update database AND session user at the same time
+        req.user.preferences = {
+            theme:           safeTheme,
+            gameFontSize:    safeFontSize,
+            voiceURI:        voiceURI || '',
+            zoneTerminology: safeTerminology,
+            showQuickGame:   safeShowQuickGame,
+        };
+        await req.user.save();
+
         req.flash('success', 'Preferences saved.');
         res.redirect('/profile');
     } catch (e) {

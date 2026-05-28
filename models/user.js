@@ -21,10 +21,11 @@ const UserSchema = new mongoose.Schema({
 
     // User-level preferences
     preferences: {
-        theme:           { type: String, enum: ['light', 'dark'], default: 'light' },
-        gameFontSize:    { type: String, enum: ['sm', 'md', 'lg'], default: 'md' },
-        voiceURI:        { type: String, default: '' },
-        zoneTerminology: { type: String, enum: ['arm-glove', 'inside-away'], default: 'arm-glove' },
+    theme:           { type: String, enum: ['light', 'dark'], default: 'light' },
+    gameFontSize:    { type: String, enum: ['sm', 'md', 'lg'], default: 'md' },
+    voiceURI:        { type: String, default: '' },
+    zoneTerminology: { type: String, enum: ['arm-glove', 'inside-away'], default: 'arm-glove' },
+    showQuickGame:   { type: Boolean, default: true },
     }
 });
 

@@ -100,7 +100,18 @@
                     </div>
                 </div>
             </div>
-
+            <!-- Quick Game -->
+            <div class="mb-4">
+                <label class="form-label fw-bold">Quick Game</label>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="showQuickGame" id="showQuickGame" value="true"
+                        <%= (!user.preferences || user.preferences.showQuickGame !== false) ? 'checked' : '' %>>
+                    <label class="form-check-label" for="showQuickGame">
+                        Show Quick Game on home screen
+                    </label>
+                </div>
+                <small class="text-muted">Turn this off if you always use a saved team and don't need Quick Game.</small>
+            </div>
             <!-- Game View Font Size -->
             <div class="mb-4">
                 <label class="form-label fw-bold">Game View Font Size</label>
@@ -198,6 +209,7 @@ document.getElementById('restoreDefaultsBtn').addEventListener('click', () => {
     document.getElementById('font-md').checked    = true;
     document.getElementById('font-lg').checked    = false;
     document.getElementById('voiceSelect').value  = '';
+    document.getElementById('showQuickGame').checked = true;
 });
 
 // ── Voice selector ────────────────────────────────────────────

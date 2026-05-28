@@ -723,6 +723,30 @@
                     lbl.htmlFor  = `list-loc-${newIdx}-${locIdx}`;
                 });
 
+                // Preserve the preset dropdown selection after reindex
+                const select    = row.querySelector('.pitch-preset');
+                const nameInput = row.querySelector('.pitch-name');
+                const abbrInput = row.querySelector('.pitch-abbr');
+                if (select && nameInput) {
+                    const currentName = nameInput.value.trim();
+                    const matchingOpt = [...select.options].find(o => {
+                        const [oName] = o.value.split('|');
+                        return oName === currentName;
+                    });
+                    if (matchingOpt) {
+                        select.value = matchingOpt.value;
+                    } else if (currentName) {
+                        // Custom pitch — select the custom option
+                        const customOpt = [...select.options].find(o => o.value === 'custom|');
+                        if (customOpt) select.value = 'custom|';
+                    } else {
+                        select.value = '';
+                    }
+                }
+
+                drawOutline(newIdx);
+                drawOverlays(newIdx, pitchData[newIdx]);
+
                 drawOutline(newIdx);
                 drawOverlays(newIdx, pitchData[newIdx]);
             });

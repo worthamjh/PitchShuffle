@@ -61,15 +61,15 @@
         <%= team.name %>
     </h1>
     <div class="d-flex gap-2 flex-wrap">
-        <a href="/teams/<%= team._id %>/edit" class="btn btn-outline-light btn-sm">
-            <i class="bi bi-pencil"></i> Edit Team
-        </a>
-        <a href="/teams/<%= team._id %>/pitchers/new" class="btn btn-outline-light">
-            <i class="bi bi-plus-circle"></i> Add Pitcher
-        </a>
-        <button type="button" class="btn btn-delete-adaptive btn-sm" data-bs-toggle="modal" data-bs-target="#deleteTeamModal">
-            <i class="bi bi-trash"></i> Delete Team
-        </button>
+    <a href="/teams/<%= team._id %>/edit" class="btn btn-outline-light btn-sm">
+        <i class="bi bi-pencil"></i> Edit
+    </a>
+    <a href="/teams/<%= team._id %>/pitchers/new" class="btn btn-outline-light btn-sm">
+        <i class="bi bi-plus-circle"></i> Add Pitcher
+    </a>
+    <button type="button" class="btn btn-delete-adaptive btn-sm" data-bs-toggle="modal" data-bs-target="#deleteTeamModal">
+        <i class="bi bi-trash"></i> Delete
+    </button>
     </div>
 </div>
 <div class="modal fade" id="deleteTeamModal" tabindex="-1" aria-hidden="true">
