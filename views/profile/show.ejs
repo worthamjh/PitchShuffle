@@ -54,11 +54,12 @@
                             <a href="/teams/<%= team._id %>" class="btn btn-outline-primary btn-sm">
                                 <% if (team.logo) { %>
                                     <img src="<%= team.logo %>" alt=""
-                                         style="width:16px;height:16px;border-radius:50%;object-fit:cover;margin-right:4px;">
+                                        style="width:16px;height:16px;border-radius:50%;object-fit:cover;margin-right:4px;">
                                 <% } else { %>
-                                    <i class="bi bi-shield-fill"></i>
+                                    <%= team.sport === 'softball' ? '🥎' : '⚾' %>
                                 <% } %>
                                 <%= team.name %>
+                                <%= team.sport === 'softball' ? '🥎' : '⚾' %>
                             </a>
                         <% } %>
                     </div>
@@ -294,10 +295,6 @@ document.getElementById('testVoiceBtn').addEventListener('click', () => {
     </div>
 </div>
 
-<a href="/teams" class="btn btn-outline-secondary">
-    <i class="bi bi-arrow-left"></i> Back to My Teams
-</a>
-
 <!-- Terminology change confirmation modal -->
 <div class="modal fade" id="termChangeModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -334,6 +331,160 @@ document.getElementById('testVoiceBtn').addEventListener('click', () => {
         </div>
     </div>
 </div>
+<!-- ── Help & Guide ───────────────────────────────────────────── -->
+<div class="card mb-4" id="help">
+    <div class="card-header fw-bold"><i class="bi bi-question-circle"></i> Help & Guide</div>
+    <div class="card-body p-0">
+        <div class="accordion accordion-flush" id="helpAccordion">
+
+            <!-- 1. What is PitchShuffle -->
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed fw-semibold" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#help1">
+                        <i class="bi bi-info-circle me-2 text-primary"></i> What is PitchShuffle?
+                    </button>
+                </h2>
+                <div id="help1" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+                    <div class="accordion-body text-muted">
+                        PitchShuffle is a pitch-calling tool for coaches and catchers. During a game, you select a pitch type and a location in the strike zone, and the app announces the call out loud — so your catcher knows exactly what to throw without any visible sign communication.
+                        <br><br>
+                        You can also let the app call pitches for you using the <strong>Random</strong> button, which picks a pitch type and location automatically.
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Setting up a team -->
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed fw-semibold" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#help2">
+                        <i class="bi bi-people-fill me-2 text-primary"></i> Setting Up a Team
+                    </button>
+                </h2>
+                <div id="help2" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+                    <div class="accordion-body text-muted">
+                        <ol class="ps-3 mb-0">
+                            <li class="mb-2">Go to <strong>My Teams</strong> and tap <strong>New Team</strong>.</li>
+                            <li class="mb-2">Enter your team name, choose Baseball or Softball, and set your team colors.</li>
+                            <li class="mb-2">Once the team is created, open it and tap <strong>Add Pitcher</strong> to start adding your roster.</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Adding a pitcher -->
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed fw-semibold" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#help3">
+                        <i class="bi bi-person-fill me-2 text-primary"></i> Adding a Pitcher
+                    </button>
+                </h2>
+                <div id="help3" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+                    <div class="accordion-body text-muted">
+                        <ol class="ps-3 mb-0">
+                            <li class="mb-2">From your team page, tap <strong>Add Pitcher</strong>.</li>
+                            <li class="mb-2">Enter the pitcher's name, number, and throwing hand (RHP or LHP).</li>
+                            <li class="mb-2">Select a <strong>strike zone</strong> — this sets which locations will be available when calling pitches.</li>
+                            <li class="mb-2">Add their <strong>pitch types</strong> — for example: Fastball (FB), Curveball (CB), Changeup (CH).</li>
+                            <li class="mb-2">After saving, open the pitcher to customize which locations are active for each pitch type.</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. Configuring pitch locations -->
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed fw-semibold" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#help4">
+                        <i class="bi bi-grid-3x3 me-2 text-primary"></i> Configuring Pitch Locations
+                    </button>
+                </h2>
+                <div id="help4" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+                    <div class="accordion-body text-muted">
+                        On a pitcher's edit page, each pitch type has a strike zone grid. Tap any location to toggle it on or off.
+                        <br><br>
+                        <strong>Colored locations</strong> are active — they'll show up in the game and in the random pool.<br>
+                        <strong>Grayed-out locations</strong> are disabled from randomization — you can still call them manually during a game, but they won't be included when using the Random button.
+                        <br><br>
+                        Use this to tailor each pitcher's repertoire. For example, you might only enable down-and-away locations for a changeup, or keep a curveball limited to glove-side locations.
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. Using the game screen -->
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed fw-semibold" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#help5">
+                        <i class="bi bi-play-fill me-2 text-primary"></i> Using the Game Screen
+                    </button>
+                </h2>
+                <div id="help5" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+                    <div class="accordion-body text-muted">
+                        Once you select a team and pitcher, the game screen shows:
+                        <br><br>
+                        <strong>Pitch type buttons</strong> — tap to select what pitch to throw.<br>
+                        <strong>Strike zone grid</strong> — tap a location to select where the pitch goes.<br>
+                        <strong>Call bar</strong> — once both are selected, tap <strong>Call Pitch</strong> and the app announces the call out loud.<br>
+                        <strong>Repeat</strong> — re-announces the last call if needed.<br>
+                        <strong>Clear</strong> — resets your selection.<br>
+                        <strong>Pickoff / Pitchout</strong> — special calls that announce immediately without a zone selection.
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. Randomization -->
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed fw-semibold" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#help6">
+                        <i class="bi bi-shuffle me-2 text-primary"></i> Why Use Randomization?
+                    </button>
+                </h2>
+                <div id="help6" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+                    <div class="accordion-body text-muted">
+                        The <strong>Random</strong> button is one of PitchShuffle's most powerful features — and the reason the app exists.
+                        <br><br>
+                        When you call pitches manually, patterns can emerge over time. Opposing coaches and baserunners are always watching — they may pick up on tendencies in your sign sequence or pitch selection. The longer a game goes, the more information they have.
+                        <br><br>
+                        <strong>Randomization eliminates that entirely.</strong> When pitches are called randomly, there is no pattern — because there is no pattern to find. The call is genuinely unpredictable, every single pitch.
+                        <br><br>
+                        <strong>How it works:</strong> Random picks from the pitch types and locations you've enabled for that pitcher. Grayed-out locations are excluded — so you're still in control of what's in the pool. For example, if you only want fastballs thrown glove-side, enable only those locations and the random call will stay within that range.
+                        <br><br>
+                        Use Random as often or as little as you like. Many coaches use it for the majority of pitches and only call manually in specific situations.
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7. Quick Game -->
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed fw-semibold" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#help7">
+                        <i class="bi bi-lightning-fill me-2 text-primary"></i> Quick Game Mode
+                    </button>
+                </h2>
+                <div id="help7" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+                    <div class="accordion-body text-muted">
+                        Quick Game lets you jump straight into calling pitches without setting up a team or pitcher first. It uses a standard set of pitch types and a full Zone C strike zone.
+                        <br><br>
+                        It's great for trying out the app, pickup games, or situations where you don't have your roster set up yet. If you find yourself using Quick Game regularly, consider creating a team and pitcher so you can customize the pitch types and locations to match your actual pitcher.
+                        <br><br>
+                        You can turn Quick Game on or off from the <strong>Visual Preferences</strong> section above.
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<a href="/teams" class="btn btn-outline-secondary">
+    <i class="bi bi-arrow-left"></i> Back to My Teams
+</a>
 
 <script>
 (function () {

@@ -522,6 +522,10 @@
         _boxSize = Math.min(_boxSize, _boxW);
         _boxSize = Math.max(_boxSize, 44);
 
+        // Cap cell size for small zones (A = 1 row, B = 2 rows)
+        // so they don't stretch to fill the whole zone area
+        if (maxRow <= 2) _boxSize = Math.min(_boxSize, 120);
+
         grid.style.gridTemplateRows    = `repeat(${maxRow}, ${_boxSize}px)`;
         grid.style.gridTemplateColumns = `repeat(${maxCol}, ${_boxSize}px)`;
 

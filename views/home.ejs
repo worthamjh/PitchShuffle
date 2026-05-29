@@ -28,7 +28,11 @@
             My Teams
         </a>
         <a href="/profile" class="quick-link-card">
-            <i class="bi bi-person-circle"></i>
+            <% if (currentUser && currentUser.avatar) { %>
+                <img src="<%= currentUser.avatar %>" alt="Profile" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">
+            <% } else { %>
+                <i class="bi bi-person-circle"></i>
+            <% } %>
             Profile
         </a>
     </div>
