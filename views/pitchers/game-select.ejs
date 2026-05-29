@@ -1,15 +1,11 @@
 <%- layout('layouts/boilerplate') %>
 
 <%
-  // If we came from an active game, back arrow returns to that game.
-  // Otherwise fall back to the team page.
   const backHref = currentPitcherId
     ? `/teams/${team._id}/pitchers/game/${currentPitcherId}`
     : `/teams/${team._id}`;
   const backLabel = currentPitcherId ? 'Back to Game' : 'Back to Team';
 
-  // If we came from an active game, "Add New Pitcher" should return here
-  // (with the from param) after saving, not to the pitcher show page.
   const addPitcherHref = currentPitcherId
     ? `/teams/${team._id}/pitchers/new?redirect=/teams/${team._id}/pitchers/game?from=${currentPitcherId}`
     : `/teams/${team._id}/pitchers/new`;
@@ -35,18 +31,32 @@
     </div>
 <% } else { %>
 
-    <p class="text-muted mb-3">Select the new pitcher coming in, then tap Change Pitcher.</p>
+    <p class="text-muted mb-2">Select the new pitcher coming in, then tap Change Pitcher.</p>
+
+    <!-- Sort bar -->
+    <div class="sort-bar mb-3">
+        <span>Sort:</span>
+        <button class="sort-btn" data-sort="lastName">Last Name</button>
+        <button class="sort-btn" data-sort="firstName">First Name</button>
+        <button class="sort-btn" data-sort="number">Number</button>
+    </div>
 
     <div class="row row-cols-1 row-cols-md-2 g-3 mb-4" id="pitcherList">
         <% for (let pitcher of team.pitchers) { %>
-            <div class="col">
+            <div class="col pitcher-col"
+                 data-lastname="<%= (pitcher.lastName || '').toLowerCase() %>"
+                 data-firstname="<%= (pitcher.firstName || '').toLowerCase() %>"
+                 data-number="<%= pitcher.number || 0 %>">
                 <div class="pitcher-select-card" data-pitcher-id="<%= pitcher._id %>">
                     <div class="pitcher-number-badge">#<%= pitcher.number %></div>
                     <div class="pitcher-select-info">
-                        <div class="fw-bold fs-5"><%= pitcher.name %></div>
+                        <div class="fw-bold fs-5">
+                            <%= pitcher.firstName ? pitcher.firstName + ' ' + pitcher.lastName : (pitcher.lastName || pitcher.name) %>
+                        </div>
                         <div class="text-muted small">
                             <%= pitcher.throws === 'R' ? 'RHP' : 'LHP' %> &middot;
                             <%= pitcher.pitchTypes.length %> pitch type<%= pitcher.pitchTypes.length !== 1 ? 's' : '' %>
+                            &middot; <%= team.sport === 'softball' ? '🥎 Softball' : '⚾ Baseball' %>
                         </div>
                     </div>
                     <i class="bi bi-circle pitcher-select-check ms-auto"></i>
@@ -108,12 +118,58 @@
         flex-shrink: 0;
     }
     .pitcher-select-info { flex: 1; }
+
+    .sort-bar {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+    .sort-bar span {
+        font-size: 0.8rem;
+        color: #6c757d;
+        font-weight: 600;
+    }
+    .sort-btn {
+        font-size: 0.78rem;
+        padding: 0.25rem 0.65rem;
+        border-radius: 20px;
+        border: 1.5px solid #dee2e6;
+        background: #fff;
+        color: #6c757d;
+        cursor: pointer;
+        transition: all 0.15s;
+        font-weight: 600;
+    }
+    .sort-btn:hover  { border-color: #8fa8c8; color: #1a2e4a; }
+    .sort-btn.active { background: var(--ps-navy, #1a2e4a); border-color: var(--ps-navy, #1a2e4a); color: #fff; }
 </style>
 
 <script>
-    const teamId = '<%= team._id %>';
+    const teamId   = '<%= team._id %>';
+    const SORT_KEY = 'ps_pitcher_sort';
+    const list     = document.getElementById('pitcherList');
+    const btns     = document.querySelectorAll('.sort-btn');
 
-    document.getElementById('pitcherList').addEventListener('click', e => {
+    // ── Sort ─────────────────────────────────────────────────
+    function applySort(mode) {
+        localStorage.setItem(SORT_KEY, mode);
+        btns.forEach(b => b.classList.toggle('active', b.dataset.sort === mode));
+        const cols = [...list.querySelectorAll('.pitcher-col')];
+        cols.sort((a, b) => {
+            if (mode === 'number') return Number(a.dataset.number) - Number(b.dataset.number);
+            const aVal = mode === 'lastName' ? a.dataset.lastname : a.dataset.firstname;
+            const bVal = mode === 'lastName' ? b.dataset.lastname : b.dataset.firstname;
+            return aVal.localeCompare(bVal);
+        });
+        cols.forEach(col => list.appendChild(col));
+    }
+
+    btns.forEach(btn => btn.addEventListener('click', () => applySort(btn.dataset.sort)));
+    applySort(localStorage.getItem(SORT_KEY) || 'lastName');
+
+    // ── Selection ─────────────────────────────────────────────
+    list.addEventListener('click', e => {
         const card = e.target.closest('.pitcher-select-card');
         if (!card) return;
         document.querySelectorAll('.pitcher-select-card').forEach(c => c.classList.remove('selected'));

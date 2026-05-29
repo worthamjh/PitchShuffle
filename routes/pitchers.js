@@ -70,7 +70,10 @@ router.post('/', isLoggedIn, isOwner, async (req, res, next) => {
             req.flash('error', `A pitcher can have a maximum of ${MAX_PITCH_TYPES} pitch types.`);
             return res.redirect(`/teams/${req.params.teamId}/pitchers/new`);
         }
-        const pitcher = new Pitcher({ ...req.body.pitcher });
+        const pitcherBody = req.body.pitcher;
+        // Build name from parts for legacy compatibility
+        pitcherBody.name = [pitcherBody.firstName, pitcherBody.lastName].filter(Boolean).join(' ');
+        const pitcher = new Pitcher(pitcherBody);
         pitcher.pitchTypes = (pitcher.pitchTypes || []).filter(pt => pt.name && pt.name.trim());
         for (let pitchType of pitcher.pitchTypes) {
             pitchType.locations = zone.availableLocations.map(loc => ({
@@ -135,7 +138,9 @@ router.put('/:pitcherId', isLoggedIn, isOwner, isPitcherInTeam, async (req, res,
             pitcher.previousZone       = pitcher.zone;
             pitcher.previousPitchTypes = JSON.parse(JSON.stringify(pitcher.pitchTypes));
         }
-        pitcher.name       = req.body.pitcher.name;
+        pitcher.firstName  = req.body.pitcher.firstName || '';
+        pitcher.lastName   = req.body.pitcher.lastName;
+        pitcher.name       = [pitcher.firstName, pitcher.lastName].filter(Boolean).join(' ');
         pitcher.number     = req.body.pitcher.number;
         pitcher.throws     = req.body.pitcher.throws;
         pitcher.zone       = newZoneId;

@@ -49,6 +49,31 @@
         padding: 2px;
         flex-shrink: 0;
     }
+    .sort-bar {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+    }
+    .sort-bar span {
+        font-size: 0.8rem;
+        color: #6c757d;
+        font-weight: 600;
+    }
+    .sort-btn {
+        font-size: 0.78rem;
+        padding: 0.25rem 0.65rem;
+        border-radius: 20px;
+        border: 1.5px solid #dee2e6;
+        background: #fff;
+        color: #6c757d;
+        cursor: pointer;
+        transition: all 0.15s;
+        font-weight: 600;
+    }
+    .sort-btn:hover { border-color: #8fa8c8; color: #1a2e4a; }
+    .sort-btn.active { background: var(--ps-navy, #1a2e4a); border-color: var(--ps-navy, #1a2e4a); color: #fff; }
 </style>
 
 <div class="page-header">
@@ -61,17 +86,18 @@
         <%= team.name %>
     </h1>
     <div class="d-flex gap-2 flex-wrap">
-    <a href="/teams/<%= team._id %>/edit" class="btn btn-outline-light btn-sm">
-        <i class="bi bi-pencil"></i> Edit
-    </a>
-    <a href="/teams/<%= team._id %>/pitchers/new" class="btn btn-outline-light btn-sm">
-        <i class="bi bi-plus-circle"></i> Add Pitcher
-    </a>
-    <button type="button" class="btn btn-delete-adaptive btn-sm" data-bs-toggle="modal" data-bs-target="#deleteTeamModal">
-        <i class="bi bi-trash"></i> Delete
-    </button>
+        <a href="/teams/<%= team._id %>/edit" class="btn btn-outline-light btn-sm">
+            <i class="bi bi-pencil"></i> Edit
+        </a>
+        <a href="/teams/<%= team._id %>/pitchers/new" class="btn btn-outline-light btn-sm">
+            <i class="bi bi-plus-circle"></i> Add Pitcher
+        </a>
+        <button type="button" class="btn btn-delete-adaptive btn-sm" data-bs-toggle="modal" data-bs-target="#deleteTeamModal">
+            <i class="bi bi-trash"></i> Delete
+        </button>
     </div>
 </div>
+
 <div class="modal fade" id="deleteTeamModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content" style="border-radius:14px;overflow:hidden;">
@@ -109,13 +135,27 @@
         </div>
     </div>
 <% } else { %>
-    <div class="row row-cols-1 row-cols-md-2 g-3">
+    <!-- Sort bar -->
+    <div class="sort-bar">
+        <span>Sort:</span>
+        <button class="sort-btn" data-sort="lastName">Last Name</button>
+        <button class="sort-btn" data-sort="firstName">First Name</button>
+        <button class="sort-btn" data-sort="number">Number</button>
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-2 g-3" id="pitcherGrid">
         <% for (let pitcher of team.pitchers) { %>
-            <div class="col">
+            <div class="col pitcher-col"
+                 data-lastname="<%= (pitcher.lastName || '').toLowerCase() %>"
+                 data-firstname="<%= (pitcher.firstName || '').toLowerCase() %>"
+                 data-number="<%= pitcher.number || 0 %>"
+                 data-pitcherid="<%= pitcher._id %>">
                 <a href="/teams/<%= team._id %>/pitchers/<%= pitcher._id %>" class="pitcher-card">
                     <div class="pitcher-number">#<%= pitcher.number %></div>
                     <div class="pitcher-info">
-                        <div class="pitcher-name"><%= pitcher.name %></div>
+                        <div class="pitcher-name">
+                            <%= pitcher.firstName ? pitcher.firstName + ' ' + pitcher.lastName : (pitcher.lastName || pitcher.name) %>
+                        </div>
                         <div class="pitcher-meta">
                             <%= pitcher.throws === 'R' ? 'RHP' : 'LHP' %>
                             &middot;
@@ -128,3 +168,41 @@
         <% } %>
     </div>
 <% } %>
+
+<script>
+(function () {
+    const SORT_KEY = 'ps_pitcher_sort';
+    const grid     = document.getElementById('pitcherGrid');
+    const btns     = document.querySelectorAll('.sort-btn');
+    if (!grid) return;
+
+    function getSort() {
+        return localStorage.getItem(SORT_KEY) || 'lastName';
+    }
+
+    function applySort(mode) {
+        localStorage.setItem(SORT_KEY, mode);
+        btns.forEach(b => b.classList.toggle('active', b.dataset.sort === mode));
+
+        const cols = [...grid.querySelectorAll('.pitcher-col')];
+        cols.sort((a, b) => {
+            if (mode === 'number') {
+                return Number(a.dataset.number) - Number(b.dataset.number);
+            }
+            const aVal = mode === 'lastName' ? a.dataset.lastname : a.dataset.firstname;
+            const bVal = mode === 'lastName' ? b.dataset.lastname : b.dataset.firstname;
+            return aVal.localeCompare(bVal);
+        });
+
+        // Re-append in sorted order
+        cols.forEach(col => grid.appendChild(col));
+    }
+
+    btns.forEach(btn => {
+        btn.addEventListener('click', () => applySort(btn.dataset.sort));
+    });
+
+    // Apply saved sort on load
+    applySort(getSort());
+}());
+</script>

@@ -13,7 +13,13 @@ const PitchTypeSchema = new mongoose.Schema({
 });
 
 const PitcherSchema = new mongoose.Schema({
-    name:   { type: String, required: true },
+    // Split name fields — firstName may be empty for single-name pitchers
+    firstName: { type: String, default: '' },
+    lastName:  { type: String, required: true },
+
+    // Legacy field — kept for backward compatibility during transition
+    name:   { type: String },
+
     number: { type: Number },
     throws: { type: String, enum: ['R', 'L'] },
     zone: {
@@ -28,6 +34,12 @@ const PitcherSchema = new mongoose.Schema({
     // Snapshot of previous zone state — used for revert after zone change
     previousZone:       { type: mongoose.Schema.Types.ObjectId, ref: 'StrikeZone', default: null },
     previousPitchTypes: { type: mongoose.Schema.Types.Mixed, default: null }
+});
+
+// Virtual: full display name
+PitcherSchema.virtual('fullName').get(function () {
+    if (this.firstName) return `${this.firstName} ${this.lastName}`;
+    return this.lastName || this.name || '';
 });
 
 module.exports = mongoose.model('Pitcher', PitcherSchema);
