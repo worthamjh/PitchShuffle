@@ -16,10 +16,8 @@
     .navbar { position: relative; z-index: 1050; }
     .navbar-collapse { z-index: 1050; }
 
-    /* Dark background on desktop behind the centered panel */
     body { background: #2a2a2a; }
 
-    /* Centered game panel */
     .game-page {
         display: flex;
         flex-direction: column;
@@ -32,7 +30,6 @@
         box-shadow: 0 0 40px rgba(0,0,0,0.4);
     }
 
-    /* Pitch row */
     .pitch-row {
         display: flex;
         flex-direction: row;
@@ -51,11 +48,10 @@
     .pitch-btn {
         flex: 1 1 calc(25% - 0.4rem);
         min-width: calc(25% - 0.4rem);
+    }
     .pitch-btn:hover  { background: #dce6f0; }
     .pitch-btn.active { background: var(--ps-navy); border-color: var(--ps-navy); color: var(--accent-text, #fff); }
-    }
 
-    /* Zone area — fills remaining space */
     .zone-area {
         flex: 1;
         display: flex;
@@ -86,7 +82,6 @@
         margin-bottom: 2px;
     }
 
-    /* Action row */
     .action-row {
         display: flex;
         flex-direction: row;
@@ -117,7 +112,6 @@
     .btn-repeat:hover { background: #9a4add; color: #fff; }
     .btn-repeat.disabled-btn { opacity: 0.45; pointer-events: none; }
 
-    /* Call bar */
     .call-bar {
         display: flex;
         align-items: center;
@@ -148,7 +142,6 @@
     .btn-call:hover { background: #e0ecf8; }
     .btn-call.disabled-btn { opacity: 0.45; pointer-events: none; }
 
-    /* Zone cells */
     .zone-col .loc-box {
         display: flex;
         align-items: center;
@@ -210,7 +203,6 @@
     [data-theme='dark'] .pitch-btn  { background: #243350; border-color: #2a3f5a; color: var(--ps-navy-muted); }
     [data-theme='dark'] .pitch-btn.active { background: var(--ps-navy); color: var(--accent-text, #fff); }
 
-    /* Pickoff / Pitchout row */
     .special-row {
         display: flex;
         gap: 0.4rem;
@@ -224,7 +216,6 @@
     .btn-pickoff:hover  { background: #4a9edd; color: #fff; }
     .btn-pitchout:hover { background: #e67e22; color: #fff; }
 
-    /* Pickoff base selector overlay */
     .pickoff-overlay {
         position: fixed; inset: 0;
         background: rgba(0,0,0,0.55);
@@ -258,7 +249,6 @@
     [data-theme="dark"] .pickoff-diamond { background: #1a2535; }
     [data-theme="dark"] .special-row { background: #1a2535; border-color: #2a3f5a; }
 
-    /* Dark mode zone colors */
     [data-theme="dark"] .loc-box.strike {
         background: var(--strike-bg); border-color: var(--strike-border); color: var(--strike-text);
         filter: brightness(0.6) saturate(0.9);
@@ -277,7 +267,6 @@
     [data-theme="dark"] .loc-box.disabled,
     [data-theme="dark"] .chase-overlay.disabled { filter: none; }
 
-    /* Tour */
     .ps-tour-overlay {
         position: fixed; inset: 0; z-index: 3000;
         pointer-events: none; display: none;
@@ -448,6 +437,22 @@
         'down-out':       { row: 5, col: 2 },
         'arm-out-down':   { row: 5, col: isRHP ? 5 : 1 },
     };
+
+    // Zone D: 2x2 strike zone, 4 surrounding chase zones
+    // Grid is 4 cols x 4 rows:
+    //   col1=glove-out, col2=glove strikes, col3=arm strikes, col4=arm-out
+    //   row1=up-out, row2=up strikes, row3=down strikes, row4=down-out
+    const LAYOUTS_D = {
+        'up-out':     { row: 1, col: 2, colSpan: 2 },
+        'glove-out':  { row: 2, col: isRHP ? 1 : 4, rowSpan: 2 },
+        'glove-up':   { row: 2, col: isRHP ? 2 : 3, strike: true },
+        'arm-up':     { row: 2, col: isRHP ? 3 : 2, strike: true },
+        'arm-out':    { row: 2, col: isRHP ? 4 : 1, rowSpan: 2 },
+        'glove-down': { row: 3, col: isRHP ? 2 : 3, strike: true },
+        'arm-down':   { row: 3, col: isRHP ? 3 : 2, strike: true },
+        'down-out':   { row: 4, col: 2, colSpan: 2 },
+    };
+
     const LAYOUTS_A = {
         'arm-side':   { row: 1, col: isRHP ? 2 : 1, strike: true },
         'glove-side': { row: 1, col: isRHP ? 1 : 2, strike: true },
@@ -480,18 +485,39 @@
         'inside-out-down': { row: 5, col: 5 },
     };
 
+    // Zone D Inside/Away — fixed layout, no LHP flip
+    const LAYOUTS_D_IA = {
+        'up-out':      { row: 1, col: 2, colSpan: 2 },
+        'away-out':    { row: 2, col: 1, rowSpan: 2 },
+        'away-up':     { row: 2, col: 2, strike: true },
+        'inside-up':   { row: 2, col: 3, strike: true },
+        'inside-out':  { row: 2, col: 4, rowSpan: 2 },
+        'away-down':   { row: 3, col: 2, strike: true },
+        'inside-down': { row: 3, col: 3, strike: true },
+        'down-out':    { row: 4, col: 2, colSpan: 2 },
+    };
+
     function getLayout(locs) {
         const n = new Set(locs.map(l => l.name));
-        if (n.has('glove-up'))    return LAYOUTS_C;
-        if (n.has('inside-up'))   return LAYOUTS_C_IA;
+        if (n.has('mid-up') && n.has('glove-up'))  return LAYOUTS_C;
+        if (n.has('mid-up') && n.has('inside-up')) return LAYOUTS_C_IA;
+        if (n.has('glove-up') && n.has('arm-up'))  return LAYOUTS_D;      // Zone D: no mid-up
+        if (n.has('away-up') && n.has('inside-up'))return LAYOUTS_D_IA;   // Zone D IA: no mid-up
         if (n.has('arm-side'))    return LAYOUTS_A;
         if (n.has('inside-side')) return LAYOUTS_A_IA;
         if (n.has('up'))          return LAYOUTS_B;
         return LAYOUTS_C;
     }
-    const isZoneC = locs => {
+
+    // Returns true for any zone that uses chase overlays (C and D)
+    const usesOverlays = locs => {
         const n = new Set(locs.map(l => l.name));
-        return n.has('glove-up') || n.has('inside-up');
+        return n.has('glove-up') || n.has('inside-up') || n.has('away-up');
+    };
+
+    const isZoneD = locs => {
+        const n = new Set(locs.map(l => l.name));
+        return (n.has('glove-up') || n.has('away-up')) && !n.has('mid-up');
     };
 
     // ── Build grid ────────────────────────────────────────────
@@ -522,8 +548,6 @@
         _boxSize = Math.min(_boxSize, _boxW);
         _boxSize = Math.max(_boxSize, 44);
 
-        // Cap cell size for small zones (A = 1 row, B = 2 rows)
-        // so they don't stretch to fill the whole zone area
         if (maxRow <= 2) _boxSize = Math.min(_boxSize, 120);
 
         grid.style.gridTemplateRows    = `repeat(${maxRow}, ${_boxSize}px)`;
@@ -543,7 +567,7 @@
         });
 
         drawOutline(layout);
-        if (isZoneC(zoneLocations)) drawOverlays(layout);
+        if (usesOverlays(zoneLocations)) drawOverlays(layout);
         if (selectedLocation) highlightLocation(selectedLocation);
     }
 
@@ -588,9 +612,6 @@
         const labelH     = labelEl ? labelEl.offsetHeight + 2 : 0;
         wrapper.querySelectorAll('.chase-overlay').forEach(el => el.remove());
 
-        const armOutName   = isRHP ? 'arm-out-mid'   : 'glove-out-mid';
-        const gloveOutName = isRHP ? 'glove-out-mid' : 'arm-out-mid';
-
         function spanBounds(names) {
             let t = Infinity, l = Infinity, b = -Infinity, r = -Infinity;
             names.forEach(name => {
@@ -627,22 +648,44 @@
         }
 
         const locNames     = new Set(zoneLocations.map(l => l.name));
-        const isInsideAway = locNames.has('inside-up');
+        const isInsideAway = locNames.has('inside-up') || locNames.has('inside-down');
 
-        if (isInsideAway) {
-            makeOverlay('up-out',         'up out',     ['away-up', 'mid-up', 'inside-up'],      ['up-out']);
-            makeOverlay('down-out',       'down out',   ['away-down', 'mid-down', 'inside-down'], ['down-out']);
-            makeOverlay('inside-out-mid', 'inside out', ['inside-out-mid'], ['inside-up', 'inside-mid', 'inside-down']);
-            makeOverlay('away-out-mid',   'away out',   ['away-out-mid'],   ['away-up', 'away-mid', 'away-down']);
+        if (isZoneD(zoneLocations)) {
+            // Zone D overlays
+            if (isInsideAway) {
+                makeOverlay('up-out',     'up out',     ['away-up', 'inside-up'],   ['up-out']);
+                makeOverlay('down-out',   'down out',   ['away-down', 'inside-down'],['down-out']);
+                makeOverlay('away-out',   'away out',   ['away-out'],  ['away-up', 'away-down']);
+                makeOverlay('inside-out', 'inside out', ['inside-out'],['inside-up', 'inside-down']);
+            } else {
+                const gloveCol = isRHP ? 'glove-up' : 'arm-up';
+                const armCol   = isRHP ? 'arm-up'   : 'glove-up';
+                makeOverlay('up-out',    'up out',    [gloveCol, armCol],             ['up-out']);
+                makeOverlay('down-out',  'down out',  [isRHP ? 'glove-down' : 'arm-down', isRHP ? 'arm-down' : 'glove-down'], ['down-out']);
+                makeOverlay('glove-out', isRHP ? 'glove out' : 'arm out',
+                    ['glove-out'], [isRHP ? 'glove-up' : 'arm-up', isRHP ? 'glove-down' : 'arm-down']);
+                makeOverlay('arm-out',   isRHP ? 'arm out' : 'glove out',
+                    ['arm-out'],   [isRHP ? 'arm-up' : 'glove-up', isRHP ? 'arm-down' : 'glove-down']);
+            }
         } else {
-            makeOverlay('up-out',      'up out',
-                ['glove-up', 'mid-up', 'arm-up'],      ['up-out']);
-            makeOverlay('down-out',    'down out',
-                ['glove-down', 'mid-down', 'arm-down'], ['down-out']);
-            makeOverlay(armOutName,   isRHP ? 'arm out'   : 'glove out',
-                [armOutName],   isRHP ? ['arm-up',   'arm-mid',   'arm-down']   : ['glove-up', 'glove-mid', 'glove-down']);
-            makeOverlay(gloveOutName, isRHP ? 'glove out' : 'arm out',
-                [gloveOutName], isRHP ? ['glove-up', 'glove-mid', 'glove-down'] : ['arm-up',   'arm-mid',   'arm-down']);
+            // Zone C overlays
+            if (isInsideAway) {
+                makeOverlay('up-out',         'up out',     ['away-up', 'mid-up', 'inside-up'],      ['up-out']);
+                makeOverlay('down-out',       'down out',   ['away-down', 'mid-down', 'inside-down'], ['down-out']);
+                makeOverlay('inside-out-mid', 'inside out', ['inside-out-mid'], ['inside-up', 'inside-mid', 'inside-down']);
+                makeOverlay('away-out-mid',   'away out',   ['away-out-mid'],   ['away-up', 'away-mid', 'away-down']);
+            } else {
+                const armOutName   = isRHP ? 'arm-out-mid'   : 'glove-out-mid';
+                const gloveOutName = isRHP ? 'glove-out-mid' : 'arm-out-mid';
+                makeOverlay('up-out',      'up out',
+                    ['glove-up', 'mid-up', 'arm-up'],      ['up-out']);
+                makeOverlay('down-out',    'down out',
+                    ['glove-down', 'mid-down', 'arm-down'], ['down-out']);
+                makeOverlay(armOutName,   isRHP ? 'arm out'   : 'glove out',
+                    [armOutName],   isRHP ? ['arm-up',   'arm-mid',   'arm-down']   : ['glove-up', 'glove-mid', 'glove-down']);
+                makeOverlay(gloveOutName, isRHP ? 'glove out' : 'arm out',
+                    [gloveOutName], isRHP ? ['glove-up', 'glove-mid', 'glove-down'] : ['arm-up',   'arm-mid',   'arm-down']);
+            }
         }
     }
 
@@ -677,18 +720,28 @@
     }
 
     const LOC_LABELS = {
+        // Zone C arm/glove
         'glove-up': 'glove side up', 'glove-mid': 'glove side middle', 'glove-down': 'glove side down',
         'arm-up': 'arm side up', 'arm-mid': 'arm side middle', 'arm-down': 'arm side down',
         'mid-up': 'middle up', 'mid-mid': 'middle middle', 'mid-down': 'middle down',
         'glove-out-up': 'glove side up and out', 'glove-out-mid': 'glove side out', 'glove-out-down': 'glove side down and out',
         'arm-out-up': 'arm side up and out', 'arm-out-mid': 'arm side out', 'arm-out-down': 'arm side down and out',
         'up-out': 'up and out', 'down-out': 'down and out',
-        'glove-side': 'glove side', 'arm-side': 'arm side', 'up': 'up', 'down': 'down',
+        // Zone A arm/glove
+        'glove-side': 'glove side', 'arm-side': 'arm side',
+        // Zone B
+        'up': 'up', 'down': 'down',
+        // Zone C inside/away
         'away-up': 'away up', 'away-mid': 'away middle', 'away-down': 'away down',
         'inside-up': 'inside up', 'inside-mid': 'inside middle', 'inside-down': 'inside down',
         'away-out-up': 'away up and out', 'away-out-mid': 'away out', 'away-out-down': 'away down and out',
         'inside-out-up': 'inside up and out', 'inside-out-mid': 'inside out', 'inside-out-down': 'inside down and out',
+        // Zone A inside/away
         'away-side': 'away', 'inside-side': 'inside',
+        // Zone D arm/glove (new)
+        'glove-out': 'glove side out', 'arm-out': 'arm side out',
+        // Zone D inside/away (new)
+        'away-out': 'away out', 'inside-out': 'inside out',
     };
     function locLabel(locName) {
         return LOC_LABELS[locName] || locName.replace(/-/g, ' ');

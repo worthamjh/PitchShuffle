@@ -13,7 +13,7 @@ const zones = [
     },
     {
         name: 'Zone B - Up/Down',
-        terminology: 'both',  // shared — no arm/glove concept
+        terminology: 'both',
         availableLocations: [
             { name: 'up',   type: 'strike' },
             { name: 'down', type: 'strike' },
@@ -42,10 +42,22 @@ const zones = [
             { name: 'arm-out-down',   type: 'chase'  },
         ]
     },
+    {
+        name: 'Zone D',
+        terminology: 'arm-glove',
+        availableLocations: [
+            { name: 'glove-up',   type: 'strike' },
+            { name: 'arm-up',     type: 'strike' },
+            { name: 'glove-down', type: 'strike' },
+            { name: 'arm-down',   type: 'strike' },
+            { name: 'glove-out',  type: 'chase'  },
+            { name: 'arm-out',    type: 'chase'  },
+            { name: 'up-out',     type: 'chase'  },
+            { name: 'down-out',   type: 'chase'  },
+        ]
+    },
 
     // ── Inside/Away terminology ───────────────────────────────
-    // Fixed layout (no LHP flip) — reflects RHH perspective:
-    // inside = right side of plate, away = left side of plate
     {
         name: 'Zone A - Inside/Away',
         terminology: 'inside-away',
@@ -58,23 +70,37 @@ const zones = [
         name: 'Zone C - Inside/Away',
         terminology: 'inside-away',
         availableLocations: [
-            { name: 'away-up',       type: 'strike' },
-            { name: 'mid-up',        type: 'strike' },
-            { name: 'inside-up',     type: 'strike' },
-            { name: 'away-mid',      type: 'strike' },
-            { name: 'mid-mid',       type: 'strike' },
-            { name: 'inside-mid',    type: 'strike' },
-            { name: 'away-down',     type: 'strike' },
-            { name: 'mid-down',      type: 'strike' },
-            { name: 'inside-down',   type: 'strike' },
-            { name: 'away-out-up',   type: 'chase'  },
-            { name: 'up-out',        type: 'chase'  },
-            { name: 'inside-out-up', type: 'chase'  },
-            { name: 'away-out-mid',  type: 'chase'  },
-            { name: 'inside-out-mid',type: 'chase'  },
-            { name: 'away-out-down', type: 'chase'  },
-            { name: 'down-out',      type: 'chase'  },
-            { name: 'inside-out-down',type: 'chase' },
+            { name: 'away-up',        type: 'strike' },
+            { name: 'mid-up',         type: 'strike' },
+            { name: 'inside-up',      type: 'strike' },
+            { name: 'away-mid',       type: 'strike' },
+            { name: 'mid-mid',        type: 'strike' },
+            { name: 'inside-mid',     type: 'strike' },
+            { name: 'away-down',      type: 'strike' },
+            { name: 'mid-down',       type: 'strike' },
+            { name: 'inside-down',    type: 'strike' },
+            { name: 'away-out-up',    type: 'chase'  },
+            { name: 'up-out',         type: 'chase'  },
+            { name: 'inside-out-up',  type: 'chase'  },
+            { name: 'away-out-mid',   type: 'chase'  },
+            { name: 'inside-out-mid', type: 'chase'  },
+            { name: 'away-out-down',  type: 'chase'  },
+            { name: 'down-out',       type: 'chase'  },
+            { name: 'inside-out-down',type: 'chase'  },
+        ]
+    },
+    {
+        name: 'Zone D - Inside/Away',
+        terminology: 'inside-away',
+        availableLocations: [
+            { name: 'away-up',     type: 'strike' },
+            { name: 'inside-up',   type: 'strike' },
+            { name: 'away-down',   type: 'strike' },
+            { name: 'inside-down', type: 'strike' },
+            { name: 'away-out',    type: 'chase'  },
+            { name: 'inside-out',  type: 'chase'  },
+            { name: 'up-out',      type: 'chase'  },
+            { name: 'down-out',    type: 'chase'  },
         ]
     },
 ];
