@@ -98,13 +98,20 @@ router.put('/:id', isLoggedIn, isOwner, upload.single('logo'), async (req, res, 
         team.secondaryColor = sanitizeColor(t.secondaryColor, team.secondaryColor);
         team.strikeColor    = sanitizeColor(t.strikeColor,    team.strikeColor);
         team.chaseColor     = sanitizeColor(t.chaseColor,     team.chaseColor);
-        if (req.file) {
+
+        // Remove logo if checkbox was checked
+        if (t.removeLogo === 'true' && team.logo) {
+            await deleteFromCloudinary(team.logo);
+            team.logo = '';
+        // Otherwise upload a new logo if one was provided
+        } else if (req.file) {
             team.logo = await uploadToCloudinary(req.file.buffer, 'pitchshuffle/logos', {
                 public_id:      `logo_${team._id}`,
                 overwrite:      true,
                 transformation: [{ width: 400, height: 400, crop: 'fill' }]
             });
         }
+
         await team.save();
         req.flash('success', 'Team updated.');
         res.redirect(`/teams/${team._id}`);

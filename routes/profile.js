@@ -5,7 +5,7 @@ const Team     = require('../models/team');
 const Pitcher  = require('../models/pitcher');
 const StrikeZone = require('../models/strikeZone');
 const { isLoggedIn }          = require('../middleware');
-const { upload, uploadToCloudinary } = require('../upload');
+const { upload, uploadToCloudinary, deleteFromCloudinary } = require('../upload');
 
 // Show profile
 router.get('/', isLoggedIn, async (req, res) => {
@@ -79,6 +79,22 @@ router.post('/avatar', isLoggedIn, upload.single('avatar'), async (req, res) => 
     } catch (e) {
         console.error(e);
         req.flash('error', 'Image upload failed. Please try again.');
+        res.redirect('/profile');
+    }
+});
+
+// Remove avatar
+router.delete('/avatar', isLoggedIn, async (req, res) => {
+    try {
+        if (req.user.avatar) {
+            await deleteFromCloudinary(req.user.avatar);
+            await User.findByIdAndUpdate(req.user._id, { avatar: '' });
+        }
+        req.flash('success', 'Profile picture removed.');
+        res.redirect('/profile');
+    } catch (e) {
+        console.error(e);
+        req.flash('error', 'Could not remove profile picture.');
         res.redirect('/profile');
     }
 });

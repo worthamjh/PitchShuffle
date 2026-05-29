@@ -20,7 +20,15 @@
                     <div class="mb-2 d-flex align-items-center gap-3">
                         <img src="<%= team.logo %>" alt="Current logo"
                              style="width:60px;height:60px;border-radius:10px;object-fit:cover;border:2px solid var(--ps-navy);">
-                        <span class="text-muted small">Current logo — upload a new one to replace it</span>
+                        <div>
+                            <div class="text-muted small mb-1">Current logo — upload a new one to replace it</div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="removeLogo" name="team[removeLogo]" value="true">
+                                <label class="form-check-label text-danger small" for="removeLogo">
+                                    <i class="bi bi-trash"></i> Remove logo
+                                </label>
+                            </div>
+                        </div>
                     </div>
                 <% } %>
                 <input type="file" class="form-control" id="logo" name="logo" accept="image/*">
@@ -29,7 +37,12 @@
 
             <!-- Team Colors -->
             <div class="mb-4">
-                <label class="form-label fw-bold">Team Colors</label>
+                <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
+                    <label class="form-label fw-bold mb-0">Team Colors</label>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="restoreDefaultColors">
+                        <i class="bi bi-arrow-counterclockwise"></i> Restore Defaults
+                    </button>
+                </div>
                 <div class="row g-3">
                     <div class="col-sm-6">
                         <label for="primaryColor" class="form-label">Primary Color</label>
@@ -85,6 +98,33 @@
             const secondaryColor = document.getElementById('secondaryColor');
             const strikeColor    = document.getElementById('strikeColor');
             const chaseColor     = document.getElementById('chaseColor');
+
+            const DEFAULTS = {
+                primary:   '#1a2e4a',
+                secondary: '#4a7fa5',
+                strike:    '#c8ecd4',
+                chase:     '#fef3cd'
+            };
+
+            // Restore defaults button
+            document.getElementById('restoreDefaultColors').addEventListener('click', () => {
+                primaryColor.value   = DEFAULTS.primary;
+                secondaryColor.value = DEFAULTS.secondary;
+                strikeColor.value    = DEFAULTS.strike;
+                chaseColor.value     = DEFAULTS.chase;
+                checkColors();
+            });
+
+            // If "Remove logo" is checked, disable the file input (no point uploading
+            // a new one at the same time as removing the existing one)
+            const removeLogoCheckbox = document.getElementById('removeLogo');
+            const logoInput          = document.getElementById('logo');
+            if (removeLogoCheckbox) {
+                removeLogoCheckbox.addEventListener('change', () => {
+                    logoInput.disabled = removeLogoCheckbox.checked;
+                    if (removeLogoCheckbox.checked) logoInput.value = '';
+                });
+            }
 
             // Insert warning elements after each color pair
             const navWarning = document.createElement('div');

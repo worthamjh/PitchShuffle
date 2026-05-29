@@ -29,6 +29,13 @@
                                onchange="this.form.submit()">
                     </label>
                 </form>
+                <% if (user.avatar) { %>
+                    <form action="/profile/avatar?_method=DELETE" method="POST" class="mt-1">
+                        <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+                            <i class="bi bi-trash"></i> Remove
+                        </button>
+                    </form>
+                <% } %>
             </div>
 
             <!-- Info -->
@@ -347,7 +354,7 @@ document.getElementById('testVoiceBtn').addEventListener('click', () => {
                 </h2>
                 <div id="help1" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
                     <div class="accordion-body text-muted">
-                        PitchShuffle is a pitch-calling tool for coaches and catchers. During a game, you select a pitch type and a location in the strike zone, and the app announces the call out loud — so your catcher knows exactly what to throw without any visible sign communication.
+                        PitchShuffle is a pitch-calling tool for coaches and catchers. During a game, connect your device to a Bluetooth earpiece worn by your catcher — then simply select a pitch type and location in the strike zone, and the call is announced directly to their earpiece, keeping your pitch selection completely hidden from the opposing team.
                         <br><br>
                         You can also let the app call pitches for you using the <strong>Random</strong> button, which picks a pitch type and location automatically.
                     </div>
@@ -409,7 +416,7 @@ document.getElementById('testVoiceBtn').addEventListener('click', () => {
                         <strong>Colored locations</strong> are active — they'll show up in the game and in the random pool.<br>
                         <strong>Grayed-out locations</strong> are disabled from randomization — you can still call them manually during a game, but they won't be included when using the Random button.
                         <br><br>
-                        Use this to tailor each pitcher's repertoire. For example, you might only enable down-and-away locations for a changeup, or keep a curveball limited to glove-side locations.
+                        Use this to tailor each pitcher's repertoire. For example, you might only enable arm side-down locations for a changeup, or keep a curveball limited to glove-side locations.
                     </div>
                 </div>
             </div>
