@@ -75,12 +75,13 @@ router.post('/', isLoggedIn, isOwner, async (req, res, next) => {
         pitcherBody.name = [pitcherBody.firstName, pitcherBody.lastName].filter(Boolean).join(' ');
         const pitcher = new Pitcher(pitcherBody);
         pitcher.pitchTypes = (pitcher.pitchTypes || []).filter(pt => pt.name && pt.name.trim());
-        for (let pitchType of pitcher.pitchTypes) {
-            pitchType.locations = zone.availableLocations.map(loc => ({
-                name:    loc.name,
-                type:    loc.type,
-                enabled: true
-            }));
+        for (let i = 0; i < pitcher.pitchTypes.length; i++) {
+            const submittedLocs = pitchTypes[i]?.locations || [];
+            pitcher.pitchTypes[i].locations = zone.availableLocations.map((loc, j) => {
+                const submitted = submittedLocs[j];
+                const enabled = submitted ? submitted.enabled !== 'false' && submitted.enabled !== false : true;
+                return { name: loc.name, type: loc.type, enabled };
+            });
         }
         await pitcher.save();
         team.pitchers.push(pitcher);

@@ -22,6 +22,9 @@
         margin: 0 auto; background: var(--ps-card-bg);
         overflow: hidden; box-shadow: 0 0 40px rgba(0,0,0,0.4);
     }
+    @media (min-width: 600px) {
+        .game-page { max-width: 100%; box-shadow: none; }
+    }
     .pitch-row {
         display: flex; flex-direction: row; flex-wrap: wrap;
         gap: 0.4rem; padding: 0.3rem 0.75rem;
@@ -372,14 +375,32 @@
     _boxSize = Math.max(_boxSize, 44);
     if (maxRow <= 2) _boxSize = Math.min(_boxSize, 120);
 
-    grid.style.gridTemplateRows    = `repeat(${maxRow}, ${_boxSize}px)`;
-    grid.style.gridTemplateColumns = `repeat(${maxCol}, ${_boxSize}px)`;
+        grid.style.gridTemplateRows    = `repeat(${maxRow}, ${_boxSize}px)`;
+        grid.style.gridTemplateColumns = `repeat(${maxCol}, ${_boxSize}px)`;
+
+        // Add corner fillers for Zone D BEFORE the location cells
+        if (isZoneD(zoneLocations)) {
+            const cornerPositions = [
+                { row: 1, col: isRHP ? 1 : 4 },
+                { row: 1, col: isRHP ? 4 : 1 },
+                { row: 4, col: isRHP ? 1 : 4 },
+                { row: 4, col: isRHP ? 4 : 1 },
+            ];
+            cornerPositions.forEach(pos => {
+                const filler = document.createElement('div');
+                filler.className = 'loc-box chase';
+                filler.style.gridRow       = String(pos.row);
+                filler.style.gridColumn    = String(pos.col);
+                filler.style.pointerEvents = 'none';
+                filler.style.cursor        = 'default';
+                grid.appendChild(filler);
+            });
+        }
 
         zoneLocations.forEach(loc => {
             const pos = layout[loc.name];
             if (!pos) return;
             const box = document.createElement('div');
-            // anchor = invisible placeholder; chase = normal chase cell; strike = strike cell
             const cls = pos.anchor ? 'anchor' : (loc.type === 'chase' ? 'chase' : 'strike');
             box.className        = `loc-box ${cls}`;
             box.textContent      = pos.anchor ? '' : loc.name.replace(/-/g, ' ');
