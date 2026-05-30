@@ -8,100 +8,51 @@
     }
     @keyframes pulse { from { opacity: 0.3; transform: scale(0.8); } to { opacity: 1; transform: scale(1.2); } }
 
-    /* Lock the page to viewport — no scrolling */
     html { height: 100%; }
     body { height: 100%; overflow: hidden; display: block !important; }
     main { padding: 0 !important; margin: 0 !important; max-width: 100% !important; width: 100% !important; overflow: hidden; }
     .container.mt-3 { display: none !important; }
     .navbar { position: relative; z-index: 1050; }
     .navbar-collapse { z-index: 1050; }
-
     body { background: #2a2a2a; }
 
     .game-page {
-        display: flex;
-        flex-direction: column;
-        height: calc(100vh - 56px);
-        width: 100%;
-        max-width: 430px;
-        margin: 0 auto;
-        background: var(--ps-card-bg);
-        overflow: hidden;
-        box-shadow: 0 0 40px rgba(0,0,0,0.4);
+        display: flex; flex-direction: column;
+        height: calc(100vh - 56px); width: 100%; max-width: 430px;
+        margin: 0 auto; background: var(--ps-card-bg);
+        overflow: hidden; box-shadow: 0 0 40px rgba(0,0,0,0.4);
     }
-
     .pitch-row {
-        display: flex;
-        flex-direction: row;
-        flex-wrap: wrap;
-        gap: 0.4rem;
-        padding: 0.3rem 0.75rem;
-        background: #f8f9fa;
-        border-bottom: 1px solid #dee2e6;
-        flex-shrink: 0;
-        max-height: 96px;
-        overflow-y: auto;
-        scrollbar-width: none;
+        display: flex; flex-direction: row; flex-wrap: wrap;
+        gap: 0.4rem; padding: 0.3rem 0.75rem;
+        background: #f8f9fa; border-bottom: 1px solid #dee2e6;
+        flex-shrink: 0; max-height: 96px; overflow-y: auto; scrollbar-width: none;
     }
     .pitch-row::-webkit-scrollbar { display: none; }
-
-    .pitch-btn {
-        flex: 1 1 calc(25% - 0.4rem);
-        min-width: calc(25% - 0.4rem);
-    }
+    .pitch-btn { flex: 1 1 calc(25% - 0.4rem); min-width: calc(25% - 0.4rem); }
     .pitch-btn:hover  { background: #dce6f0; }
     .pitch-btn.active { background: var(--ps-navy); border-color: var(--ps-navy); color: var(--accent-text, #fff); }
 
     .zone-area {
-        flex: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-        padding: 0.25rem;
+        flex: 1; display: flex; align-items: center;
+        justify-content: center; overflow: hidden; padding: 0.25rem;
     }
-
-    .zone-col {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-        height: 100%;
-    }
-
+    .zone-col { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
     .zone-grid-wrapper { display: inline-block; position: relative; }
-    .zone-grid         { display: grid; gap: 0; border: 2px solid #adb5bd; }
-
+    .zone-grid { display: grid; gap: 0; border: 2px solid #adb5bd; }
     .pitchers-view-label {
-        font-size: 0.6rem;
-        font-weight: 600;
-        color: #6c757d;
-        text-align: center;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
-        margin-bottom: 2px;
+        font-size: 0.6rem; font-weight: 600; color: #6c757d;
+        text-align: center; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 2px;
     }
-
     .action-row {
-        display: flex;
-        flex-direction: row;
-        gap: 0.4rem;
-        padding: 0.3rem 0.75rem;
-        background: #f8f9fa;
-        border-top: 1px solid #dee2e6;
-        flex-shrink: 0;
+        display: flex; flex-direction: row; gap: 0.4rem;
+        padding: 0.3rem 0.75rem; background: #f8f9fa;
+        border-top: 1px solid #dee2e6; flex-shrink: 0;
     }
-
     .action-btn {
-        flex: 1;
-        padding: 0.4rem 0.3rem;
-        border-radius: var(--btn-radius);
-        font-size: 0.78rem;
-        font-weight: 700;
-        text-align: center;
-        cursor: pointer;
-        border: 2px solid transparent;
-        user-select: none;
+        flex: 1; padding: 0.4rem 0.3rem; border-radius: var(--btn-radius);
+        font-size: 0.78rem; font-weight: 700; text-align: center; cursor: pointer;
+        border: 2px solid transparent; user-select: none;
         transition: background 0.15s, border-color 0.15s, color 0.15s;
     }
     .btn-random { background: #e8f4fd; border-color: #4a9edd; color: #1a5f8a; }
@@ -113,176 +64,80 @@
     .btn-repeat.disabled-btn { opacity: 0.45; pointer-events: none; }
 
     .call-bar {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 0.5rem;
-        padding: 1.25rem 0.75rem 1.5rem;
-        background: var(--ps-navy);
-        color: var(--accent-text, #fff);
-        flex-shrink: 0;
-        min-height: 100px;
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 0.5rem; padding: 1.25rem 0.75rem 1.5rem;
+        background: var(--ps-navy); color: var(--accent-text, #fff);
+        flex-shrink: 0; min-height: 100px;
     }
     .call-info { flex: 1; min-width: 0; }
     .call-label { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em; opacity: 0.8; }
     .call-text  { font-size: 0.95rem; font-weight: 700; line-height: 1.3; }
-
     .btn-call {
-        background: #fff;
-        color: var(--ps-navy);
-        border: none;
-        border-radius: var(--btn-radius);
-        padding: 0.75rem 1.25rem;
-        font-size: 1rem;
-        font-weight: 700;
-        cursor: pointer;
-        flex-shrink: 0;
+        background: #fff; color: var(--ps-navy); border: none;
+        border-radius: var(--btn-radius); padding: 0.75rem 1.25rem;
+        font-size: 1rem; font-weight: 700; cursor: pointer; flex-shrink: 0;
         transition: background 0.15s, opacity 0.15s;
     }
     .btn-call:hover { background: #e0ecf8; }
     .btn-call.disabled-btn { opacity: 0.45; pointer-events: none; }
 
     .zone-col .loc-box {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.55rem;
-        font-weight: 600;
-        text-align: center;
-        cursor: pointer;
-        border: 1px solid #dee2e6;
-        user-select: none;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.55rem; font-weight: 600; text-align: center; cursor: pointer;
+        border: 1px solid #dee2e6; user-select: none;
         transition: background 0.12s, border-color 0.12s;
-        box-sizing: border-box;
-        line-height: 1.1;
-        padding: 2px;
+        box-sizing: border-box; line-height: 1.1; padding: 2px;
     }
-    @media (min-width: 400px) {
-        .zone-col .loc-box,
-        .zone-col .chase-overlay { font-size: 0.6rem; }
-    }
-    @media (min-width: 600px) {
-        .zone-col .loc-box,
-        .zone-col .chase-overlay { font-size: 0.7rem; }
-    }
+    @media (min-width: 400px) { .zone-col .loc-box, .zone-col .chase-overlay { font-size: 0.6rem; } }
+    @media (min-width: 600px) { .zone-col .loc-box, .zone-col .chase-overlay { font-size: 0.7rem; } }
 
     .loc-box.strike       { background: var(--strike-bg); border-color: var(--strike-border); color: var(--strike-text); }
     .loc-box.chase        { background: var(--chase-bg);  border-color: var(--chase-border);  color: var(--chase-text); }
+    .loc-box.anchor       { background: transparent; border-color: transparent; pointer-events: none; cursor: default; }
     .loc-box.covered      { visibility: hidden; pointer-events: none; }
     .loc-box.selected-loc { outline: 3px solid var(--ps-navy); outline-offset: -2px; z-index: 2; }
 
     .chase-overlay {
-        position: absolute;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.55rem;
-        font-weight: 600;
-        text-align: center;
-        cursor: pointer;
-        background: var(--chase-bg);
-        border: 1px solid var(--chase-border);
-        color: var(--chase-text);
-        box-sizing: border-box;
-        z-index: 3;
-        user-select: none;
-        transition: background 0.12s;
+        position: absolute; display: flex; align-items: center; justify-content: center;
+        font-size: 0.55rem; font-weight: 600; text-align: center; cursor: pointer;
+        background: var(--chase-bg); border: 1px solid var(--chase-border); color: var(--chase-text);
+        box-sizing: border-box; z-index: 3; user-select: none; transition: background 0.12s;
     }
     .chase-overlay.selected-loc { outline: 3px solid var(--ps-navy); outline-offset: -2px; }
+    .strike-zone-outline { position: absolute; border: 3px solid var(--ps-navy); pointer-events: none; z-index: 4; box-sizing: border-box; }
 
-    .strike-zone-outline {
-        position: absolute;
-        border: 3px solid var(--ps-navy);
-        pointer-events: none;
-        z-index: 4;
-        box-sizing: border-box;
-    }
-
-    [data-theme='dark'] .pitch-row,
-    [data-theme='dark'] .action-row { background: #1a2535; border-color: #2a3f5a; }
+    [data-theme='dark'] .pitch-row, [data-theme='dark'] .action-row { background: #1a2535; border-color: #2a3f5a; }
     [data-theme='dark'] .pitch-btn  { background: #243350; border-color: #2a3f5a; color: var(--ps-navy-muted); }
     [data-theme='dark'] .pitch-btn.active { background: var(--ps-navy); color: var(--accent-text, #fff); }
 
-    .special-row {
-        display: flex;
-        gap: 0.4rem;
-        padding: 0.3rem 0.75rem;
-        background: var(--ps-card-bg);
-        border-top: 1px solid #dee2e6;
-        flex-shrink: 0;
-    }
+    .special-row { display: flex; gap: 0.4rem; padding: 0.3rem 0.75rem; background: var(--ps-card-bg); border-top: 1px solid #dee2e6; flex-shrink: 0; }
     .btn-pickoff  { background: #e8f4fd; border: 2px solid #4a9edd; color: #1a5f8a; flex: 1; border-radius: var(--btn-radius); padding: 0.35rem 0.5rem; font-size: 0.95rem; font-weight: 700; cursor: pointer; }
     .btn-pitchout { background: #fff3e0; border: 2px solid #e67e22; color: #7d4000; flex: 1; border-radius: var(--btn-radius); padding: 0.35rem 0.5rem; font-size: 0.95rem; font-weight: 700; cursor: pointer; }
     .btn-pickoff:hover  { background: #4a9edd; color: #fff; }
     .btn-pitchout:hover { background: #e67e22; color: #fff; }
 
-    .pickoff-overlay {
-        position: fixed; inset: 0;
-        background: rgba(0,0,0,0.55);
-        z-index: 200;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    .pickoff-diamond {
-        background: var(--ps-card-bg);
-        border-radius: 16px;
-        padding: 2rem 1.5rem 1.5rem;
-        width: 280px;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        grid-template-rows: auto auto auto;
-        gap: 0.75rem;
-        text-align: center;
-    }
+    .pickoff-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 200; display: flex; align-items: center; justify-content: center; }
+    .pickoff-diamond { background: var(--ps-card-bg); border-radius: 16px; padding: 2rem 1.5rem 1.5rem; width: 280px; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto auto; gap: 0.75rem; text-align: center; }
     .pickoff-diamond .base-2nd { grid-column: 1 / span 2; justify-self: center; width: 50%; }
-    .pickoff-diamond .base-btn {
-        padding: 0.75rem 0.5rem; border-radius: 10px; font-size: 1rem; font-weight: 700;
-        cursor: pointer; border: 2px solid #4a9edd; background: #e8f4fd; color: #1a5f8a;
-    }
+    .pickoff-diamond .base-btn { padding: 0.75rem 0.5rem; border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer; border: 2px solid #4a9edd; background: #e8f4fd; color: #1a5f8a; }
     .pickoff-diamond .base-btn:hover { background: #4a9edd; color: #fff; }
-    .pickoff-diamond .btn-cancel-pickoff {
-        padding: 0.75rem 0.5rem; border-radius: 10px; font-size: 1rem; font-weight: 700;
-        cursor: pointer; border: 2px solid #adb5bd; background: #f8f9fa; color: #495057;
-    }
+    .pickoff-diamond .btn-cancel-pickoff { padding: 0.75rem 0.5rem; border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer; border: 2px solid #adb5bd; background: #f8f9fa; color: #495057; }
     .pickoff-diamond .btn-cancel-pickoff:hover { background: #dee2e6; }
     [data-theme="dark"] .pickoff-diamond { background: #1a2535; }
     [data-theme="dark"] .special-row { background: #1a2535; border-color: #2a3f5a; }
 
-    [data-theme="dark"] .loc-box.strike {
-        background: var(--strike-bg); border-color: var(--strike-border); color: var(--strike-text);
-        filter: brightness(0.6) saturate(0.9);
-    }
+    [data-theme="dark"] .loc-box.strike { background: var(--strike-bg); border-color: var(--strike-border); color: var(--strike-text); filter: brightness(0.6) saturate(0.9); }
     [data-theme="dark"] .loc-box.strike:hover { filter: brightness(0.8) saturate(1); }
-    [data-theme="dark"] .loc-box.chase {
-        background: var(--chase-bg); border-color: var(--chase-border); color: var(--chase-text);
-        filter: brightness(0.6) saturate(0.9);
-    }
+    [data-theme="dark"] .loc-box.chase  { background: var(--chase-bg); border-color: var(--chase-border); color: var(--chase-text); filter: brightness(0.6) saturate(0.9); }
     [data-theme="dark"] .loc-box.chase:hover { filter: brightness(0.8) saturate(1); }
-    [data-theme="dark"] .chase-overlay {
-        background: var(--chase-bg); border-color: var(--chase-border); color: var(--chase-text);
-        filter: brightness(0.6) saturate(0.9);
-    }
+    [data-theme="dark"] .chase-overlay  { background: var(--chase-bg); border-color: var(--chase-border); color: var(--chase-text); filter: brightness(0.6) saturate(0.9); }
     [data-theme="dark"] .chase-overlay:hover { filter: brightness(0.8) saturate(1); }
-    [data-theme="dark"] .loc-box.disabled,
-    [data-theme="dark"] .chase-overlay.disabled { filter: none; }
+    [data-theme="dark"] .loc-box.disabled, [data-theme="dark"] .chase-overlay.disabled { filter: none; }
 
-    .ps-tour-overlay {
-        position: fixed; inset: 0; z-index: 3000;
-        pointer-events: none; display: none;
-    }
+    .ps-tour-overlay { position: fixed; inset: 0; z-index: 3000; pointer-events: none; display: none; }
     .ps-tour-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.62); pointer-events: none; }
-    .ps-tour-highlight {
-        position: absolute; border-radius: 8px;
-        box-shadow: 0 0 0 9999px rgba(0,0,0,0.62);
-        z-index: 3001; pointer-events: none;
-        border: 2px solid rgba(255,255,255,0.45);
-    }
-    .ps-tour-card {
-        position: absolute; background: #fff; border-radius: 14px;
-        padding: 1rem 1.25rem 0.85rem; max-width: 300px; width: 88%;
-        z-index: 3002; pointer-events: all;
-    }
+    .ps-tour-highlight { position: absolute; border-radius: 8px; box-shadow: 0 0 0 9999px rgba(0,0,0,0.62); z-index: 3001; pointer-events: none; border: 2px solid rgba(255,255,255,0.45); }
+    .ps-tour-card { position: absolute; background: #fff; border-radius: 14px; padding: 1rem 1.25rem 0.85rem; max-width: 300px; width: 88%; z-index: 3002; pointer-events: all; }
     [data-theme='dark'] .ps-tour-card { background: #1a2535; color: #e8edf2; }
     .ps-tour-step-label { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #8fa8c8; margin-bottom: 0.3rem; }
     .ps-tour-card h4 { font-size: 0.95rem; font-weight: 700; margin: 0 0 0.35rem; color: var(--ps-navy, #1a2e4a); line-height: 1.3; }
@@ -297,12 +152,8 @@
 </style>
 
 <div class="game-page">
-
-    <!-- Game header -->
     <div class="game-header">
-        <a href="/teams/<%= team._id %>" class="btn btn-sm btn-outline-light">
-            <i class="bi bi-arrow-left"></i>
-        </a>
+        <a href="/teams/<%= team._id %>" class="btn btn-sm btn-outline-light"><i class="bi bi-arrow-left"></i></a>
         <div class="pitcher-info">
             <div class="pitcher-name">#<%= pitcher.number %> <%= pitcher.name %></div>
             <div class="pitcher-meta"><%= pitcher.throws === 'R' ? 'RHP' : 'LHP' %> &middot; <%= pitcher.zone ? pitcher.zone.name : 'No Zone' %></div>
@@ -312,10 +163,8 @@
         </a>
     </div>
 
-    <!-- Terminology mismatch banner -->
     <%
-        const _gUserTerm    = (currentUser && currentUser.preferences && currentUser.preferences.zoneTerminology)
-            ? currentUser.preferences.zoneTerminology : 'arm-glove';
+        const _gUserTerm    = (currentUser && currentUser.preferences && currentUser.preferences.zoneTerminology) ? currentUser.preferences.zoneTerminology : 'arm-glove';
         const _gPitcherTerm = pitcher.zone && pitcher.zone.terminology ? pitcher.zone.terminology : null;
         const _gTermMismatch = _gPitcherTerm && _gPitcherTerm !== 'both' && _gPitcherTerm !== _gUserTerm;
         const _gPitcherTermLabel = _gPitcherTerm === 'arm-glove' ? 'Arm/Glove' : 'Inside/Away';
@@ -325,25 +174,18 @@
     <div class="alert alert-warning d-flex align-items-center gap-2 mx-2 mt-2 mb-0" role="alert">
         <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
         <div class="small">
-            <strong>Zone terminology mismatch:</strong> This pitcher's locations are saved as
-            <strong><%= _gPitcherTermLabel %></strong> zones, but your preference is
-            <strong><%= _gUserTermLabel %></strong>. Pitch calls will use the old terminology.
-            <a href="/teams/<%= team._id %>/pitchers/<%= pitcher._id %>/edit" class="alert-link fw-bold">Edit this pitcher</a>
-            and re-select a strike zone to reset to <strong><%= _gUserTermLabel %></strong>.
+            <strong>Zone terminology mismatch:</strong> This pitcher's locations are saved as <strong><%= _gPitcherTermLabel %></strong> zones, but your preference is <strong><%= _gUserTermLabel %></strong>.
+            <a href="/teams/<%= team._id %>/pitchers/<%= pitcher._id %>/edit" class="alert-link fw-bold">Edit this pitcher</a> and re-select a strike zone to reset.
         </div>
     </div>
     <% } %>
 
-    <!-- Pitch buttons row -->
     <div class="pitch-row" id="pitchRow">
         <% pitcher.pitchTypes.forEach(function(pt, i) { %>
-            <button class="pitch-btn" data-pitch-index="<%= i %>">
-                <%= pt.abbreviation || pt.name %>
-            </button>
+            <button class="pitch-btn" data-pitch-index="<%= i %>"><%= pt.abbreviation || pt.name %></button>
         <% }); %>
     </div>
 
-    <!-- Zone -->
     <div class="zone-area">
         <div class="zone-col">
             <div class="zone-grid-wrapper" id="zoneWrapper">
@@ -353,32 +195,26 @@
         </div>
     </div>
 
-    <!-- Pickoff overlay -->
     <div class="pickoff-overlay" id="pickoffOverlay" style="display:none;">
         <div class="pickoff-diamond">
-            <div class="base-2nd">
-                <button class="base-btn" data-base="2nd">2nd Base</button>
-            </div>
+            <div class="base-2nd"><button class="base-btn" data-base="2nd">2nd Base</button></div>
             <button class="base-btn" data-base="3rd">3rd Base</button>
             <button class="base-btn" data-base="1st">1st Base</button>
             <button class="btn-cancel-pickoff" id="btnCancelPickoff"><i class="bi bi-x-circle"></i> Cancel</button>
         </div>
     </div>
 
-    <!-- Pickoff / Pitchout row -->
     <div class="special-row">
         <button class="btn-pickoff" id="btnPickoff"><i class="bi bi-person-fill-slash"></i> Pickoff</button>
         <button class="btn-pitchout" id="btnPitchout"><i class="bi bi-slash-circle"></i> Pitchout</button>
     </div>
 
-    <!-- Action buttons row -->
     <div class="action-row" id="actionRow">
         <button class="action-btn btn-random" id="btnRandom"><i class="bi bi-shuffle"></i> Random</button>
         <button class="action-btn btn-clear"  id="btnClear"><i class="bi bi-x-circle"></i> Clear</button>
         <button class="action-btn btn-repeat disabled-btn" id="btnRepeat"><i class="bi bi-arrow-repeat"></i> Repeat</button>
     </div>
 
-    <!-- Call bar -->
     <div class="call-bar" id="callBar">
         <div class="call-info">
             <div class="call-label">SELECT PITCH &amp; LOCATION</div>
@@ -387,7 +223,6 @@
         <button class="btn-call disabled-btn" id="btnCall"><i class="bi bi-megaphone"></i> Call Pitch</button>
     </div>
 
-    <!-- Tour -->
     <div class="ps-tour-overlay" id="psTourOverlay">
         <div class="ps-tour-backdrop"></div>
         <div class="ps-tour-highlight" id="psTourHighlight"></div>
@@ -401,12 +236,9 @@
             </div>
         </div>
     </div>
+</div>
 
-</div><!-- end .game-page -->
-
-<!-- Data -->
 <script type="application/json" id="pitcherJson"><%- JSON.stringify(pitcher) %></script>
-
 <script>
     const pitcherData   = JSON.parse(document.getElementById('pitcherJson').textContent);
     const isRHP         = pitcherData.throws === 'R';
@@ -437,22 +269,17 @@
         'down-out':       { row: 5, col: 2 },
         'arm-out-down':   { row: 5, col: isRHP ? 5 : 1 },
     };
-
-    // Zone D: 2x2 strike zone, 4 surrounding chase zones
-    // Grid is 4 cols x 4 rows:
-    //   col1=glove-out, col2=glove strikes, col3=arm strikes, col4=arm-out
-    //   row1=up-out, row2=up strikes, row3=down strikes, row4=down-out
+    // Zone D: chase cells are invisible anchors, strike cells are solid 2x2
     const LAYOUTS_D = {
-        'up-out':     { row: 1, col: 2, colSpan: 2 },
-        'glove-out':  { row: 2, col: isRHP ? 1 : 4, rowSpan: 2 },
+        'up-out':     { row: 1, col: 2, colSpan: 2, anchor: true },
+        'glove-out':  { row: 2, col: isRHP ? 1 : 4, rowSpan: 2, anchor: true },
         'glove-up':   { row: 2, col: isRHP ? 2 : 3, strike: true },
         'arm-up':     { row: 2, col: isRHP ? 3 : 2, strike: true },
-        'arm-out':    { row: 2, col: isRHP ? 4 : 1, rowSpan: 2 },
+        'arm-out':    { row: 2, col: isRHP ? 4 : 1, rowSpan: 2, anchor: true },
         'glove-down': { row: 3, col: isRHP ? 2 : 3, strike: true },
         'arm-down':   { row: 3, col: isRHP ? 3 : 2, strike: true },
-        'down-out':   { row: 4, col: 2, colSpan: 2 },
+        'down-out':   { row: 4, col: 2, colSpan: 2, anchor: true },
     };
-
     const LAYOUTS_A = {
         'arm-side':   { row: 1, col: isRHP ? 2 : 1, strike: true },
         'glove-side': { row: 1, col: isRHP ? 1 : 2, strike: true },
@@ -484,81 +311,78 @@
         'down-out':        { row: 5, col: 2 },
         'inside-out-down': { row: 5, col: 5 },
     };
-
-    // Zone D Inside/Away — fixed layout, no LHP flip
     const LAYOUTS_D_IA = {
-        'up-out':      { row: 1, col: 2, colSpan: 2 },
-        'away-out':    { row: 2, col: 1, rowSpan: 2 },
+        'up-out':      { row: 1, col: 2, colSpan: 2, anchor: true },
+        'away-out':    { row: 2, col: 1, rowSpan: 2, anchor: true },
         'away-up':     { row: 2, col: 2, strike: true },
         'inside-up':   { row: 2, col: 3, strike: true },
-        'inside-out':  { row: 2, col: 4, rowSpan: 2 },
+        'inside-out':  { row: 2, col: 4, rowSpan: 2, anchor: true },
         'away-down':   { row: 3, col: 2, strike: true },
         'inside-down': { row: 3, col: 3, strike: true },
-        'down-out':    { row: 4, col: 2, colSpan: 2 },
+        'down-out':    { row: 4, col: 2, colSpan: 2, anchor: true },
     };
 
     function getLayout(locs) {
         const n = new Set(locs.map(l => l.name));
         if (n.has('mid-up') && n.has('glove-up'))  return LAYOUTS_C;
         if (n.has('mid-up') && n.has('inside-up')) return LAYOUTS_C_IA;
-        if (n.has('glove-up') && n.has('arm-up'))  return LAYOUTS_D;      // Zone D: no mid-up
-        if (n.has('away-up') && n.has('inside-up'))return LAYOUTS_D_IA;   // Zone D IA: no mid-up
+        if (n.has('glove-up') && n.has('arm-up'))  return LAYOUTS_D;
+        if (n.has('away-up') && n.has('inside-up'))return LAYOUTS_D_IA;
         if (n.has('arm-side'))    return LAYOUTS_A;
         if (n.has('inside-side')) return LAYOUTS_A_IA;
         if (n.has('up'))          return LAYOUTS_B;
         return LAYOUTS_C;
     }
 
-    // Returns true for any zone that uses chase overlays (C and D)
     const usesOverlays = locs => {
         const n = new Set(locs.map(l => l.name));
         return n.has('glove-up') || n.has('inside-up') || n.has('away-up');
     };
-
     const isZoneD = locs => {
         const n = new Set(locs.map(l => l.name));
         return (n.has('glove-up') || n.has('away-up')) && !n.has('mid-up');
     };
 
-    // ── Build grid ────────────────────────────────────────────
     let _boxSize = 70;
 
     function buildGrid() {
-        const grid    = document.getElementById('zoneGrid');
-        const wrapper = document.getElementById('zoneWrapper');
-        grid.innerHTML = '';
-        wrapper.querySelectorAll('.chase-overlay, .strike-zone-outline').forEach(el => el.remove());
-        if (!zoneLocations.length) return;
+    const grid    = document.getElementById('zoneGrid');
+    const wrapper = document.getElementById('zoneWrapper');
+    grid.innerHTML = '';
+    wrapper.querySelectorAll('.chase-overlay, .strike-zone-outline').forEach(el => el.remove());
+    if (!zoneLocations.length) return;
 
-        const layout = getLayout(zoneLocations);
-        const maxRow = Math.max(...Object.values(layout).map(p => (p.row||1) + (p.rowSpan||1) - 1));
-        const maxCol = Math.max(...Object.values(layout).map(p => (p.col||1) + (p.colSpan||1) - 1));
+    const layout = getLayout(zoneLocations);
+    const maxRow = Math.max(...Object.values(layout).map(p => (p.row||1) + (p.rowSpan||1) - 1));
+    const maxCol = Math.max(...Object.values(layout).map(p => (p.col||1) + (p.colSpan||1) - 1));
 
-        const labelEl = wrapper.querySelector('.pitchers-view-label');
-        const labelH  = labelEl ? labelEl.offsetHeight + 2 : 0;
+    const labelEl = wrapper.querySelector('.pitchers-view-label');
+    const labelH  = labelEl ? labelEl.offsetHeight + 2 : 0;
 
-        const zoneArea = document.querySelector('.zone-area');
-        const _availH  = ((zoneArea && zoneArea.offsetHeight > 0)
-            ? zoneArea.offsetHeight
-            : window.innerHeight - 56 - 44 - 44 - 48) - labelH;
+    const zoneArea = document.querySelector('.zone-area');
+    const _availH  = ((zoneArea && zoneArea.offsetHeight > 0)
+        ? zoneArea.offsetHeight
+        : window.innerHeight - 56 - 44 - 44 - 48) - labelH;
 
-        _boxSize = Math.floor(_availH / maxRow);
-        const _availW = window.innerWidth - 4;
-        const _boxW   = Math.floor(_availW / maxCol);
-        _boxSize = Math.min(_boxSize, _boxW);
-        _boxSize = Math.max(_boxSize, 44);
+    _boxSize = Math.floor(_availH / maxRow);
+    const gamePanel = document.querySelector('.game-page');
+    const _availW = (gamePanel ? gamePanel.offsetWidth : window.innerWidth) - 4;
+    const _boxW   = Math.floor(_availW / maxCol);
+    _boxSize = Math.min(_boxSize, _boxW);
+    _boxSize = Math.max(_boxSize, 44);
+    if (maxRow <= 2) _boxSize = Math.min(_boxSize, 120);
 
-        if (maxRow <= 2) _boxSize = Math.min(_boxSize, 120);
-
-        grid.style.gridTemplateRows    = `repeat(${maxRow}, ${_boxSize}px)`;
-        grid.style.gridTemplateColumns = `repeat(${maxCol}, ${_boxSize}px)`;
+    grid.style.gridTemplateRows    = `repeat(${maxRow}, ${_boxSize}px)`;
+    grid.style.gridTemplateColumns = `repeat(${maxCol}, ${_boxSize}px)`;
 
         zoneLocations.forEach(loc => {
             const pos = layout[loc.name];
             if (!pos) return;
             const box = document.createElement('div');
-            box.className        = `loc-box ${loc.type === 'chase' ? 'chase' : 'strike'}`;
-            box.textContent      = loc.name.replace(/-/g, ' ');
+            // anchor = invisible placeholder; chase = normal chase cell; strike = strike cell
+            const cls = pos.anchor ? 'anchor' : (loc.type === 'chase' ? 'chase' : 'strike');
+            box.className        = `loc-box ${cls}`;
+            box.textContent      = pos.anchor ? '' : loc.name.replace(/-/g, ' ');
             box.dataset.locName  = loc.name;
             box.dataset.isStrike = pos.strike ? 'true' : 'false';
             box.style.gridRow    = pos.rowSpan ? `${pos.row} / span ${pos.rowSpan}` : String(pos.row);
@@ -586,22 +410,15 @@
         const labelH       = labelEl ? labelEl.offsetHeight + 2 : 0;
         const strikePosArr = Object.values(layout).filter(p => p.strike);
         if (!strikePosArr.length) return;
-
         let t = Infinity, l = Infinity, b = -Infinity, r = -Infinity;
         strikePosArr.forEach(pos => {
             const bnd = cellBounds(pos);
             t = Math.min(t, bnd.top);    l = Math.min(l, bnd.left);
             b = Math.max(b, bnd.bottom); r = Math.max(r, bnd.right);
         });
-
         const outline = document.createElement('div');
         outline.className = 'strike-zone-outline';
-        Object.assign(outline.style, {
-            top:    (t + 2 + labelH) + 'px',
-            left:   (l + 2) + 'px',
-            width:  (r - l) + 'px',
-            height: (b - t) + 'px'
-        });
+        Object.assign(outline.style, { top: (t + 2 + labelH) + 'px', left: (l + 2) + 'px', width: (r - l) + 'px', height: (b - t) + 'px' });
         wrapper.appendChild(outline);
     }
 
@@ -630,10 +447,9 @@
             const hb = spanBounds(hCellNames);
             const vb = spanBounds(vCellNames);
             if (!isFinite(hb.l) || !isFinite(vb.t)) return;
-
+            // Mark the anchor cell as covered so it doesn't interfere with clicks
             const cell = [...grid.querySelectorAll('.loc-box')].find(el => el.dataset.locName === locName);
             if (cell) cell.classList.add('covered');
-
             const el = document.createElement('div');
             el.className       = 'chase-overlay' + (loc.enabled === false ? ' disabled' : '');
             el.textContent     = label;
@@ -651,24 +467,20 @@
         const isInsideAway = locNames.has('inside-up') || locNames.has('inside-down');
 
         if (isZoneD(zoneLocations)) {
-            // Zone D overlays
             if (isInsideAway) {
-                makeOverlay('up-out',     'up out',     ['away-up', 'inside-up'],   ['up-out']);
-                makeOverlay('down-out',   'down out',   ['away-down', 'inside-down'],['down-out']);
+                makeOverlay('up-out',     'up out',     ['away-up', 'inside-up'],    ['up-out']);
+                makeOverlay('down-out',   'down out',   ['away-down', 'inside-down'], ['down-out']);
                 makeOverlay('away-out',   'away out',   ['away-out'],  ['away-up', 'away-down']);
                 makeOverlay('inside-out', 'inside out', ['inside-out'],['inside-up', 'inside-down']);
             } else {
-                const gloveCol = isRHP ? 'glove-up' : 'arm-up';
-                const armCol   = isRHP ? 'arm-up'   : 'glove-up';
-                makeOverlay('up-out',    'up out',    [gloveCol, armCol],             ['up-out']);
-                makeOverlay('down-out',  'down out',  [isRHP ? 'glove-down' : 'arm-down', isRHP ? 'arm-down' : 'glove-down'], ['down-out']);
+                makeOverlay('up-out',    'up out',   ['glove-up', 'arm-up'],     ['up-out']);
+                makeOverlay('down-out',  'down out', ['glove-down', 'arm-down'], ['down-out']);
                 makeOverlay('glove-out', isRHP ? 'glove out' : 'arm out',
-                    ['glove-out'], [isRHP ? 'glove-up' : 'arm-up', isRHP ? 'glove-down' : 'arm-down']);
+                    ['glove-out'], ['glove-up', 'glove-down']);
                 makeOverlay('arm-out',   isRHP ? 'arm out' : 'glove out',
-                    ['arm-out'],   [isRHP ? 'arm-up' : 'glove-up', isRHP ? 'arm-down' : 'glove-down']);
+                    ['arm-out'],   ['arm-up', 'arm-down']);
             }
         } else {
-            // Zone C overlays
             if (isInsideAway) {
                 makeOverlay('up-out',         'up out',     ['away-up', 'mid-up', 'inside-up'],      ['up-out']);
                 makeOverlay('down-out',       'down out',   ['away-down', 'mid-down', 'inside-down'], ['down-out']);
@@ -677,75 +489,53 @@
             } else {
                 const armOutName   = isRHP ? 'arm-out-mid'   : 'glove-out-mid';
                 const gloveOutName = isRHP ? 'glove-out-mid' : 'arm-out-mid';
-                makeOverlay('up-out',      'up out',
-                    ['glove-up', 'mid-up', 'arm-up'],      ['up-out']);
-                makeOverlay('down-out',    'down out',
-                    ['glove-down', 'mid-down', 'arm-down'], ['down-out']);
+                makeOverlay('up-out',      'up out',    ['glove-up', 'mid-up', 'arm-up'],       ['up-out']);
+                makeOverlay('down-out',    'down out',  ['glove-down', 'mid-down', 'arm-down'],  ['down-out']);
                 makeOverlay(armOutName,   isRHP ? 'arm out'   : 'glove out',
-                    [armOutName],   isRHP ? ['arm-up',   'arm-mid',   'arm-down']   : ['glove-up', 'glove-mid', 'glove-down']);
+                    [armOutName],   isRHP ? ['arm-up','arm-mid','arm-down']     : ['glove-up','glove-mid','glove-down']);
                 makeOverlay(gloveOutName, isRHP ? 'glove out' : 'arm out',
-                    [gloveOutName], isRHP ? ['glove-up', 'glove-mid', 'glove-down'] : ['arm-up',   'arm-mid',   'arm-down']);
+                    [gloveOutName], isRHP ? ['glove-up','glove-mid','glove-down'] : ['arm-up','arm-mid','arm-down']);
             }
         }
     }
 
-    // ── Selection helpers ─────────────────────────────────────
     function selectPitch(index) {
         selectedPitchIndex = index;
-        document.querySelectorAll('.pitch-btn').forEach((btn, i) =>
-            btn.classList.toggle('active', i === index));
-        updateCallBar();
-        updateButtons();
+        document.querySelectorAll('.pitch-btn').forEach((btn, i) => btn.classList.toggle('active', i === index));
+        updateCallBar(); updateButtons();
     }
-
     function selectLocation(locName) {
         selectedLocation = locName;
         highlightLocation(locName);
-        updateCallBar();
-        updateButtons();
+        updateCallBar(); updateButtons();
     }
-
     function highlightLocation(locName) {
         document.querySelectorAll('.loc-box, .chase-overlay').forEach(el =>
             el.classList.toggle('selected-loc', el.dataset.locName === locName));
     }
-
     function clearSelection() {
-        selectedPitchIndex = null;
-        selectedLocation   = null;
+        selectedPitchIndex = null; selectedLocation = null;
         document.querySelectorAll('.pitch-btn').forEach(btn => btn.classList.remove('active'));
-        highlightLocation(null);
-        updateCallBar();
-        updateButtons();
+        highlightLocation(null); updateCallBar(); updateButtons();
     }
 
     const LOC_LABELS = {
-        // Zone C arm/glove
         'glove-up': 'glove side up', 'glove-mid': 'glove side middle', 'glove-down': 'glove side down',
         'arm-up': 'arm side up', 'arm-mid': 'arm side middle', 'arm-down': 'arm side down',
         'mid-up': 'middle up', 'mid-mid': 'middle middle', 'mid-down': 'middle down',
         'glove-out-up': 'glove side up and out', 'glove-out-mid': 'glove side out', 'glove-out-down': 'glove side down and out',
         'arm-out-up': 'arm side up and out', 'arm-out-mid': 'arm side out', 'arm-out-down': 'arm side down and out',
         'up-out': 'up and out', 'down-out': 'down and out',
-        // Zone A arm/glove
-        'glove-side': 'glove side', 'arm-side': 'arm side',
-        // Zone B
-        'up': 'up', 'down': 'down',
-        // Zone C inside/away
+        'glove-side': 'glove side', 'arm-side': 'arm side', 'up': 'up', 'down': 'down',
         'away-up': 'away up', 'away-mid': 'away middle', 'away-down': 'away down',
         'inside-up': 'inside up', 'inside-mid': 'inside middle', 'inside-down': 'inside down',
         'away-out-up': 'away up and out', 'away-out-mid': 'away out', 'away-out-down': 'away down and out',
         'inside-out-up': 'inside up and out', 'inside-out-mid': 'inside out', 'inside-out-down': 'inside down and out',
-        // Zone A inside/away
         'away-side': 'away', 'inside-side': 'inside',
-        // Zone D arm/glove (new)
         'glove-out': 'glove side out', 'arm-out': 'arm side out',
-        // Zone D inside/away (new)
         'away-out': 'away out', 'inside-out': 'inside out',
     };
-    function locLabel(locName) {
-        return LOC_LABELS[locName] || locName.replace(/-/g, ' ');
-    }
+    function locLabel(locName) { return LOC_LABELS[locName] || locName.replace(/-/g, ' '); }
 
     function updateCallBar() {
         const label = document.querySelector('#callBar .call-label');
@@ -755,34 +545,27 @@
             text.textContent  = `${pitchTypes[selectedPitchIndex].name} — ${locLabel(selectedLocation)}`;
             text.style.display = '';
         } else if (selectedPitchIndex !== null) {
-            label.textContent = 'SELECT LOCATION';
-            text.style.display = 'none';
+            label.textContent = 'SELECT LOCATION'; text.style.display = 'none';
         } else if (selectedLocation) {
-            label.textContent = 'SELECT PITCH TYPE';
-            text.style.display = 'none';
+            label.textContent = 'SELECT PITCH TYPE'; text.style.display = 'none';
         } else {
-            label.textContent = 'SELECT PITCH & LOCATION';
-            text.style.display = 'none';
+            label.textContent = 'SELECT PITCH & LOCATION'; text.style.display = 'none';
         }
     }
-
     function updateButtons() {
         const ready = selectedPitchIndex !== null && selectedLocation !== null;
         document.getElementById('btnCall').classList.toggle('disabled-btn', !ready);
         document.getElementById('btnRepeat').classList.toggle('disabled-btn', !lastCall);
     }
 
-    // ── Event listeners ───────────────────────────────────────
     document.getElementById('pitchRow').addEventListener('click', e => {
         const btn = e.target.closest('.pitch-btn');
         if (btn) selectPitch(Number(btn.dataset.pitchIndex));
     });
-
     document.getElementById('zoneWrapper').addEventListener('click', e => {
-        const el = e.target.closest('.loc-box:not(.covered):not(.empty), .chase-overlay');
+        const el = e.target.closest('.loc-box:not(.covered):not(.anchor):not(.empty), .chase-overlay');
         if (el) selectLocation(el.dataset.locName);
     });
-
     document.getElementById('btnRandom').addEventListener('click', () => {
         const eligible = pitchTypes.filter(pt => pt.locations?.some(l => l.enabled));
         if (!eligible.length) return;
@@ -791,15 +574,10 @@
         const enabledLocs = pt.locations.filter(l => l.enabled);
         if (!enabledLocs.length) return;
         const loc = enabledLocs[Math.floor(Math.random() * enabledLocs.length)];
-        selectPitch(pitchIndex);
-        selectLocation(loc.name);
+        selectPitch(pitchIndex); selectLocation(loc.name);
     });
-
     document.getElementById('btnClear').addEventListener('click', clearSelection);
-
-    document.getElementById('btnRepeat').addEventListener('click', () => {
-        if (lastCall) speak(lastCall.pitchName, lastCall.locName);
-    });
+    document.getElementById('btnRepeat').addEventListener('click', () => { if (lastCall) speak(lastCall.pitchName, lastCall.locName); });
 
     function speak(pitchName, locName) {
         if (!('speechSynthesis' in window)) return;
@@ -808,11 +586,7 @@
         utter.rate = 0.95;
         function applyVoiceAndSpeak() {
             const savedURI = window.PS_VOICE_URI || '';
-            if (savedURI) {
-                const voices = window.speechSynthesis.getVoices();
-                const match  = voices.find(v => v.voiceURI === savedURI);
-                if (match) utter.voice = match;
-            }
+            if (savedURI) { const voices = window.speechSynthesis.getVoices(); const match = voices.find(v => v.voiceURI === savedURI); if (match) utter.voice = match; }
             const bar = document.getElementById('callBar');
             const dot = Object.assign(document.createElement('span'), { className: 'speaking-dot' });
             utter.onstart = () => bar.appendChild(dot);
@@ -822,106 +596,55 @@
         applyVoiceAndSpeak();
     }
 
-    // ── Tour ──────────────────────────────────────────────────
     const TOUR_KEY = 'ps_game_tour_v2';
     const TOUR_STEPS = [
-        { targetId: 'pitchRow',    title: 'Select a pitch type',     body: 'Tap any pitch type button to choose what you want to throw.',                                                                   position: 'below' },
-        { targetId: 'zoneWrapper', title: 'Select a pitch location',  body: 'Tap a location on the zone to choose where the pitch should go.',                                                             position: 'above' },
-        { targetId: 'actionRow',   title: 'Random, Clear & Repeat',   body: 'Random selects both a pitch type and location for you. Clear resets your selection. Repeat re-announces the last call.',     position: 'above' },
-        { targetId: 'callBar',     title: 'Your call appears here',   body: 'Once a pitch type and location are selected your call shows up here. Tap Call Pitch to send the call to your catcher.',      position: 'above' },
+        { targetId: 'pitchRow',    title: 'Select a pitch type',    body: 'Tap any pitch type button to choose what you want to throw.',                                                                  position: 'below' },
+        { targetId: 'zoneWrapper', title: 'Select a pitch location', body: 'Tap a location on the zone to choose where the pitch should go.',                                                            position: 'above' },
+        { targetId: 'actionRow',   title: 'Random, Clear & Repeat',  body: 'Random selects both a pitch type and location for you. Clear resets your selection. Repeat re-announces the last call.',    position: 'above' },
+        { targetId: 'callBar',     title: 'Your call appears here',  body: 'Once a pitch type and location are selected your call shows up here. Tap Call Pitch to send the call to your catcher.',     position: 'above' },
     ];
     let _tourStep = 0;
-
     function _tourShow(step) {
-        const ov   = document.getElementById('psTourOverlay');
-        const hl   = document.getElementById('psTourHighlight');
-        const card = document.getElementById('psTourCard');
-        const s    = TOUR_STEPS[step];
-        const el   = document.getElementById(s.targetId);
+        const ov = document.getElementById('psTourOverlay'), hl = document.getElementById('psTourHighlight'), card = document.getElementById('psTourCard');
+        const s = TOUR_STEPS[step], el = document.getElementById(s.targetId);
         if (!el) return;
-        const r = el.getBoundingClientRect();
-        const pad = 8;
+        const r = el.getBoundingClientRect(), pad = 8;
         ov.style.display = 'block';
-        Object.assign(hl.style, {
-            top: (r.top - pad) + 'px', left: (r.left - pad) + 'px',
-            width: (r.width + pad * 2) + 'px', height: (r.height + pad * 2) + 'px',
-        });
+        Object.assign(hl.style, { top: (r.top-pad)+'px', left: (r.left-pad)+'px', width: (r.width+pad*2)+'px', height: (r.height+pad*2)+'px' });
         document.getElementById('psTourStepLabel').textContent = `Step ${step+1} of ${TOUR_STEPS.length}`;
         document.getElementById('psTourTitle').textContent = s.title;
         document.getElementById('psTourBody').textContent  = s.body;
-        document.getElementById('psTourNext').textContent  = step === TOUR_STEPS.length - 1 ? 'Got it' : 'Next';
-        const dots = document.getElementById('psTourDots');
-        dots.innerHTML = '';
-        TOUR_STEPS.forEach((_, i) => {
-            const d = document.createElement('div');
-            d.className = 'ps-tour-dot' + (i === step ? ' active' : '');
-            dots.appendChild(d);
-        });
-        const cardW    = Math.min(300, window.innerWidth * 0.88);
-        const cardLeft = Math.max(8, Math.min(r.left, window.innerWidth - cardW - 8));
-        card.style.width = cardW + 'px';
-        card.style.left  = cardLeft + 'px';
-        card.style.top = card.style.bottom = '';
-        if (s.position === 'below') {
-            card.style.top = (r.bottom + pad + 10) + 'px';
-        } else {
-            const estH = 180, margin = 12;
-            if (r.top - pad - margin - estH >= estH) {
-                card.style.top = (r.top - pad - margin - estH) + 'px';
-            } else if (window.innerHeight - r.bottom - pad - margin - estH >= estH) {
-                card.style.top = (r.bottom + pad + margin) + 'px';
-            } else {
-                card.style.top = Math.max(margin, r.top + r.height / 2 - estH / 2) + 'px';
-            }
-        }
+        document.getElementById('psTourNext').textContent  = step === TOUR_STEPS.length-1 ? 'Got it' : 'Next';
+        const dots = document.getElementById('psTourDots'); dots.innerHTML = '';
+        TOUR_STEPS.forEach((_,i) => { const d = document.createElement('div'); d.className = 'ps-tour-dot'+(i===step?' active':''); dots.appendChild(d); });
+        const cardW = Math.min(300, window.innerWidth*0.88), cardLeft = Math.max(8, Math.min(r.left, window.innerWidth-cardW-8));
+        card.style.width = cardW+'px'; card.style.left = cardLeft+'px'; card.style.top = card.style.bottom = '';
+        if (s.position === 'below') { card.style.top = (r.bottom+pad+10)+'px'; }
+        else { const estH=180, margin=12; if(r.top-pad-margin-estH>=estH){card.style.top=(r.top-pad-margin-estH)+'px';}else if(window.innerHeight-r.bottom-pad-margin-estH>=estH){card.style.top=(r.bottom+pad+margin)+'px';}else{card.style.top=Math.max(margin,r.top+r.height/2-estH/2)+'px';} }
     }
-
     document.getElementById('psTourNext').addEventListener('click', () => {
         _tourStep++;
-        if (_tourStep >= TOUR_STEPS.length) {
-            document.getElementById('psTourOverlay').style.display = 'none';
-        } else {
-            _tourShow(_tourStep);
-        }
+        if (_tourStep >= TOUR_STEPS.length) document.getElementById('psTourOverlay').style.display = 'none';
+        else _tourShow(_tourStep);
     });
+    if (!localStorage.getItem(TOUR_KEY)) { localStorage.setItem(TOUR_KEY,'1'); setTimeout(() => requestAnimationFrame(() => _tourShow(0)), 750); }
 
-    if (!localStorage.getItem(TOUR_KEY)) {
-        localStorage.setItem(TOUR_KEY, '1');
-        setTimeout(() => requestAnimationFrame(() => _tourShow(0)), 750);
-    }
-
-    // ── Init ─────────────────────────────────────────────────
     let resizeTimer;
     requestAnimationFrame(buildGrid);
-    window.addEventListener('resize', () => {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(buildGrid, 100);
-    });
+    window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(buildGrid, 100); });
 
-    // ── Pickoff / Pitchout ────────────────────────────────────
     const pickoffOverlay = document.getElementById('pickoffOverlay');
-
-    document.getElementById('btnPickoff').addEventListener('click', () => {
-        pickoffOverlay.style.display = 'flex';
-    });
-    document.getElementById('btnCancelPickoff').addEventListener('click', () => {
-        pickoffOverlay.style.display = 'none';
-    });
-
+    document.getElementById('btnPickoff').addEventListener('click', () => { pickoffOverlay.style.display = 'flex'; });
+    document.getElementById('btnCancelPickoff').addEventListener('click', () => { pickoffOverlay.style.display = 'none'; });
     pickoffOverlay.querySelectorAll('.base-btn[data-base]').forEach(btn => {
         btn.addEventListener('click', () => {
-            const base = btn.dataset.base;
-            if (!base) return;
+            const base = btn.dataset.base; if (!base) return;
             pickoffOverlay.style.display = 'none';
-            const label = document.querySelector('#callBar .call-label');
-            const text  = document.getElementById('callText');
-            label.textContent  = 'CALL:';
-            text.textContent   = `Pickoff — ${base} Base`;
-            text.style.display = '';
-            const btnCall = document.getElementById('btnCall');
-            btnCall.classList.remove('disabled-btn');
+            const label = document.querySelector('#callBar .call-label'), text = document.getElementById('callText');
+            label.textContent = 'CALL:'; text.textContent = `Pickoff — ${base} Base`; text.style.display = '';
+            const btnCall = document.getElementById('btnCall'); btnCall.classList.remove('disabled-btn');
             function handlePickoffCall() {
-                const baseLabel = base === '1st' ? 'first base' : base === '2nd' ? 'second base' : 'third base';
+                const baseLabel = base==='1st'?'first base':base==='2nd'?'second base':'third base';
                 speak('Pickoff', baseLabel);
                 btnCall.removeEventListener('click', handlePickoffCall);
                 btnCall.addEventListener('click', normalCallHandler);
@@ -930,31 +653,20 @@
             btnCall.addEventListener('click', handlePickoffCall);
         });
     });
-
     document.getElementById('btnPitchout').addEventListener('click', () => {
         clearSelection();
-        const label = document.querySelector('#callBar .call-label');
-        const text  = document.getElementById('callText');
-        label.textContent  = 'CALL:';
-        text.textContent   = 'Pitchout';
-        text.style.display = '';
-        const btnCall = document.getElementById('btnCall');
-        btnCall.classList.remove('disabled-btn');
-        function handlePitchoutCall() {
-            speak('Pitchout', '');
-            btnCall.removeEventListener('click', handlePitchoutCall);
-            btnCall.addEventListener('click', normalCallHandler);
-        }
+        const label = document.querySelector('#callBar .call-label'), text = document.getElementById('callText');
+        label.textContent = 'CALL:'; text.textContent = 'Pitchout'; text.style.display = '';
+        const btnCall = document.getElementById('btnCall'); btnCall.classList.remove('disabled-btn');
+        function handlePitchoutCall() { speak('Pitchout',''); btnCall.removeEventListener('click',handlePitchoutCall); btnCall.addEventListener('click',normalCallHandler); }
         btnCall.removeEventListener('click', normalCallHandler);
         btnCall.addEventListener('click', handlePitchoutCall);
     });
-
     function normalCallHandler() {
         if (selectedPitchIndex === null || !selectedLocation) return;
         const pitchName = pitchTypes[selectedPitchIndex].name;
         lastCall = { pitchName, locName: selectedLocation };
-        speak(pitchName, selectedLocation);
-        updateButtons();
+        speak(pitchName, selectedLocation); updateButtons();
     }
     document.getElementById('btnCall').addEventListener('click', normalCallHandler);
 </script>
