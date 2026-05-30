@@ -282,6 +282,10 @@
         'glove-down': { row: 3, col: isRHP ? 2 : 3, strike: true },
         'arm-down':   { row: 3, col: isRHP ? 3 : 2, strike: true },
         'down-out':   { row: 4, col: 2, colSpan: 2, anchor: true },
+        'corner-top-glove': { row: 1, col: isRHP ? 1 : 4 },
+        'corner-top-arm':   { row: 1, col: isRHP ? 4 : 1 },
+        'corner-bot-glove': { row: 4, col: isRHP ? 1 : 4 },
+        'corner-bot-arm':   { row: 4, col: isRHP ? 4 : 1 },
     };
     const LAYOUTS_A = {
         'arm-side':   { row: 1, col: isRHP ? 2 : 1, strike: true },
@@ -380,15 +384,20 @@
 
         // Add corner fillers for Zone D BEFORE the location cells
         if (isZoneD(zoneLocations)) {
+            const upOut   = zoneLocations.find(l => l.name === 'up-out');
+            const downOut = zoneLocations.find(l => l.name === 'down-out');
+            const upClass   = (upOut   && upOut.enabled   === false) ? 'loc-box chase disabled' : 'loc-box chase';
+            const downClass = (downOut && downOut.enabled === false) ? 'loc-box chase disabled' : 'loc-box chase';
             const cornerPositions = [
-                { row: 1, col: isRHP ? 1 : 4 },
-                { row: 1, col: isRHP ? 4 : 1 },
-                { row: 4, col: isRHP ? 1 : 4 },
-                { row: 4, col: isRHP ? 4 : 1 },
+                { row: 1, col: isRHP ? 1 : 4, cls: upClass,   name: 'corner-top-glove' },
+                { row: 1, col: isRHP ? 4 : 1, cls: upClass,   name: 'corner-top-arm'   },
+                { row: 4, col: isRHP ? 1 : 4, cls: downClass, name: 'corner-bot-glove' },
+                { row: 4, col: isRHP ? 4 : 1, cls: downClass, name: 'corner-bot-arm'   },
             ];
             cornerPositions.forEach(pos => {
                 const filler = document.createElement('div');
-                filler.className = 'loc-box chase';
+                filler.className = pos.cls;
+                filler.dataset.locName = pos.name;
                 filler.style.gridRow       = String(pos.row);
                 filler.style.gridColumn    = String(pos.col);
                 filler.style.pointerEvents = 'none';
@@ -489,13 +498,13 @@
 
         if (isZoneD(zoneLocations)) {
             if (isInsideAway) {
-                makeOverlay('up-out',     'up out',     ['away-up', 'inside-up'],    ['up-out']);
-                makeOverlay('down-out',   'down out',   ['away-down', 'inside-down'], ['down-out']);
-                makeOverlay('away-out',   'away out',   ['away-out'],  ['away-up', 'away-down']);
+                makeOverlay('up-out',     'up out',   ['corner-top-glove', 'away-up',   'inside-up',   'corner-top-arm'],   ['up-out']);
+                makeOverlay('down-out',   'down out', ['corner-bot-glove', 'away-down', 'inside-down', 'corner-bot-arm'],   ['down-out']);
+                makeOverlay('away-out',   'away out',   ['away-out'],  ['away-up',   'away-down']);
                 makeOverlay('inside-out', 'inside out', ['inside-out'],['inside-up', 'inside-down']);
             } else {
-                makeOverlay('up-out',    'up out',   ['glove-up', 'arm-up'],     ['up-out']);
-                makeOverlay('down-out',  'down out', ['glove-down', 'arm-down'], ['down-out']);
+                makeOverlay('up-out',    'up out',   ['corner-top-glove', 'glove-up',   'arm-up',   'corner-top-arm'],   ['up-out']);
+                makeOverlay('down-out',  'down out', ['corner-bot-glove', 'glove-down', 'arm-down', 'corner-bot-arm'],   ['down-out']);
                 makeOverlay('glove-out', isRHP ? 'glove out' : 'arm out',
                     ['glove-out'], ['glove-up', 'glove-down']);
                 makeOverlay('arm-out',   isRHP ? 'arm out' : 'glove out',
