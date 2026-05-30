@@ -23,35 +23,58 @@
         text-decoration: none;
     }
     .team-icon {
-        width: 52px;
-        height: 52px;
-        border-radius: 10px;
-        background: #f0f0f0;
-        color: #8fa8c8;
-        font-size: 1.3rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-        overflow: hidden;
+        width: 52px; height: 52px; border-radius: 10px;
+        background: #f0f0f0; color: #8fa8c8; font-size: 1.3rem;
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0; overflow: hidden;
     }
-    .team-icon img {
-        width: 52px;
-        height: 52px;
-        object-fit: contain;
-    }
+    .team-icon img { width: 52px; height: 52px; object-fit: contain; }
     .team-info { flex: 1; }
     .team-name { font-size: 1.05rem; font-weight: 700; color: #1a2e4a; margin-bottom: 2px; }
     .team-meta { font-size: 0.82rem; color: #6c757d; }
     .team-chevron { color: #adb5bd; font-size: 1.1rem; }
+    .sort-bar {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+    }
+    .sort-bar span { font-size: 0.8rem; color: #6c757d; font-weight: 600; }
+    .sort-btn {
+        font-size: 0.78rem;
+        padding: 0.25rem 0.65rem;
+        border-radius: 20px;
+        border: 1.5px solid #dee2e6;
+        background: #fff;
+        color: #6c757d;
+        cursor: pointer;
+        transition: all 0.15s;
+        font-weight: 600;
+    }
+    .sort-btn:hover  { border-color: #8fa8c8; color: #1a2e4a; }
+    .sort-btn.active { background: var(--ps-navy, #1a2e4a); border-color: var(--ps-navy, #1a2e4a); color: #fff; }
 </style>
 
 <div class="page-header d-flex justify-content-between align-items-center">
     <h1><i class="bi bi-people-fill"></i> My Teams</h1>
-    <a href="/teams/new" class="btn btn-outline-light">
-        <i class="bi bi-plus-circle"></i> New Team
-    </a>
+    <% if (teams.length < teamLimit) { %>
+        <a href="/teams/new" class="btn btn-outline-light">
+            <i class="bi bi-plus-circle"></i> New Team
+        </a>
+    <% } else { %>
+        <span class="btn btn-outline-light disabled opacity-50" title="Maximum of <%= teamLimit %> teams reached">
+            <i class="bi bi-slash-circle"></i> Team limit reached
+        </span>
+    <% } %>
 </div>
+
+<% if (teams.length >= teamLimit) { %>
+    <div class="alert alert-info d-flex align-items-center gap-2 mb-3">
+        <i class="bi bi-info-circle-fill flex-shrink-0"></i>
+        <span>You've reached the maximum of <%= teamLimit %> teams. Delete a team to create a new one.</span>
+    </div>
+<% } %>
 
 <% if (teams.length === 0) { %>
     <div class="card">
@@ -65,9 +88,20 @@
         </div>
     </div>
 <% } else { %>
-    <div class="row row-cols-1 row-cols-md-2 g-3">
+
+    <!-- Sort bar -->
+    <div class="sort-bar">
+        <span>Sort:</span>
+        <button class="sort-btn" data-sort="name">A–Z</button>
+        <button class="sort-btn" data-sort="newest">Newest</button>
+        <button class="sort-btn" data-sort="oldest">Oldest</button>
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-2 g-3" id="teamGrid">
         <% for (let team of teams) { %>
-            <div class="col">
+            <div class="col team-col"
+                 data-name="<%= team.name.toLowerCase() %>"
+                 data-created="<%= team._id.getTimestamp().getTime() %>">
                 <a href="/teams/<%= team._id %>" class="team-card">
                     <div class="team-icon">
                         <% if (team.logo) { %>
@@ -92,3 +126,27 @@
         <% } %>
     </div>
 <% } %>
+
+<script>
+(function () {
+    const SORT_KEY = 'ps_team_sort';
+    const grid     = document.getElementById('teamGrid');
+    const btns     = document.querySelectorAll('.sort-btn');
+    if (!grid) return;
+
+    function applySort(mode) {
+        localStorage.setItem(SORT_KEY, mode);
+        btns.forEach(b => b.classList.toggle('active', b.dataset.sort === mode));
+        const cols = [...grid.querySelectorAll('.team-col')];
+        cols.sort((a, b) => {
+            if (mode === 'name')   return a.dataset.name.localeCompare(b.dataset.name);
+            if (mode === 'newest') return Number(b.dataset.created) - Number(a.dataset.created);
+            if (mode === 'oldest') return Number(a.dataset.created) - Number(b.dataset.created);
+        });
+        cols.forEach(col => grid.appendChild(col));
+    }
+
+    btns.forEach(btn => btn.addEventListener('click', () => applySort(btn.dataset.sort)));
+    applySort(localStorage.getItem(SORT_KEY) || 'newest');
+}());
+</script>

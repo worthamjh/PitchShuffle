@@ -144,7 +144,6 @@
                 <div class="d-flex align-items-center gap-2">
                     <select class="form-select" id="voiceSelect" name="voiceURI" style="max-width: 320px;">
                         <option value="">Default voice</option>
-                        <!-- Populated by JS below -->
                     </select>
                     <button type="button" class="btn btn-outline-secondary btn-sm" id="testVoiceBtn">
                         <i class="bi bi-play-fill"></i> Test
@@ -226,11 +225,8 @@ const savedVoiceURI = '<%= (user.preferences && user.preferences.voiceURI) ? use
 function populateVoices() {
     const voices = window.speechSynthesis.getVoices();
     if (!voices.length) return;
-
     const select = document.getElementById('voiceSelect');
-    // Clear existing options except the default
     while (select.options.length > 1) select.remove(1);
-
     voices.forEach(v => {
         const opt = document.createElement('option');
         opt.value       = v.voiceURI;
@@ -239,8 +235,6 @@ function populateVoices() {
         select.appendChild(opt);
     });
 }
-
-// Voices load asynchronously on some browsers
 populateVoices();
 if (window.speechSynthesis.onvoiceschanged !== undefined) {
     window.speechSynthesis.onvoiceschanged = populateVoices;
@@ -249,19 +243,16 @@ if (window.speechSynthesis.onvoiceschanged !== undefined) {
 // ── Test voice button ─────────────────────────────────────────
 document.getElementById('testVoiceBtn').addEventListener('click', () => {
     if (!('speechSynthesis' in window)) return;
-    const voices    = window.speechSynthesis.getVoices();
+    const voices      = window.speechSynthesis.getVoices();
     const selectedURI = document.getElementById('voiceSelect').value;
-    const voice     = voices.find(v => v.voiceURI === selectedURI) || null;
+    const voice       = voices.find(v => v.voiceURI === selectedURI) || null;
     window.speechSynthesis.cancel();
-    const utter     = new SpeechSynthesisUtterance('Fastball, glove side down');
-    utter.voice     = voice;
-    utter.rate      = 0.95;
+    const utter   = new SpeechSynthesisUtterance('Fastball, glove side down');
+    utter.voice   = voice;
+    utter.rate    = 0.95;
     window.speechSynthesis.speak(utter);
 });
 </script>
-
-
-
 
 <!-- ── Update Email ───────────────────────────────────────────── -->
 <div class="card mb-4">
@@ -302,6 +293,22 @@ document.getElementById('testVoiceBtn').addEventListener('click', () => {
     </div>
 </div>
 
+<!-- ── Danger Zone ────────────────────────────────────────────── -->
+<div class="card mb-4 border-danger">
+    <div class="card-header fw-bold text-danger">
+        <i class="bi bi-exclamation-triangle-fill"></i> Danger Zone
+    </div>
+    <div class="card-body">
+        <p class="text-muted small mb-3">
+            Deleting your account is permanent and cannot be undone. All your teams, pitchers,
+            and settings will be permanently removed.
+        </p>
+        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
+            <i class="bi bi-person-x-fill"></i> Delete My Account
+        </button>
+    </div>
+</div>
+
 <!-- Terminology change confirmation modal -->
 <div class="modal fade" id="termChangeModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -338,13 +345,51 @@ document.getElementById('testVoiceBtn').addEventListener('click', () => {
         </div>
     </div>
 </div>
+
+<!-- Delete Account confirmation modal -->
+<div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center"
+                         style="width:40px;height:40px;background:rgba(220,53,69,0.12);">
+                        <i class="bi bi-person-x-fill text-danger fs-5"></i>
+                    </div>
+                    <h5 class="modal-title fw-bold mb-0">Delete Your Account?</h5>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-3">
+                <p class="mb-2">This will permanently delete:</p>
+                <ul class="text-muted small mb-3">
+                    <li>Your account and login credentials</li>
+                    <li>All <%= teams.length %> team<%= teams.length !== 1 ? 's' : '' %> and all pitchers on them</li>
+                    <li>Your profile picture and all uploaded images</li>
+                    <li>All preferences and settings</li>
+                </ul>
+                <p class="fw-bold text-danger small mb-0">This cannot be undone.</p>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-1"></i> Cancel
+                </button>
+                <form action="/profile/account?_method=DELETE" method="POST" style="margin:0;">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-person-x-fill me-1"></i> Yes, Delete My Account
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- ── Help & Guide ───────────────────────────────────────────── -->
 <div class="card mb-4" id="help">
     <div class="card-header fw-bold"><i class="bi bi-question-circle"></i> Help & Guide</div>
     <div class="card-body p-0">
         <div class="accordion accordion-flush" id="helpAccordion">
 
-            <!-- 1. What is PitchShuffle -->
             <div class="accordion-item">
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed fw-semibold" type="button"
@@ -361,7 +406,6 @@ document.getElementById('testVoiceBtn').addEventListener('click', () => {
                 </div>
             </div>
 
-            <!-- 2. Setting up a team -->
             <div class="accordion-item">
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed fw-semibold" type="button"
@@ -380,7 +424,6 @@ document.getElementById('testVoiceBtn').addEventListener('click', () => {
                 </div>
             </div>
 
-            <!-- 3. Adding a pitcher -->
             <div class="accordion-item">
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed fw-semibold" type="button"
@@ -401,7 +444,6 @@ document.getElementById('testVoiceBtn').addEventListener('click', () => {
                 </div>
             </div>
 
-            <!-- 4. Configuring pitch locations -->
             <div class="accordion-item">
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed fw-semibold" type="button"
@@ -415,13 +457,10 @@ document.getElementById('testVoiceBtn').addEventListener('click', () => {
                         <br><br>
                         <strong>Colored locations</strong> are active — they'll show up in the game and in the random pool.<br>
                         <strong>Grayed-out locations</strong> are disabled from randomization — you can still call them manually during a game, but they won't be included when using the Random button.
-                        <br><br>
-                        Use this to tailor each pitcher's repertoire. For example, you might only enable arm side-down locations for a changeup, or keep a curveball limited to glove-side locations.
                     </div>
                 </div>
             </div>
 
-            <!-- 5. Using the game screen -->
             <div class="accordion-item">
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed fw-semibold" type="button"
@@ -435,15 +474,14 @@ document.getElementById('testVoiceBtn').addEventListener('click', () => {
                         <br><br>
                         <strong>Pitch type buttons</strong> — tap to select what pitch to throw.<br>
                         <strong>Strike zone grid</strong> — tap a location to select where the pitch goes.<br>
-                        <strong>Call bar</strong> — once both are selected, tap <strong>Call Pitch</strong> and the app announces the call out loud.<br>
-                        <strong>Repeat</strong> — re-announces the last call if needed.<br>
+                        <strong>Call bar</strong> — once both are selected, tap <strong>Call Pitch</strong> to announce the call.<br>
+                        <strong>Repeat</strong> — re-announces the last call.<br>
                         <strong>Clear</strong> — resets your selection.<br>
-                        <strong>Pickoff / Pitchout</strong> — special calls that announce immediately without a zone selection.
+                        <strong>Pickoff / Pitchout</strong> — special calls that announce immediately.
                     </div>
                 </div>
             </div>
 
-            <!-- 6. Randomization -->
             <div class="accordion-item">
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed fw-semibold" type="button"
@@ -453,20 +491,17 @@ document.getElementById('testVoiceBtn').addEventListener('click', () => {
                 </h2>
                 <div id="help6" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
                     <div class="accordion-body text-muted">
-                        The <strong>Random</strong> button is one of PitchShuffle's most powerful features — and the reason the app exists.
+                        The <strong>Random</strong> button is one of PitchShuffle's most powerful features.
                         <br><br>
-                        When you call pitches manually, patterns can emerge over time. Opposing coaches and baserunners are always watching — they may pick up on tendencies in your sign sequence or pitch selection. The longer a game goes, the more information they have.
+                        When you call pitches manually, patterns can emerge over time. Opposing coaches and baserunners may pick up on tendencies in your pitch selection.
                         <br><br>
-                        <strong>Randomization eliminates that entirely.</strong> When pitches are called randomly, there is no pattern — because there is no pattern to find. The call is genuinely unpredictable, every single pitch.
+                        <strong>Randomization eliminates that entirely.</strong> When pitches are called randomly, there is no pattern to find. The call is genuinely unpredictable, every single pitch.
                         <br><br>
-                        <strong>How it works:</strong> Random picks from the pitch types and locations you've enabled for that pitcher. Grayed-out locations are excluded — so you're still in control of what's in the pool. For example, if you only want fastballs thrown glove-side, enable only those locations and the random call will stay within that range.
-                        <br><br>
-                        Use Random as often or as little as you like. Many coaches use it for the majority of pitches and only call manually in specific situations.
+                        Random picks from the pitch types and locations you've enabled for that pitcher. Grayed-out locations are excluded — so you're still in control of what's in the pool.
                     </div>
                 </div>
             </div>
 
-            <!-- 7. Quick Game -->
             <div class="accordion-item">
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed fw-semibold" type="button"
@@ -478,8 +513,6 @@ document.getElementById('testVoiceBtn').addEventListener('click', () => {
                     <div class="accordion-body text-muted">
                         Quick Game lets you jump straight into calling pitches without setting up a team or pitcher first. It uses a standard set of pitch types and a full Zone C strike zone.
                         <br><br>
-                        It's great for trying out the app, pickup games, or situations where you don't have your roster set up yet. If you find yourself using Quick Game regularly, consider creating a team and pitcher so you can customize the pitch types and locations to match your actual pitcher.
-                        <br><br>
                         You can turn Quick Game on or off from the <strong>Visual Preferences</strong> section above.
                     </div>
                 </div>
@@ -489,7 +522,7 @@ document.getElementById('testVoiceBtn').addEventListener('click', () => {
     </div>
 </div>
 
-<a href="/teams" class="btn btn-outline-secondary">
+<a href="/teams" class="btn btn-outline-secondary mb-4">
     <i class="bi bi-arrow-left"></i> Back to My Teams
 </a>
 
@@ -502,7 +535,6 @@ document.getElementById('testVoiceBtn').addEventListener('click', () => {
     var confirmBtn         = document.getElementById('termChangeConfirmBtn');
     var mainMsg      = document.getElementById('termChangeMainMsg');
     var warningDiv   = document.getElementById('termChangePitcherWarning');
-    var pitcherMsg   = document.getElementById('termChangePitcherMsg');
     var _modal       = null;
 
     if (!form) return;

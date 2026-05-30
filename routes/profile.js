@@ -99,19 +99,56 @@ router.delete('/avatar', isLoggedIn, async (req, res) => {
     }
 });
 
+// Delete account
+router.delete('/account', isLoggedIn, async (req, res) => {
+    try {
+        const userId = req.user._id;
+
+        // Load all teams with pitchers
+        const teams = await Team.find({ owner: userId }).populate('pitchers');
+
+        for (const team of teams) {
+            // Delete pitcher photos from Cloudinary
+            for (const pitcher of team.pitchers) {
+                if (pitcher.photo) await deleteFromCloudinary(pitcher.photo);
+            }
+            // Delete pitcher documents
+            await Pitcher.deleteMany({ _id: { $in: team.pitchers.map(p => p._id) } });
+
+            // Delete team logo from Cloudinary
+            if (team.logo) await deleteFromCloudinary(team.logo);
+        }
+
+        // Delete all team documents
+        await Team.deleteMany({ owner: userId });
+
+        // Delete avatar from Cloudinary
+        if (req.user.avatar) await deleteFromCloudinary(req.user.avatar);
+
+        // Log the user out before deleting
+        req.logout(async (err) => {
+            if (err) console.error('Logout error during account deletion:', err);
+            // Delete the user document
+            await User.findByIdAndDelete(userId);
+            req.session.destroy();
+            res.redirect('/?deleted=1');
+        });
+    } catch (e) {
+        console.error(e);
+        req.flash('error', 'Could not delete account. Please try again.');
+        res.redirect('/profile');
+    }
+});
+
 // Save visual preferences
 router.post('/preferences', isLoggedIn, async (req, res) => {
     try {
         const { theme, gameFontSize, voiceURI, zoneTerminology, showQuickGame } = req.body;
-        
-        console.log('showQuickGame from body:', req.body.showQuickGame);
-        
+
         const safeTheme         = ['light', 'dark'].includes(theme)                       ? theme           : 'light';
         const safeFontSize      = ['sm', 'md', 'lg'].includes(gameFontSize)               ? gameFontSize    : 'md';
         const safeTerminology   = ['arm-glove', 'inside-away'].includes(zoneTerminology)  ? zoneTerminology : 'arm-glove';
         const safeShowQuickGame = showQuickGame === 'true';
-
-        console.log('safeShowQuickGame:', safeShowQuickGame);
 
         const currentTerminology = req.user.preferences?.zoneTerminology || 'arm-glove';
         const terminologyChanged = safeTerminology !== currentTerminology;
@@ -140,7 +177,6 @@ router.post('/preferences', isLoggedIn, async (req, res) => {
             }
         }
 
-        // Update database AND session user at the same time
         req.user.preferences = {
             theme:           safeTheme,
             gameFontSize:    safeFontSize,

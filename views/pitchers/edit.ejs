@@ -6,6 +6,7 @@
             margin: 0 auto;
             border: 2px solid #adb5bd;
         }
+        .zone-grid {width: fit-content;}
 
         .loc-box {
             width: 70px;
@@ -432,7 +433,8 @@
             const layout  = getZoneLayouts(pitch.locations);
             const maxRow  = Math.max(...Object.values(layout).map(p => (p.row || 1) + (p.rowSpan || 1) - 1));
             const maxCol  = Math.max(...Object.values(layout).map(p => (p.col || 1) + (p.colSpan || 1) - 1));
-            const boxSize = window.innerWidth >= 992 ? 108 : window.innerWidth >= 576 ? 88 : 70;
+            let boxSize = window.innerWidth >= 992 ? 108 : window.innerWidth >= 576 ? 88 : 70;
+                if (maxRow <= 2) boxSize = Math.min(boxSize, 120);
             grid.style.gridTemplateRows    = `repeat(${maxRow}, ${boxSize}px)`;
             grid.style.gridTemplateColumns = `repeat(${maxCol}, ${boxSize}px)`;
             pitch.locations.forEach((loc, locIndex) => {

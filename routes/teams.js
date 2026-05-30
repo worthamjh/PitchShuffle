@@ -9,6 +9,8 @@ const HEX_RE = /^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/;
 const sanitizeColor = (val, fallback) => HEX_RE.test(val) ? val : fallback;
 const sanitizeSport = (val) => ['baseball', 'softball'].includes(val) ? val : 'baseball';
 
+const TEAM_LIMIT = 5;
+
 function setTeamLocals(res, team) {
     res.locals.teamColor          = team.primaryColor   || '#1a2e4a';
     res.locals.teamSecondaryColor = team.secondaryColor || '#4a7fa5';
@@ -20,15 +22,24 @@ function setTeamLocals(res, team) {
 router.get('/', isLoggedIn, async (req, res, next) => {
     try {
         const teams = await Team.find({ owner: req.user._id });
-        res.render('teams/index', { teams });
+        res.render('teams/index', { teams, teamLimit: TEAM_LIMIT });
     } catch (e) {
         next(e);
     }
 });
 
 // New team form
-router.get('/new', isLoggedIn, (req, res) => {
-    res.render('teams/new');
+router.get('/new', isLoggedIn, async (req, res, next) => {
+    try {
+        const count = await Team.countDocuments({ owner: req.user._id });
+        if (count >= TEAM_LIMIT) {
+            req.flash('error', `You can have a maximum of ${TEAM_LIMIT} teams.`);
+            return res.redirect('/teams');
+        }
+        res.render('teams/new');
+    } catch (e) {
+        next(e);
+    }
 });
 
 // Create team
@@ -38,6 +49,11 @@ router.post('/', isLoggedIn, upload.single('logo'), async (req, res, next) => {
         if (!t || !t.name || !t.name.trim()) {
             req.flash('error', 'Team name is required.');
             return res.redirect('/teams/new');
+        }
+        const count = await Team.countDocuments({ owner: req.user._id });
+        if (count >= TEAM_LIMIT) {
+            req.flash('error', `You can have a maximum of ${TEAM_LIMIT} teams.`);
+            return res.redirect('/teams');
         }
         const team = new Team({
             name:           t.name.trim(),
@@ -99,11 +115,9 @@ router.put('/:id', isLoggedIn, isOwner, upload.single('logo'), async (req, res, 
         team.strikeColor    = sanitizeColor(t.strikeColor,    team.strikeColor);
         team.chaseColor     = sanitizeColor(t.chaseColor,     team.chaseColor);
 
-        // Remove logo if checkbox was checked
         if (t.removeLogo === 'true' && team.logo) {
             await deleteFromCloudinary(team.logo);
             team.logo = '';
-        // Otherwise upload a new logo if one was provided
         } else if (req.file) {
             team.logo = await uploadToCloudinary(req.file.buffer, 'pitchshuffle/logos', {
                 public_id:      `logo_${team._id}`,
@@ -126,14 +140,11 @@ router.delete('/:id', isLoggedIn, isOwner, async (req, res, next) => {
         const team = await Team.findById(req.params.id).populate('pitchers');
         if (!team) return res.redirect('/teams');
 
-        // Delete all pitcher photos from Cloudinary
         for (const pitcher of team.pitchers) {
             if (pitcher.photo) await deleteFromCloudinary(pitcher.photo);
         }
-        // Delete pitcher documents
         await Pitcher.deleteMany({ _id: { $in: team.pitchers.map(p => p._id) } });
 
-        // Delete team logo from Cloudinary
         if (team.logo) await deleteFromCloudinary(team.logo);
 
         await Team.findByIdAndDelete(req.params.id);
