@@ -89,9 +89,15 @@
         <a href="/teams/<%= team._id %>/edit" class="btn btn-outline-light btn-sm">
             <i class="bi bi-pencil"></i> Edit
         </a>
-        <a href="/teams/<%= team._id %>/pitchers/new" class="btn btn-outline-light btn-sm">
-            <i class="bi bi-plus-circle"></i> Add Pitcher
-        </a>
+        <% if (team.pitchers.length >= 20) { %>
+            <button class="btn btn-outline-light btn-sm" disabled title="Maximum 20 pitchers reached">
+                <i class="bi bi-slash-circle"></i> Roster Full
+            </button>
+        <% } else { %>
+            <a href="/teams/<%= team._id %>/pitchers/new" class="btn btn-outline-light btn-sm">
+                <i class="bi bi-plus-circle"></i> Add Pitcher
+            </a>
+        <% } %>
         <button type="button" class="btn btn-delete-adaptive btn-sm" data-bs-toggle="modal" data-bs-target="#deleteTeamModal">
             <i class="bi bi-trash"></i> Delete
         </button>
@@ -129,9 +135,11 @@
             <i class="bi bi-person-fill display-1 text-muted"></i>
             <h4 class="mt-3 text-muted">No pitchers yet</h4>
             <p class="text-muted">Add your first pitcher to get started</p>
-            <a href="/teams/<%= team._id %>/pitchers/new" class="btn btn-primary">
-                <i class="bi bi-plus-circle"></i> Add Pitcher
-            </a>
+            <% if (team.pitchers.length < 20) { %>
+                <a href="/teams/<%= team._id %>/pitchers/new" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Add Pitcher
+                </a>
+            <% } %>
         </div>
     </div>
 <% } else { %>
@@ -141,6 +149,7 @@
         <button class="sort-btn" data-sort="lastName">Last Name</button>
         <button class="sort-btn" data-sort="firstName">First Name</button>
         <button class="sort-btn" data-sort="number">Number</button>
+        <span class="ms-auto text-muted" style="font-size:0.78rem;"><%= team.pitchers.length %>/20 pitchers</span>
     </div>
 
     <div class="row row-cols-1 row-cols-md-2 g-3" id="pitcherGrid">

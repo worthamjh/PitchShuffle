@@ -7,6 +7,7 @@ const { upload, uploadToCloudinary, deleteFromCloudinary } = require('../upload'
 const { isLoggedIn, isOwner, isPitcherInTeam } = require('../middleware');
 
 const MAX_PITCH_TYPES = 8;
+const MAX_PITCHERS = 20;
 
 function setTeamLocals(res, team) {
     res.locals.teamColor          = team.primaryColor   || '#1a2e4a';
@@ -60,6 +61,10 @@ router.get('/new', isLoggedIn, isOwner, async (req, res, next) => {
 router.post('/', isLoggedIn, isOwner, async (req, res, next) => {
     try {
         const team = await Team.findById(req.params.teamId);
+        if (team.pitchers.length >= MAX_PITCHERS) {
+            req.flash('error', `A team can have a maximum of ${MAX_PITCHERS} pitchers.`);
+            return res.redirect(`/teams/${req.params.teamId}/pitchers/new`);
+        }
         const zone = await StrikeZone.findById(req.body.pitcher.zone);
         if (!zone) {
             req.flash('error', 'Please select a valid strike zone.');
