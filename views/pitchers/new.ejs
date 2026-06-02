@@ -282,10 +282,8 @@
             } else {
                 makeOverlay('up-out',    'up out',   ['glove-up','arm-up'],     ['up-out'],   ['up-out']);
                 makeOverlay('down-out',  'down out', ['glove-down','arm-down'], ['down-out'], ['down-out']);
-                makeOverlay('glove-out', isRHP ? 'glove out' : 'arm out',
-                    ['glove-out'], [isRHP ? 'glove-up' : 'arm-up', isRHP ? 'glove-down' : 'arm-down'], []);
-                makeOverlay('arm-out',   isRHP ? 'arm out' : 'glove out',
-                    ['arm-out'],   [isRHP ? 'arm-up' : 'glove-up', isRHP ? 'arm-down' : 'glove-down'], []);
+                makeOverlay('glove-out', 'glove out', ['glove-out'], ['glove-up', 'glove-down'], []);
+                makeOverlay('arm-out',   'arm out',   ['arm-out'],   ['arm-up', 'arm-down'], []);
             }
         } else {
             if (isInsideAway) {
@@ -332,6 +330,28 @@
             box.style.gridColumn = pos.colSpan ? `${pos.col} / span ${pos.colSpan}` : String(pos.col);
             grid.appendChild(box);
         });
+        // Inject Zone D corner fillers BEFORE paint so spanBounds can measure them
+        if (isZoneD(pitch.locations)) {
+            const upOut   = pitch.locations.find(l => l.name === 'up-out');
+            const downOut = pitch.locations.find(l => l.name === 'down-out');
+            const upCls   = (upOut   && !upOut.enabled)   ? 'loc-box disabled' : 'loc-box chase';
+            const downCls = (downOut && !downOut.enabled)  ? 'loc-box disabled' : 'loc-box chase';
+            [
+                { row: 1, col: isRHP ? 1 : 4, cls: upCls,   name: 'corner-top-arm'   },
+                { row: 1, col: isRHP ? 4 : 1, cls: upCls,   name: 'corner-top-glove' },
+                { row: 4, col: isRHP ? 1 : 4, cls: downCls, name: 'corner-bot-arm'   },
+                { row: 4, col: isRHP ? 4 : 1, cls: downCls, name: 'corner-bot-glove' },
+            ].forEach(pos => {
+                const filler = document.createElement('div');
+                filler.className        = pos.cls;
+                filler.dataset.locName  = pos.name;
+                filler.style.gridRow    = String(pos.row);
+                filler.style.gridColumn = String(pos.col);
+                filler.style.pointerEvents = 'none';
+                filler.style.cursor     = 'default';
+                grid.appendChild(filler);
+            });
+        }
         requestAnimationFrame(() => { drawOutline(pitchIndex); drawOverlays(pitchIndex, pitch); });
     }
 

@@ -390,43 +390,18 @@
             const isInsideAway = locNames.has('inside-up') || locNames.has('inside-down');
 
             if (isZoneD(pitch.locations)) {
-                const upOut   = pitch.locations.find(l => l.name === 'up-out');
-                const downOut = pitch.locations.find(l => l.name === 'down-out');
-                const upClass   = (upOut   && !upOut.enabled)   ? 'loc-box disabled' : 'loc-box chase';
-                const downClass = (downOut && !downOut.enabled)  ? 'loc-box disabled' : 'loc-box chase';
-                const cornerPositions = [
-                    { row: 1, col: isRHP ? 1 : 4, cls: upClass,   name: 'corner-top-glove' },
-                    { row: 1, col: isRHP ? 4 : 1, cls: upClass,   name: 'corner-top-arm'   },
-                    { row: 4, col: isRHP ? 1 : 4, cls: downClass, name: 'corner-bot-glove' },
-                    { row: 4, col: isRHP ? 4 : 1, cls: downClass, name: 'corner-bot-arm'   },
-                ];
-                cornerPositions.forEach(pos => {
-                    const filler = document.createElement('div');
-                    filler.className = pos.cls;
-                    filler.dataset.locName = pos.name;
-                    filler.style.gridRow       = String(pos.row);
-                    filler.style.gridColumn    = String(pos.col);
-                    filler.style.pointerEvents = 'none';
-                    filler.style.cursor        = 'default';
-                    grid.appendChild(filler);
-                });
-            }
-
-            if (isZoneD(pitch.locations)) {
-                if (isInsideAway) {
-                    makeOverlay('up-out',   'up out',   ['corner-top-glove', 'away-up',   'inside-up',   'corner-top-arm'],   ['up-out'],   ['up-out']);
-                    makeOverlay('down-out', 'down out', ['corner-bot-glove', 'away-down', 'inside-down', 'corner-bot-arm'],   ['down-out'], ['down-out']);
-                    makeOverlay('away-out',   'away out',   ['away-out'],  ['away-up',   'away-down'],   []);
-                    makeOverlay('inside-out', 'inside out', ['inside-out'],['inside-up', 'inside-down'], []);
+                    if (isInsideAway) {
+                        makeOverlay('up-out',     'up out',   ['corner-top-glove','away-up','inside-up','corner-top-arm'],     ['up-out'],   ['up-out']);
+                        makeOverlay('down-out',   'down out', ['corner-bot-glove','away-down','inside-down','corner-bot-arm'], ['down-out'], ['down-out']);
+                        makeOverlay('away-out',   'away out',   ['away-out'],  ['away-up','away-down'],     []);
+                        makeOverlay('inside-out', 'inside out', ['inside-out'],['inside-up','inside-down'], []);
+                    } else {
+                        makeOverlay('up-out',    'up out',   ['corner-top-glove','glove-up','arm-up','corner-top-arm'],     ['up-out'],   ['up-out']);
+                        makeOverlay('down-out',  'down out', ['corner-bot-glove','glove-down','arm-down','corner-bot-arm'], ['down-out'], ['down-out']);
+                        makeOverlay('glove-out', 'glove out', ['glove-out'], ['glove-up', 'glove-down'], []);
+                        makeOverlay('arm-out',   'arm out',   ['arm-out'],   ['arm-up', 'arm-down'], []);
+                    }
                 } else {
-                    makeOverlay('up-out',   'up out',   ['corner-top-glove', 'glove-up',   'arm-up',   'corner-top-arm'],   ['up-out'],   ['up-out']);
-                    makeOverlay('down-out', 'down out', ['corner-bot-glove', 'glove-down', 'arm-down', 'corner-bot-arm'],   ['down-out'], ['down-out']);
-                    makeOverlay('glove-out', isRHP ? 'glove out' : 'arm out',
-                        ['glove-out'], [isRHP ? 'glove-up' : 'arm-up',   isRHP ? 'glove-down' : 'arm-down'],   []);
-                    makeOverlay('arm-out',   isRHP ? 'arm out' : 'glove out',
-                        ['arm-out'],   [isRHP ? 'arm-up' : 'glove-up',   isRHP ? 'arm-down' : 'glove-down'],   []);
-                }
-            } else {
                 if (isInsideAway) {
                     makeOverlay('up-out',         'up out',     ['inside-up', 'mid-up', 'away-up'],         ['up-out'],   []);
                     makeOverlay('down-out',       'down out',   ['inside-down', 'mid-down', 'away-down'],    ['down-out'], []);
@@ -444,7 +419,7 @@
                 }
             }
         }
-        function buildGrid(pitchIndex) {
+       function buildGrid(pitchIndex) {
             const pitch = pitchData[pitchIndex];
             if (!pitch || !pitch.locations) return;
             const grid    = document.getElementById(`grid-${pitchIndex}`);
@@ -456,7 +431,7 @@
             const maxRow  = Math.max(...Object.values(layout).map(p => (p.row || 1) + (p.rowSpan || 1) - 1));
             const maxCol  = Math.max(...Object.values(layout).map(p => (p.col || 1) + (p.colSpan || 1) - 1));
             let boxSize = window.innerWidth >= 992 ? 108 : window.innerWidth >= 576 ? 88 : 70;
-                if (maxRow <= 2) boxSize = Math.min(boxSize, 120);
+            if (maxRow <= 2) boxSize = Math.min(boxSize, 120);
             grid.style.gridTemplateRows    = `repeat(${maxRow}, ${boxSize}px)`;
             grid.style.gridTemplateColumns = `repeat(${maxCol}, ${boxSize}px)`;
             pitch.locations.forEach((loc, locIndex) => {
@@ -474,6 +449,30 @@
                 box.style.gridColumn = pos.colSpan ? `${pos.col} / span ${pos.colSpan}` : String(pos.col);
                 grid.appendChild(box);
             });
+
+    // Inject Zone D corner fillers BEFORE paint so spanBounds can measure them
+                if (isZoneD(pitch.locations)) {
+                    const upOut   = pitch.locations.find(l => l.name === 'up-out');
+                    const downOut = pitch.locations.find(l => l.name === 'down-out');
+                    const upCls   = (upOut   && !upOut.enabled)   ? 'loc-box disabled' : 'loc-box chase';
+                    const downCls = (downOut && !downOut.enabled)  ? 'loc-box disabled' : 'loc-box chase';
+                    [
+                    { row: 1, col: isRHP ? 1 : 4, cls: upCls,   name: 'corner-top-arm'   },
+                    { row: 1, col: isRHP ? 4 : 1, cls: upCls,   name: 'corner-top-glove' },
+                    { row: 4, col: isRHP ? 1 : 4, cls: downCls, name: 'corner-bot-arm'   },
+                    { row: 4, col: isRHP ? 4 : 1, cls: downCls, name: 'corner-bot-glove' },
+                    ].forEach(pos => {
+                        const filler = document.createElement('div');
+                        filler.className        = pos.cls;
+                        filler.dataset.locName  = pos.name;
+                        filler.style.gridRow    = String(pos.row);
+                        filler.style.gridColumn = String(pos.col);
+                        filler.style.pointerEvents = 'none';
+                        filler.style.cursor     = 'default';
+                        grid.appendChild(filler);
+                    });
+                }
+
             requestAnimationFrame(() => { drawOutline(pitchIndex); drawOverlays(pitchIndex, pitch); });
         }
 
