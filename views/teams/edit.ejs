@@ -15,6 +15,26 @@
             </div>
 
             <div class="mb-4">
+                <label class="form-label fw-bold">Sport</label>
+                <div class="d-flex gap-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="team[sport]" id="sportBaseball"
+                            value="baseball" <%= (!team.sport || team.sport === 'baseball') ? 'checked' : '' %>>
+                        <label class="form-check-label" for="sportBaseball">
+                            ⚾ Baseball
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="team[sport]" id="sportSoftball"
+                            value="softball" <%= team.sport === 'softball' ? 'checked' : '' %>>
+                        <label class="form-check-label" for="sportSoftball">
+                            🥎 Softball
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-4">
                 <label class="form-label fw-bold">Team Logo</label>
                 <% if (team.logo) { %>
                     <div class="mb-2 d-flex align-items-center gap-3">
@@ -106,7 +126,6 @@
                 chase:     '#fef3cd'
             };
 
-            // Restore defaults button
             document.getElementById('restoreDefaultColors').addEventListener('click', () => {
                 primaryColor.value   = DEFAULTS.primary;
                 secondaryColor.value = DEFAULTS.secondary;
@@ -115,8 +134,6 @@
                 checkColors();
             });
 
-            // If "Remove logo" is checked, disable the file input (no point uploading
-            // a new one at the same time as removing the existing one)
             const removeLogoCheckbox = document.getElementById('removeLogo');
             const logoInput          = document.getElementById('logo');
             if (removeLogoCheckbox) {
@@ -126,7 +143,6 @@
                 });
             }
 
-            // Insert warning elements after each color pair
             const navWarning = document.createElement('div');
             navWarning.className = 'alert alert-warning py-2 px-3 mt-2 mb-0 small';
             navWarning.style.display = 'none';
@@ -148,7 +164,7 @@
                 el.addEventListener('input', checkColors)
             );
 
-            checkColors(); // run on load in case colors are already matching
+            checkColors();
         </script>
     </div>
 </div>
