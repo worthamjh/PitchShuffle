@@ -155,18 +155,6 @@ router.get('/auth/google',
 router.get('/auth/google/callback',
     passport.authenticate('google', {
         failureRedirect: '/login',
-        failureFlash:    'Google sign-in failed. Please try again.',
-        keepSessionInfo: true,
-    }),
-    (req, res) => {
-        req.flash('success', `Welcome, ${req.user.username}!`);
-        res.redirect('/');
-    }
-);
-
-router.get('/auth/google/callback',
-    passport.authenticate('google', {
-        failureRedirect: '/login',
         failureFlash:    true,
         keepSessionInfo: true,
     }),
@@ -175,4 +163,5 @@ router.get('/auth/google/callback',
         res.redirect('/');
     }
 );
+
 module.exports = router;
