@@ -67,7 +67,6 @@ router.get('/quick-game', isLoggedIn, (req, res) => {
 });
 
 // ── Game flow ─────────────────────────────────────────────────
-
 router.get('/game', isLoggedIn, async (req, res, next) => {
     try {
         const teams = await Team.find({ owner: req.user._id }).populate('pitchers');
@@ -96,7 +95,6 @@ router.get('/game/:teamId', isLoggedIn, async (req, res, next) => {
 });
 
 // ── Auth ──────────────────────────────────────────────────────
-
 router.get('/register', (req, res) => res.render('auth/register'));
 
 router.post('/register', async (req, res, next) => {
@@ -148,5 +146,22 @@ router.post('/logout', (req, res, next) => {
         res.redirect('/login');
     });
 });
+
+// ── Google OAuth ──────────────────────────────────────────────
+router.get('/auth/google',
+    passport.authenticate('google', { scope: ['profile', 'email'] })
+);
+
+router.get('/auth/google/callback',
+    passport.authenticate('google', {
+        failureRedirect: '/login',
+        failureFlash:    'Google sign-in failed. Please try again.',
+        keepSessionInfo: true,
+    }),
+    (req, res) => {
+        req.flash('success', `Welcome, ${req.user.username}!`);
+        res.redirect('/');
+    }
+);
 
 module.exports = router;
