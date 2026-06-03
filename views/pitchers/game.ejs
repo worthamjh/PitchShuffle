@@ -213,7 +213,7 @@
     </div>
 
     <div class="action-row" id="actionRow">
-        <button class="action-btn btn-random" id="btnRandom"><i class="bi bi-shuffle"></i> Random</button>
+        <button class="action-btn btn-random" id="btnRandom"><i class="bi bi-shuffle"></i> Shuffle</button>
         <button class="action-btn btn-clear"  id="btnClear"><i class="bi bi-x-circle"></i> Clear</button>
         <button class="action-btn btn-repeat disabled-btn" id="btnRepeat"><i class="bi bi-arrow-repeat"></i> Repeat</button>
     </div>
@@ -630,7 +630,7 @@
     const TOUR_STEPS = [
         { targetId: 'pitchRow',    title: 'Select a pitch type',    body: 'Tap any pitch type button to choose what you want to throw.',                                                                  position: 'below' },
         { targetId: 'zoneWrapper', title: 'Select a pitch location', body: 'Tap a location on the zone to choose where the pitch should go.',                                                            position: 'above' },
-        { targetId: 'actionRow',   title: 'Random, Clear & Repeat',  body: 'Random selects both a pitch type and location for you. Clear resets your selection. Repeat re-announces the last call.',    position: 'above' },
+        { targetId: 'actionRow',   title: 'Shuffle, Clear & Repeat',  body: 'Shuffle picks a random pitch type and location for you. Clear resets your selection. Repeat re-announces the last call.',    position: 'above' },
         { targetId: 'callBar',     title: 'Your call appears here',  body: 'Once a pitch type and location are selected your call shows up here. Tap Call Pitch to send the call to your catcher.',     position: 'above' },
     ];
     let _tourStep = 0;
