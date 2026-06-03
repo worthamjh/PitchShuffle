@@ -85,6 +85,14 @@ passport.use(new GoogleStrategy({
         return done(null, newUser);
     } catch (e) {
         return done(e);
+    }, async (accessToken, refreshToken, profile, done) => {
+    try {
+        console.log('Google profile received:', profile.id, profile.emails?.[0]?.value);
+        const email = profile.emails?.[0]?.value;
+        // ... rest of code
+    } catch (e) {
+        console.error('Google strategy error:', e);
+        return done(e);
     }
 }));
 
