@@ -3,6 +3,7 @@
   "short_name": "PitchShuffle",
   "description": "Call pitches fast. Keep your catcher in sync.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#1a2e4a",
