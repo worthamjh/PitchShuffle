@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pitchshuffle-v1';
+const CACHE_NAME = 'pitchshuffle-v2';
 
 // Core assets to cache on install — app shell
 const PRECACHE = [
