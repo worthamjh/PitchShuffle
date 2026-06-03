@@ -76,7 +76,45 @@
     </div>
 </div>
 
-
+<!-- ── Subscription ───────────────────────────────────────── -->
+<div class="card mb-4">
+    <div class="card-header fw-bold"><i class="bi bi-credit-card"></i> Subscription</div>
+    <div class="card-body d-flex align-items-center justify-content-between gap-3 flex-wrap">
+        <div>
+            <% if (user.isActive()) { %>
+                <% if (user.subscription.status === 'trialing') { %>
+                    <p class="fw-semibold mb-1">Free Trial Active</p>
+                    <p class="text-muted small mb-0">
+                        <%= Math.max(0, Math.ceil((new Date(user.subscription.trialEndsAt) - new Date()) / (1000*60*60*24))) %> days remaining
+                    </p>
+                <% } else if (user.subscription.seasonEndsAt && new Date(user.subscription.seasonEndsAt) > new Date()) { %>
+                    <p class="fw-semibold mb-1">Season Pass Active</p>
+                    <p class="text-muted small mb-0">
+                        Expires <%= new Date(user.subscription.seasonEndsAt).toLocaleDateString() %>
+                    </p>
+                <% } else { %>
+                    <p class="fw-semibold mb-1">Subscription Active</p>
+                    <% if (user.subscription.currentPeriodEnds) { %>
+                        <p class="text-muted small mb-0">Renews <%= new Date(user.subscription.currentPeriodEnds).toLocaleDateString() %></p>
+                    <% } %>
+                <% } %>
+            <% } else if (user.subscription.status === 'past_due') { %>
+                <p class="fw-semibold mb-1 text-danger">Payment Failed</p>
+                <p class="text-muted small mb-0">Update your payment method to restore access.</p>
+            <% } else if (user.subscription.status === 'cancelled') { %>
+                <p class="fw-semibold mb-1">Subscription Cancelled</p>
+                <p class="text-muted small mb-0">Resubscribe to restore access.</p>
+            <% } else { %>
+                <p class="fw-semibold mb-1">No Active Subscription</p>
+                <p class="text-muted small mb-0">Start your 30-day free trial today.</p>
+            <% } %>
+        </div>
+        <a href="/subscription" class="btn btn-primary fw-bold flex-shrink-0">
+            <i class="bi bi-credit-card me-1"></i>
+            <%= user.isActive() ? 'Manage' : 'Subscribe' %>
+        </a>
+    </div>
+</div>
 <!-- ── Visual Preferences ─────────────────────────────────────── -->
 <div class="card mb-4">
     <div class="card-header fw-bold d-flex align-items-center justify-content-between">

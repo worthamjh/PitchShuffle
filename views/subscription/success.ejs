@@ -3,6 +3,14 @@
 <div class="container py-5 text-center" style="max-width: 480px;">
     <div style="font-size:3rem;">🎉</div>
     <h1 class="fw-bold mt-3">You're all set!</h1>
-    <p class="text-muted fs-5 mb-4">Your 30-day free trial has started. Enjoy PitchShuffle Pro.</p>
+
+    <% if (plan === 'season') { %>
+        <p class="text-muted fs-5 mb-4">Your Season Pass is active. You have 90 days of full access to PitchShuffle.</p>
+    <% } else if (plan === 'annual') { %>
+        <p class="text-muted fs-5 mb-4">Your 30-day free trial has started. After that you'll be billed annually. Enjoy PitchShuffle!</p>
+    <% } else { %>
+        <p class="text-muted fs-5 mb-4">Your 30-day free trial has started. After that you'll be billed monthly. Enjoy PitchShuffle!</p>
+    <% } %>
+
     <a href="/" class="btn btn-primary px-5 py-2 fw-bold">Start Calling Pitches</a>
 </div>
