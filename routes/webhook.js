@@ -4,10 +4,9 @@ const stripe  = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const User    = require('../models/user');
 
 // !! This route needs raw body — must be registered BEFORE express.urlencoded in app.js
-// See app.js comment for how to mount this correctly.
 
 router.post('/', express.raw({ type: 'application/json' }), async (req, res) => {
-    const sig    = req.headers['stripe-signature'];
+    const sig = req.headers['stripe-signature'];
     let event;
 
     try {
@@ -22,23 +21,36 @@ router.post('/', express.raw({ type: 'application/json' }), async (req, res) => 
 
             case 'checkout.session.completed': {
                 const session = event.data.object;
-                // Only handle subscription checkouts
-                if (session.mode !== 'subscription') break;
-                const user = await User.findOne({
-                    'subscription.stripeCustomerId': session.customer
-                });
-                if (!user) break;
-                user.subscription.stripeSubId = session.subscription;
-                user.subscription.status      = 'trialing';
-                // Trial end comes from the subscription object — fetch it
-                const sub = await stripe.subscriptions.retrieve(session.subscription);
-                user.subscription.trialEndsAt       = sub.trial_end
-                    ? new Date(sub.trial_end * 1000)
-                    : null;
-                user.subscription.currentPeriodEnds = new Date(sub.current_period_end * 1000);user.subscription.currentPeriodEnds = sub.current_period_end
-                ? new Date(sub.current_period_end * 1000)
-                : null;
-                await user.save();
+
+                if (session.mode === 'payment') {
+                    // ── Season pass — grant 90 days ──────────────
+                    const user = await User.findOne({
+                        'subscription.stripeCustomerId': session.customer
+                    });
+                    if (user) {
+                        const seasonEndsAt = new Date();
+                        seasonEndsAt.setDate(seasonEndsAt.getDate() + 90);
+                        user.subscription.seasonEndsAt = seasonEndsAt;
+                        await user.save();
+                    }
+
+                } else if (session.mode === 'subscription') {
+                    // ── Monthly/annual — set trial status ─────────
+                    const user = await User.findOne({
+                        'subscription.stripeCustomerId': session.customer
+                    });
+                    if (!user) break;
+                    user.subscription.stripeSubId = session.subscription;
+                    user.subscription.status      = 'trialing';
+                    const sub = await stripe.subscriptions.retrieve(session.subscription);
+                    user.subscription.trialEndsAt       = sub.trial_end
+                        ? new Date(sub.trial_end * 1000)
+                        : null;
+                    user.subscription.currentPeriodEnds = sub.current_period_end
+                        ? new Date(sub.current_period_end * 1000)
+                        : null;
+                    await user.save();
+                }
                 break;
             }
 
@@ -48,13 +60,13 @@ router.post('/', express.raw({ type: 'application/json' }), async (req, res) => 
                     'subscription.stripeCustomerId': sub.customer
                 });
                 if (!user) break;
-                user.subscription.status            = sub.status; // active, past_due, etc.
+                user.subscription.status            = sub.status;
                 user.subscription.trialEndsAt       = sub.trial_end
                     ? new Date(sub.trial_end * 1000)
                     : null;
                 user.subscription.currentPeriodEnds = sub.current_period_end
-                ? new Date(sub.current_period_end * 1000)
-                : null;
+                    ? new Date(sub.current_period_end * 1000)
+                    : null;
                 await user.save();
                 break;
             }
@@ -72,7 +84,6 @@ router.post('/', express.raw({ type: 'application/json' }), async (req, res) => 
             }
 
             default:
-                // Ignore other events
                 break;
         }
     } catch (e) {

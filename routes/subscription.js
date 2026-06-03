@@ -5,54 +5,85 @@ const { isLoggedIn } = require('../middleware');
 
 // ── Pricing page ──────────────────────────────────────────────
 router.get('/', isLoggedIn, (req, res) => {
-    res.render('subscription/pricing', {
-        user:           req.user,
-        priceMonthly:   process.env.STRIPE_PRICE_MONTHLY,
-    });
+    res.render('subscription/pricing', { user: req.user });
 });
 
-// ── Create Stripe Checkout session ───────────────────────────
+// ── Helper: get or create Stripe customer ─────────────────────
+async function getOrCreateCustomer(user) {
+    if (user.subscription?.stripeCustomerId) return user.subscription.stripeCustomerId;
+    const customer = await stripe.customers.create({
+        email:    user.email,
+        metadata: { userId: user._id.toString() }
+    });
+    user.subscription.stripeCustomerId = customer.id;
+    await user.save();
+    return customer.id;
+}
+
+// ── Create Stripe Checkout session ────────────────────────────
+// plan = 'monthly' | 'annual' | 'season'
 router.post('/checkout', isLoggedIn, async (req, res, next) => {
     try {
-        const user = req.user;
-        const baseUrl = `${req.protocol}://${req.get('host')}`;
+        const { plan = 'monthly' } = req.body;
+        const user      = req.user;
+        const baseUrl   = `${req.protocol}://${req.get('host')}`;
+        const customerId = await getOrCreateCustomer(user);
 
-        // Reuse existing Stripe customer if we have one
-        let customerId = user.subscription?.stripeCustomerId || null;
-        if (!customerId) {
-            const customer = await stripe.customers.create({
-                email:    user.email,
-                metadata: { userId: user._id.toString() }
-            });
-            customerId = customer.id;
-            user.subscription.stripeCustomerId = customerId;
-            await user.save();
+        const PRICES = {
+            monthly: process.env.STRIPE_PRICE_MONTHLY,
+            annual:  process.env.STRIPE_PRICE_ANNUAL,
+            season:  process.env.STRIPE_PRICE_SEASON,
+        };
+
+        const priceId = PRICES[plan];
+        if (!priceId) {
+            req.flash('error', 'Invalid plan selected.');
+            return res.redirect('/subscription');
         }
 
-        const session = await stripe.checkout.sessions.create({
+        const isSeason = plan === 'season';
+
+        const sessionParams = {
             customer:             customerId,
             payment_method_types: ['card'],
-            mode:                 'subscription',
-            line_items: [{
-                price:    process.env.STRIPE_PRICE_MONTHLY,
-                quantity: 1,
-            }],
-            subscription_data: {
-                trial_period_days: 30,
-            },
-            success_url: `${baseUrl}/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
+            mode:                 isSeason ? 'payment' : 'subscription',
+            line_items: [{ price: priceId, quantity: 1 }],
+            success_url: `${baseUrl}/subscription/success?session_id={CHECKOUT_SESSION_ID}&plan=${plan}`,
             cancel_url:  `${baseUrl}/subscription`,
-        });
+        };
 
+        // Add trial only for monthly/annual, not season pass
+        if (!isSeason) {
+            sessionParams.subscription_data = { trial_period_days: 30 };
+        }
+
+        const session = await stripe.checkout.sessions.create(sessionParams);
         res.redirect(303, session.url);
     } catch (e) {
         next(e);
     }
 });
 
-// ── Success page (after Stripe redirects back) ────────────────
-router.get('/success', isLoggedIn, (req, res) => {
-    res.render('subscription/success');
+// ── Success page ──────────────────────────────────────────────
+router.get('/success', isLoggedIn, async (req, res, next) => {
+    try {
+        const { plan, session_id } = req.query;
+
+        // For season pass, grant 90 days access immediately on success
+        if (plan === 'season' && session_id) {
+            const session = await stripe.checkout.sessions.retrieve(session_id);
+            if (session.payment_status === 'paid') {
+                const seasonEndsAt = new Date();
+                seasonEndsAt.setDate(seasonEndsAt.getDate() + 90);
+                req.user.subscription.seasonEndsAt = seasonEndsAt;
+                await req.user.save();
+            }
+        }
+
+        res.render('subscription/success', { plan });
+    } catch (e) {
+        next(e);
+    }
 });
 
 // ── Customer portal (manage/cancel subscription) ──────────────

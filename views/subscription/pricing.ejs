@@ -1,48 +1,189 @@
 <%- layout('layouts/boilerplate') %>
 
-<div class="container py-5" style="max-width: 480px;">
+<%
+    const sub      = user.subscription || {};
+    const status   = sub.status || 'none';
+    const isActive = user.isActive();
+
+    const trialEnd    = sub.trialEndsAt       ? new Date(sub.trialEndsAt)       : null;
+    const periodEnd   = sub.currentPeriodEnds ? new Date(sub.currentPeriodEnds) : null;
+    const seasonEnd   = sub.seasonEndsAt      ? new Date(sub.seasonEndsAt)      : null;
+    const onSeason    = seasonEnd && seasonEnd > new Date();
+
+    const daysLeft = trialEnd
+        ? Math.max(0, Math.ceil((trialEnd - new Date()) / (1000 * 60 * 60 * 24)))
+        : null;
+
+    const seasonDaysLeft = seasonEnd
+        ? Math.max(0, Math.ceil((seasonEnd - new Date()) / (1000 * 60 * 60 * 24)))
+        : null;
+%>
+
+<div class="container py-4" style="max-width: 520px;">
+
     <div class="text-center mb-4">
         <div style="font-size:2.5rem;">⚾</div>
-        <h1 class="fw-bold mt-2">PitchShuffle Pro</h1>
+        <h1 class="fw-bold mt-2">PitchShuffle</h1>
         <p class="text-muted">Call pitches fast. Keep your catcher in sync.</p>
     </div>
 
+    <!-- Status banner -->
+    <% if (onSeason) { %>
+        <div class="alert alert-success d-flex align-items-center gap-2 mb-4">
+            <i class="bi bi-calendar-check-fill fs-5 flex-shrink-0"></i>
+            <div>
+                <strong>Season Pass active</strong> —
+                <%= seasonDaysLeft %> day<%= seasonDaysLeft !== 1 ? 's' : '' %> remaining
+                <span class="text-muted small">(expires <%= seasonEnd.toLocaleDateString() %>)</span>
+            </div>
+        </div>
+    <% } else if (status === 'trialing' && isActive) { %>
+        <div class="alert alert-info d-flex align-items-center gap-2 mb-4">
+            <i class="bi bi-hourglass-split fs-5 flex-shrink-0"></i>
+            <div>
+                <strong>Free trial active</strong> —
+                <%= daysLeft %> day<%= daysLeft !== 1 ? 's' : '' %> remaining
+                <% if (trialEnd) { %><span class="text-muted small">(ends <%= trialEnd.toLocaleDateString() %>)</span><% } %>
+            </div>
+        </div>
+    <% } else if (status === 'active') { %>
+        <div class="alert alert-success d-flex align-items-center gap-2 mb-4">
+            <i class="bi bi-check-circle-fill fs-5 flex-shrink-0"></i>
+            <div>
+                <strong>Subscription active</strong>
+                <% if (periodEnd) { %>— renews <%= periodEnd.toLocaleDateString() %><% } %>
+            </div>
+        </div>
+    <% } else if (status === 'past_due') { %>
+        <div class="alert alert-danger d-flex align-items-center gap-2 mb-4">
+            <i class="bi bi-exclamation-triangle-fill fs-5 flex-shrink-0"></i>
+            <div><strong>Payment failed</strong> — update your payment method to keep access.</div>
+        </div>
+    <% } else if (status === 'cancelled') { %>
+        <div class="alert alert-warning d-flex align-items-center gap-2 mb-4">
+            <i class="bi bi-x-circle-fill fs-5 flex-shrink-0"></i>
+            <div>
+                <strong>Subscription cancelled</strong>
+                <% if (periodEnd && periodEnd > new Date()) { %>
+                    — access continues until <%= periodEnd.toLocaleDateString() %>
+                <% } %>
+            </div>
+        </div>
+    <% } %>
+
+    <!-- Features list -->
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-body p-4">
-            <ul class="list-unstyled mb-4">
-                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Unlimited teams & pitchers</li>
+            <h5 class="fw-bold mb-3">Everything included in every plan</h5>
+            <ul class="list-unstyled mb-0">
+                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Unlimited teams &amp; pitchers</li>
                 <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Full strike zone customization</li>
-                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Voice pitch calls</li>
+                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Voice pitch calls via Bluetooth earpiece</li>
+                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Shuffle — randomized pitch calling</li>
                 <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Team color themes</li>
-                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>30-day free trial — no card required to start</li>
+                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Baseball &amp; softball support</li>
             </ul>
-
-            <% if (!user.isActive()) { %>
-                <form action="/subscription/checkout" method="POST">
-                    <button type="submit" class="btn btn-primary w-100 py-3 fw-bold fs-5">
-                        Start Free Trial
-                    </button>
-                </form>
-                <p class="text-muted text-center small mt-2">30 days free, then billed monthly. Cancel anytime.</p>
-            <% } else { %>
-                <div class="alert alert-success text-center mb-3">
-                    <i class="bi bi-check-circle-fill me-1"></i>
-                    <% if (user.subscription.status === 'trialing') { %>
-                        Your trial is active until <%= new Date(user.subscription.trialEndsAt).toLocaleDateString() %>.
-                    <% } else { %>
-                        Your subscription is active.
-                    <% } %>
-                </div>
-                <form action="/subscription/portal" method="POST">
-                    <button type="submit" class="btn btn-outline-secondary w-100">
-                        Manage Subscription
-                    </button>
-                </form>
-            <% } %>
         </div>
     </div>
 
+    <!-- Pricing tiers -->
+    <% if (!isActive || status === 'cancelled' || status === 'past_due') { %>
+
+        <!-- Monthly -->
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <h5 class="fw-bold mb-0">Monthly</h5>
+                    <span class="fs-4 fw-bold">$5.99<span class="text-muted fs-6 fw-normal">/mo</span></span>
+                </div>
+                <p class="text-muted small mb-3">Includes 30-day free trial. Cancel anytime.</p>
+                <form action="/subscription/checkout" method="POST">
+                    <input type="hidden" name="plan" value="monthly">
+                    <button type="submit" class="btn btn-primary w-100 fw-bold">
+                        <i class="bi bi-play-fill me-1"></i>
+                        <%= status === 'none' ? 'Start Free Trial' : 'Subscribe Monthly' %>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Season Pass -->
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <div>
+                        <h5 class="fw-bold mb-0">Season Pass</h5>
+                        <span class="badge bg-info text-dark">90 days</span>
+                    </div>
+                    <span class="fs-4 fw-bold">$14.99<span class="text-muted fs-6 fw-normal"> once</span></span>
+                </div>
+                <p class="text-muted small mb-3">One-time payment. Perfect for a single season.</p>
+                <form action="/subscription/checkout" method="POST">
+                    <input type="hidden" name="plan" value="season">
+                    <button type="submit" class="btn btn-outline-primary w-100 fw-bold">
+                        <i class="bi bi-calendar-check me-1"></i> Get Season Pass
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Annual -->
+        <div class="card border-2 shadow-sm mb-4" style="border-color: var(--ps-navy) !important;">
+            <div class="card-header fw-bold text-center py-1" style="background: var(--ps-navy); color: var(--accent-text);">
+                Best Value — Save 30%
+            </div>
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <h5 class="fw-bold mb-0">Annual</h5>
+                    <span class="fs-4 fw-bold">$49.99<span class="text-muted fs-6 fw-normal">/yr</span></span>
+                </div>
+                <p class="text-muted small mb-3">Includes 30-day free trial. Only $4.17/month.</p>
+                <form action="/subscription/checkout" method="POST">
+                    <input type="hidden" name="plan" value="annual">
+                    <button type="submit" class="btn btn-primary w-100 fw-bold">
+                        <i class="bi bi-play-fill me-1"></i>
+                        <%= status === 'none' ? 'Start Free Trial' : 'Subscribe Annually' %>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+    <% } else if (status === 'trialing' && isActive) { %>
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-1">Add Payment Method</h5>
+                <p class="text-muted small mb-3">Add a card now so your access continues after your trial ends.</p>
+                <form action="/subscription/checkout" method="POST">
+                    <input type="hidden" name="plan" value="monthly">
+                    <button type="submit" class="btn btn-primary w-100 fw-bold">
+                        <i class="bi bi-credit-card me-1"></i> Add Payment Method
+                    </button>
+                </form>
+            </div>
+        </div>
+        <form action="/subscription/portal" method="POST">
+            <button type="submit" class="btn btn-outline-secondary w-100 py-2 fw-bold mb-4">
+                <i class="bi bi-gear me-1"></i> Manage Subscription
+            </button>
+        </form>
+
+    <% } else if (status === 'active') { %>
+        <form action="/subscription/portal" method="POST">
+            <button type="submit" class="btn btn-outline-secondary w-100 py-2 fw-bold mb-4">
+                <i class="bi bi-gear me-1"></i> Manage Subscription
+            </button>
+        </form>
+
+    <% } else if (status === 'past_due') { %>
+        <form action="/subscription/portal" method="POST">
+            <button type="submit" class="btn btn-danger w-100 py-2 fw-bold mb-4">
+                <i class="bi bi-credit-card me-1"></i> Update Payment Method
+            </button>
+        </form>
+    <% } %>
+
     <p class="text-center text-muted small">
-        Secured by <strong>Stripe</strong>. We never store your card details.
+        <i class="bi bi-lock-fill me-1"></i> Secured by <strong>Stripe</strong>. We never store your card details.
     </p>
+
 </div>

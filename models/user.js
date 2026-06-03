@@ -7,13 +7,14 @@ const UserSchema = new mongoose.Schema({
     subscription: {
         status: {
             type: String,
-            enum: ['trialing', 'active', 'past_due', 'cancelled', 'none'],
+            enum: ['trialing', 'active', 'past_due','cancelled', 'none'],
             default: 'none'
         },
         stripeCustomerId:  { type: String, default: null },
         stripeSubId:       { type: String, default: null },
         trialEndsAt:       { type: Date,   default: null },
         currentPeriodEnds: { type: Date,   default: null },
+        seasonEndsAt:      { type: Date,   default: null },  // ← add this
     },
 
     // Profile picture (Cloudinary URL)
@@ -34,6 +35,7 @@ UserSchema.methods.isActive = function () {
     const s = this.subscription;
     if (s.status === 'active') return true;
     if (s.status === 'trialing' && s.trialEndsAt && s.trialEndsAt > new Date()) return true;
+    if (s.seasonEndsAt && s.seasonEndsAt > new Date()) return true;
     return false;
 };
 
