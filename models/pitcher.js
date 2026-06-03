@@ -33,7 +33,11 @@ const PitcherSchema = new mongoose.Schema({
 
     // Snapshot of previous zone state — used for revert after zone change
     previousZone:       { type: mongoose.Schema.Types.ObjectId, ref: 'StrikeZone', default: null },
-    previousPitchTypes: { type: mongoose.Schema.Types.Mixed, default: null }
+    previousPitchTypes: { type: mongoose.Schema.Types.Mixed, default: null },
+    shuffleSettings: {
+    strikeChancePct: { type: Number, default: null }, // null = use global default
+    pitchWeights:    { type: Map, of: Number, default: {} } // { 'Fastball': 50, 'Curveball': 25, ... }
+}
 });
 
 // Virtual: full display name

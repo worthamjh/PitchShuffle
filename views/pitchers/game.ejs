@@ -599,12 +599,47 @@
     document.getElementById('btnRandom').addEventListener('click', () => {
         const eligible = pitchTypes.filter(pt => pt.locations?.some(l => l.enabled));
         if (!eligible.length) return;
-        const pt = eligible[Math.floor(Math.random() * eligible.length)];
+
+        // ── Weighted pitch type selection ──────────────────────
+        const shuffleSettings = pitcherData.shuffleSettings || {};
+        const pitchWeights    = shuffleSettings.pitchWeights || {};
+        const strikeChancePct = shuffleSettings.strikeChancePct != null
+            ? shuffleSettings.strikeChancePct
+            : (<%= currentUser && currentUser.preferences && currentUser.preferences.strikeChancePct != null ? currentUser.preferences.strikeChancePct : 70 %>);
+
+        // Build weight array for eligible pitches
+        const weights = eligible.map(pt => {
+            const w = pitchWeights[pt.name];
+            return (w != null && !isNaN(w)) ? parseInt(w) : 1;
+        });
+        const totalWeight = weights.reduce((a, b) => a + b, 0);
+        let roll = Math.random() * totalWeight;
+        let pt = eligible[eligible.length - 1];
+        for (let i = 0; i < eligible.length; i++) {
+            roll -= weights[i];
+            if (roll <= 0) { pt = eligible[i]; break; }
+        }
         const pitchIndex = pitchTypes.indexOf(pt);
-        const enabledLocs = pt.locations.filter(l => l.enabled);
-        if (!enabledLocs.length) return;
-        const loc = enabledLocs[Math.floor(Math.random() * enabledLocs.length)];
-        selectPitch(pitchIndex); selectLocation(loc.name);
+
+        // ── Weighted strike/chase location selection ───────────
+        const strikeLocs = pt.locations.filter(l => l.enabled && l.type === 'strike');
+        const chaseLocs  = pt.locations.filter(l => l.enabled && l.type === 'chase');
+        let locPool;
+        if (strikeLocs.length && chaseLocs.length) {
+            // Both types available — use the weighted split
+            locPool = Math.random() * 100 < strikeChancePct ? strikeLocs : chaseLocs;
+        } else if (strikeLocs.length) {
+            // Only strike locations available — always pick strike regardless of slider
+            locPool = strikeLocs;
+        } else if (chaseLocs.length) {
+            // Only chase locations available — always pick chase regardless of slider
+            locPool = chaseLocs;
+        } else {
+            return; // No enabled locations at all
+        }
+        const loc = locPool[Math.floor(Math.random() * locPool.length)];
+        selectPitch(pitchIndex);
+        selectLocation(loc.name);
     });
     document.getElementById('btnClear').addEventListener('click', clearSelection);
     document.getElementById('btnRepeat').addEventListener('click', () => { if (lastCall) speak(lastCall.pitchName, lastCall.locName); });

@@ -102,7 +102,23 @@
                     </div>
                 </div>
             </div>
-
+            <!-- ── Shuffle Defaults ───────────────────────────────────── -->
+            <div class="mb-4 mt-2">
+                <hr>
+                <h5 class="fw-bold mb-1"><i class="bi bi-shuffle"></i> Shuffle Defaults for This Team</h5>
+                <p class="text-muted small mb-3">Bulk-update shuffle settings for all pitchers on this team.</p>
+                <div class="d-flex flex-wrap gap-2">
+                    <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#shuffleBulkModal">
+                        <i class="bi bi-sliders"></i> Set Strike % for All Pitchers
+                    </button>
+                    <form action="/teams/<%= team._id %>/shuffle-reset" method="POST" style="margin:0;">
+                        <button type="submit" class="btn btn-outline-secondary btn-sm"
+                                onclick="return confirm('Reset all pitchers on this team to equal pitch type weights?')">
+                            <i class="bi bi-arrow-counterclockwise"></i> Reset Pitch Weights for All Pitchers
+                        </button>
+                    </form>
+                </div>
+            </div>
             <div class="d-flex gap-2">
                 <button type="submit" class="btn btn-primary btn-lg">
                     <i class="bi bi-check-circle"></i> Save Changes
@@ -167,4 +183,42 @@
             checkColors();
         </script>
     </div>
+    <!-- Shuffle Bulk Strike % Modal -->
+<div class="modal fade" id="shuffleBulkModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold"><i class="bi bi-shuffle me-2"></i>Set Strike % for All Pitchers</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-3">
+                <p class="text-muted small mb-3">This will override the strike/chase split for every pitcher on this team.</p>
+                <form action="/teams/<%= team._id %>/shuffle-strike" method="POST" id="shuffleBulkForm">
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="text-success fw-bold" style="min-width:80px;">Strike: <span id="bulkStrikeLbl"><%= currentUser && currentUser.preferences && currentUser.preferences.strikeChancePct != null ? currentUser.preferences.strikeChancePct : 70 %></span>%</span>
+                        <input type="range" class="form-range flex-grow-1" min="0" max="100" step="5"
+                               id="bulkStrikeSlider" name="strikeChancePct" value="<%= currentUser && currentUser.preferences && currentUser.preferences.strikeChancePct != null ? currentUser.preferences.strikeChancePct : 70 %>">
+                        <span class="text-warning fw-bold" style="min-width:80px;">Chase: <span id="bulkChaseLbl"><%= 100 - (currentUser && currentUser.preferences && currentUser.preferences.strikeChancePct != null ? currentUser.preferences.strikeChancePct : 70) %></span>%</span>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="bulkStrikeSubmit">
+                    <i class="bi bi-check-circle me-1"></i> Apply to All Pitchers
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('bulkStrikeSlider').addEventListener('input', function () {
+    document.getElementById('bulkStrikeLbl').textContent = this.value;
+    document.getElementById('bulkChaseLbl').textContent  = 100 - this.value;
+});
+document.getElementById('bulkStrikeSubmit').addEventListener('click', () => {
+    document.getElementById('shuffleBulkForm').submit();
+});
+</script>
 </div>

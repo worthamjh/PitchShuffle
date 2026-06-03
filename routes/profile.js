@@ -177,12 +177,16 @@ router.post('/preferences', isLoggedIn, async (req, res) => {
             }
         }
 
+        const rawStrikePct = parseInt(req.body.strikeChancePct);
+        const safeStrikePct = (!isNaN(rawStrikePct) && rawStrikePct >= 0 && rawStrikePct <= 100) ? rawStrikePct : 70;
+
         req.user.preferences = {
             theme:           safeTheme,
             gameFontSize:    safeFontSize,
             voiceURI:        voiceURI || '',
             zoneTerminology: safeTerminology,
             showQuickGame:   safeShowQuickGame,
+            strikeChancePct: safeStrikePct,
         };
         await req.user.save();
 

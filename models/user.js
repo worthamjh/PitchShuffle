@@ -24,6 +24,7 @@ const UserSchema = new mongoose.Schema({
         voiceURI:        { type: String, default: '' },
         zoneTerminology: { type: String, enum: ['arm-glove', 'inside-away'], default: 'arm-glove' },
         showQuickGame:   { type: Boolean, default: true },
+        strikeChancePct: { type: Number, default: 70 },
     }
 });
 

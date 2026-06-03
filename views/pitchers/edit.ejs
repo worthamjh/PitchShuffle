@@ -239,6 +239,58 @@
                 </div>
 
                 <button type="button" class="btn btn-outline-secondary mb-4" id="addPitch"><i class="bi bi-plus-circle"></i> Add Another Pitch</button>
+                <!-- ── Shuffle Settings ───────────────────────────────────── -->
+<div class="accordion mt-4 mb-4" id="shuffleAccordion">
+    <div class="accordion-item" style="border:1px solid #dee2e6;border-radius:12px;overflow:hidden;">
+        <h2 class="accordion-header">
+            <button class="accordion-button collapsed fw-semibold" type="button"
+                    data-bs-toggle="collapse" data-bs-target="#shuffleSettingsBody">
+                <i class="bi bi-shuffle me-2"></i> Shuffle Settings
+                <span class="text-muted fw-normal ms-2" style="font-size:0.8rem;">— optional per-pitcher overrides</span>
+            </button>
+        </h2>
+        <div id="shuffleSettingsBody" class="accordion-collapse collapse">
+            <div class="accordion-body">
+
+                <!-- Strike/Chase % slider -->
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Strike Zone % 
+                        <span class="text-muted fw-normal">(when shuffling locations)</span>
+                    </label>
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="text-success fw-bold" style="min-width:80px;">Strike: <span id="strikeChanceLbl"><%= pitcher.shuffleSettings && pitcher.shuffleSettings.strikeChancePct != null ? pitcher.shuffleSettings.strikeChancePct : (currentUser.preferences.strikeChancePct || 70) %></span>%</span>
+                        <input type="range" class="form-range flex-grow-1" min="0" max="100" step="5"
+                               id="strikeChanceSlider"
+                               name="shuffleSettings[strikeChancePct]"
+                               value="<%= pitcher.shuffleSettings && pitcher.shuffleSettings.strikeChancePct != null ? pitcher.shuffleSettings.strikeChancePct : (currentUser.preferences.strikeChancePct || 70) %>">
+                        <span class="text-warning fw-bold" style="min-width:80px;">Chase: <span id="chaseChanceLbl"><%= 100 - (pitcher.shuffleSettings && pitcher.shuffleSettings.strikeChancePct != null ? pitcher.shuffleSettings.strikeChancePct : (currentUser.preferences.strikeChancePct || 70)) %></span>%</span>
+                    </div>
+                    <small class="text-muted">Default from your profile: <%= currentUser.preferences.strikeChancePct || 70 %>% strikes</small>
+                </div>
+
+                <!-- Pitch type weight sliders -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Pitch Type Frequency
+                        <span class="text-muted fw-normal">(must add up to 100%)</span>
+                    </label>
+                    <div id="pitchWeightSliders"></div>
+                    <div class="mt-2 d-flex align-items-center gap-2">
+                        <span class="fw-bold">Total: <span id="weightTotal" class="text-success">100</span>%</span>
+                        <span id="weightWarning" class="text-danger small" style="display:none;">
+                            <i class="bi bi-exclamation-triangle-fill"></i> Must equal 100%
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Restore to defaults -->
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="restoreShuffleDefaults">
+                    <i class="bi bi-arrow-counterclockwise"></i> Restore to Profile Defaults
+                </button>
+
+            </div>
+        </div>
+    </div>
+</div>
 
                 <div class="d-flex gap-2 flex-shrink-0">
                     <button type="submit" class="btn btn-primary btn-lg"><i class="bi bi-check-circle"></i> Save Changes</button>
@@ -657,3 +709,83 @@
             });
         }
     </script>
+    <script>
+// ── Shuffle Settings ──────────────────────────────────────────
+(function () {
+    const globalStrikePct = <%= currentUser.preferences.strikeChancePct || 70 %>;
+    const savedWeights    = <%- JSON.stringify(pitcher.shuffleSettings && pitcher.shuffleSettings.pitchWeights ? Object.fromEntries(pitcher.shuffleSettings.pitchWeights) : {}) %>;
+
+    // Strike/Chase slider
+    const strikeSlider   = document.getElementById('strikeChanceSlider');
+    const strikeLbl      = document.getElementById('strikeChanceLbl');
+    const chaseLbl       = document.getElementById('chaseChanceLbl');
+    // Initialize labels on page load
+    strikeLbl.textContent = strikeSlider.value;
+    chaseLbl.textContent  = 100 - parseInt(strikeSlider.value);
+
+    strikeSlider.addEventListener('input', () => {
+        strikeLbl.textContent = strikeSlider.value;
+        chaseLbl.textContent  = 100 - parseInt(strikeSlider.value);
+    });
+
+    // Build pitch weight sliders dynamically from current pitch rows
+    function buildWeightSliders() {
+        const container  = document.getElementById('pitchWeightSliders');
+        const pitchRows  = [...document.querySelectorAll('.pitch-type-row')];
+        const pitchNames = pitchRows.map(row => row.querySelector('.pitch-name')?.value?.trim()).filter(Boolean);
+        if (!pitchNames.length) { container.innerHTML = '<p class="text-muted small">Add pitch types above first.</p>'; return; }
+
+        const equalShare = Math.round(100 / pitchNames.length);
+        container.innerHTML = '';
+
+        pitchNames.forEach((name, i) => {
+            const saved = savedWeights[name];
+            const val   = saved != null ? saved : equalShare;
+            const div   = document.createElement('div');
+            div.className = 'mb-3';
+            div.innerHTML = `
+                <div class="d-flex align-items-center gap-3">
+                    <span class="fw-bold" style="min-width:120px;font-size:0.85rem;">${name}</span>
+                    <input type="range" class="form-range flex-grow-1 pitch-weight-slider"
+                           min="0" max="100" step="5" value="${val}"
+                           name="shuffleSettings[pitchWeights][${name}]"
+                           data-pitch-name="${name}">
+                    <span class="fw-bold weight-lbl" style="min-width:40px;">${val}%</span>
+                </div>`;
+            container.appendChild(div);
+        });
+
+        updateTotal();
+        container.querySelectorAll('.pitch-weight-slider').forEach(slider => {
+            slider.addEventListener('input', () => {
+                slider.closest('div.mb-3').querySelector('.weight-lbl').textContent = slider.value + '%';
+                updateTotal();
+            });
+        });
+    }
+
+    function updateTotal() {
+        const sliders = [...document.querySelectorAll('.pitch-weight-slider')];
+        const total   = sliders.reduce((sum, s) => sum + parseInt(s.value), 0);
+        const totalEl = document.getElementById('weightTotal');
+        const warnEl  = document.getElementById('weightWarning');
+        totalEl.textContent = total;
+        totalEl.className   = total === 100 ? 'text-success' : 'text-danger';
+        warnEl.style.display = total === 100 ? 'none' : '';
+    }
+
+    // Restore defaults button
+    document.getElementById('restoreShuffleDefaults').addEventListener('click', () => {
+        strikeSlider.value    = globalStrikePct;
+        strikeLbl.textContent = globalStrikePct;
+        chaseLbl.textContent  = 100 - globalStrikePct;
+        const sliders  = [...document.querySelectorAll('.pitch-weight-slider')];
+        const equal    = sliders.length ? Math.floor(100 / sliders.length) : 0;
+        sliders.forEach(s => { s.value = equal; s.closest('div.mb-3').querySelector('.weight-lbl').textContent = equal + '%'; });
+        updateTotal();
+    });
+
+    // Build sliders when accordion opens
+    document.getElementById('shuffleSettingsBody').addEventListener('show.bs.collapse', buildWeightSliders);
+})();
+</script>

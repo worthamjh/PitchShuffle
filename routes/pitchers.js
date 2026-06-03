@@ -180,6 +180,22 @@ router.put('/:pitcherId', isLoggedIn, isOwner, isPitcherInTeam, async (req, res,
         }
         pitcher.previousZone       = null;
         pitcher.previousPitchTypes = null;
+
+        // Save shuffle settings
+        const ss = req.body.shuffleSettings;
+        if (ss) {
+            pitcher.shuffleSettings = pitcher.shuffleSettings || {};
+            pitcher.shuffleSettings.strikeChancePct = ss.strikeChancePct != null ? parseInt(ss.strikeChancePct) : null;
+            if (ss.pitchWeights) {
+                const weights = new Map();
+                for (const [name, val] of Object.entries(ss.pitchWeights)) {
+                    weights.set(name, parseInt(val));
+                }
+                pitcher.shuffleSettings.pitchWeights = weights;
+            }
+            pitcher.markModified('shuffleSettings');
+        }
+
         pitcher.markModified('pitchTypes');
         pitcher.markModified('previousPitchTypes');
         await pitcher.save();

@@ -134,6 +134,42 @@ router.put('/:id', isLoggedIn, isOwner, upload.single('logo'), async (req, res, 
     }
 });
 
+// Bulk set strike % for all pitchers on a team
+router.post('/:teamId/shuffle-strike', isLoggedIn, isOwner, async (req, res, next) => {
+    try {
+        const team = await Team.findById(req.params.teamId).populate('pitchers');
+        const pct  = parseInt(req.body.strikeChancePct);
+        const safe = (!isNaN(pct) && pct >= 0 && pct <= 100) ? pct : 70;
+        for (const pitcher of team.pitchers) {
+            pitcher.shuffleSettings = pitcher.shuffleSettings || {};
+            pitcher.shuffleSettings.strikeChancePct = safe;
+            pitcher.markModified('shuffleSettings');
+            await pitcher.save();
+        }
+        req.flash('success', `Strike % set to ${safe}% for all ${team.pitchers.length} pitchers.`);
+        res.redirect(`/teams/${team._id}/edit`);
+    } catch (e) {
+        next(e);
+    }
+});
+
+// Reset pitch weights to equal for all pitchers on a team
+router.post('/:teamId/shuffle-reset', isLoggedIn, isOwner, async (req, res, next) => {
+    try {
+        const team = await Team.findById(req.params.teamId).populate('pitchers');
+        for (const pitcher of team.pitchers) {
+            pitcher.shuffleSettings = pitcher.shuffleSettings || {};
+            pitcher.shuffleSettings.pitchWeights = new Map();
+            pitcher.markModified('shuffleSettings');
+            await pitcher.save();
+        }
+        req.flash('success', `Pitch weights reset to equal for all ${team.pitchers.length} pitchers.`);
+        res.redirect(`/teams/${team._id}/edit`);
+    } catch (e) {
+        next(e);
+    }
+});
+
 // Delete team
 router.delete('/:id', isLoggedIn, isOwner, async (req, res, next) => {
     try {

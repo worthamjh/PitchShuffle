@@ -235,7 +235,20 @@
                     </div>
                 </div>
             </div>
-
+<!-- Default Shuffle Strike % -->
+            <div class="mb-4">
+                <label class="form-label fw-bold">Default Shuffle Strike %
+                    <span class="text-muted fw-normal">(used when no per-pitcher override is set)</span>
+                </label>
+                <div class="d-flex align-items-center gap-3">
+                    <span class="text-success fw-bold" style="min-width:80px;">Strike: <span id="globalStrikeLbl"><%= user.preferences && user.preferences.strikeChancePct != null ? user.preferences.strikeChancePct : 70 %></span>%</span>
+                    <input type="range" class="form-range flex-grow-1" min="0" max="100" step="5"
+                           id="globalStrikeSlider" name="strikeChancePct"
+                           value="<%= user.preferences && user.preferences.strikeChancePct != null ? user.preferences.strikeChancePct : 70 %>">
+                    <span class="text-warning fw-bold" style="min-width:80px;">Chase: <span id="globalChaseLbl"><%= 100 - (user.preferences && user.preferences.strikeChancePct != null ? user.preferences.strikeChancePct : 70) %></span>%</span>
+                </div>
+                <small class="text-muted">Pitchers with a custom override ignore this setting.</small>
+            </div>
             <button type="submit" class="btn btn-primary">
                 <i class="bi bi-check-circle"></i> Save Preferences
             </button>
@@ -255,6 +268,9 @@ document.getElementById('restoreDefaultsBtn').addEventListener('click', () => {
     document.getElementById('font-lg').checked    = false;
     document.getElementById('voiceSelect').value  = '';
     document.getElementById('showQuickGame').checked = true;
+    document.getElementById('globalStrikeSlider').value = 70;
+    document.getElementById('globalStrikeLbl').textContent = 70;
+    document.getElementById('globalChaseLbl').textContent  = 30;
 });
 
 // ── Voice selector ────────────────────────────────────────────
@@ -278,6 +294,10 @@ if (window.speechSynthesis.onvoiceschanged !== undefined) {
     window.speechSynthesis.onvoiceschanged = populateVoices;
 }
 
+document.getElementById('globalStrikeSlider').addEventListener('input', function () {
+    document.getElementById('globalStrikeLbl').textContent = this.value;
+    document.getElementById('globalChaseLbl').textContent  = 100 - this.value;
+});
 // ── Test voice button ─────────────────────────────────────────
 document.getElementById('testVoiceBtn').addEventListener('click', () => {
     if (!('speechSynthesis' in window)) return;
