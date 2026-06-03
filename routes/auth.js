@@ -164,4 +164,15 @@ router.get('/auth/google/callback',
     }
 );
 
+router.get('/auth/google/callback',
+    passport.authenticate('google', {
+        failureRedirect: '/login',
+        failureFlash:    true,
+        keepSessionInfo: true,
+    }),
+    (req, res) => {
+        req.flash('success', `Welcome, ${req.user.username}!`);
+        res.redirect('/');
+    }
+);
 module.exports = router;
