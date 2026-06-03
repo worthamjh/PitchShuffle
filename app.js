@@ -52,6 +52,7 @@ passport.use(new GoogleStrategy({
     callbackURL:  process.env.GOOGLE_CALLBACK_URL,
 }, async (accessToken, refreshToken, profile, done) => {
     try {
+        console.log('Google profile received:', profile.id, profile.emails?.[0]?.value);
         const email = profile.emails?.[0]?.value;
 
         // Check if user already exists by googleId
@@ -62,7 +63,6 @@ passport.use(new GoogleStrategy({
         if (email) {
             user = await User.findOne({ email });
             if (user) {
-                // Link Google account to existing user
                 user.googleId = profile.id;
                 if (!user.avatar && profile.photos?.[0]?.value) {
                     user.avatar = profile.photos[0].value;
@@ -83,13 +83,6 @@ passport.use(new GoogleStrategy({
         });
         await newUser.save();
         return done(null, newUser);
-    } catch (e) {
-        return done(e);
-    }, async (accessToken, refreshToken, profile, done) => {
-    try {
-        console.log('Google profile received:', profile.id, profile.emails?.[0]?.value);
-        const email = profile.emails?.[0]?.value;
-        // ... rest of code
     } catch (e) {
         console.error('Google strategy error:', e);
         return done(e);
