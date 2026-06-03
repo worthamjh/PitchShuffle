@@ -1,16 +1,20 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 170 170" width="170" height="170">
+  <!-- Navy background -->
+  <rect x="0" y="0" width="170" height="170" rx="30" fill="#1a2e4a"/>
+
   <!-- Row 1 -->
-  <rect x="0"   y="0"   width="50" height="50" rx="8" fill="#F0EEE8" opacity="0.30"/>
-  <rect x="60"  y="0"   width="50" height="50" rx="8" fill="#F0EEE8" opacity="0.30"/>
-  <rect x="120" y="0"   width="50" height="50" rx="8" fill="#F0EEE8" opacity="0.30"/>
+  <rect x="14"  y="14"  width="42" height="42" rx="6" fill="#F0EEE8" opacity="0.25"/>
+  <rect x="64"  y="14"  width="42" height="42" rx="6" fill="#F0EEE8" opacity="0.25"/>
+  <rect x="114" y="14"  width="42" height="42" rx="6" fill="#F0EEE8" opacity="0.25"/>
+
   <!-- Row 2 -->
-  <rect x="0"   y="60"  width="50" height="50" rx="8" fill="#F0EEE8" opacity="0.30"/>
-  <rect x="60"  y="60"  width="50" height="50" rx="8" fill="#F0EEE8" opacity="0.30"/>
-  <rect x="120" y="60"  width="50" height="50" rx="8" fill="#F0EEE8" opacity="0.30"/>
-  <!-- Row 3 -->
-  <rect x="0"   y="120" width="50" height="50" rx="8" fill="#F0EEE8" opacity="0.30"/>
-  <rect x="60"  y="120" width="50" height="50" rx="8" fill="#F0EEE8" opacity="0.30"/>
+  <rect x="14"  y="64"  width="42" height="42" rx="6" fill="#F0EEE8" opacity="0.25"/>
   <!-- Center cell highlighted -->
-  <rect x="60"  y="60"  width="50" height="50" rx="8" fill="#F0EEE8"/>
-  <rect x="120" y="120" width="50" height="50" rx="8" fill="#F0EEE8" opacity="0.30"/>
+  <rect x="64"  y="64"  width="42" height="42" rx="6" fill="#F0EEE8"/>
+  <rect x="114" y="64"  width="42" height="42" rx="6" fill="#F0EEE8" opacity="0.25"/>
+
+  <!-- Row 3 -->
+  <rect x="14"  y="114" width="42" height="42" rx="6" fill="#F0EEE8" opacity="0.25"/>
+  <rect x="64"  y="114" width="42" height="42" rx="6" fill="#F0EEE8" opacity="0.25"/>
+  <rect x="114" y="114" width="42" height="42" rx="6" fill="#F0EEE8" opacity="0.25"/>
 </svg>
