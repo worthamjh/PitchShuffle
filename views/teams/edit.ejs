@@ -6,9 +6,7 @@
 
 <div class="card">
     <div class="card-body p-4">
-        <form action="/teams/<%= team._id %>" method="POST" enctype="multipart/form-data">
-            <input type="hidden" name="_method" value="PUT">
-
+        <form action="/teams/<%= team._id %>?_method=PUT" method="POST" enctype="multipart/form-data">
             <div class="mb-4">
                 <label for="name" class="form-label fw-bold">Team Name</label>
                 <input type="text" class="form-control form-control-lg" id="name" name="team[name]"
