@@ -86,6 +86,18 @@
         [data-theme="dark"] .chase-overlay:hover  { filter: brightness(0.8) saturate(1); }
         [data-theme="dark"] .zone-image-card-btn  { background: #1a2535; border-color: #2a3f5a; color: var(--ps-text); }
         .pitch-type-row { margin-left: -1rem; margin-right: -1rem; border-radius: 0; border-left: none; border-right: none; }
+
+        .shuffle-card {
+            border: 2px solid var(--ps-navy);
+            border-radius: 12px;
+            padding: 1rem;
+            background: #eef2f7;
+            margin-bottom: 1.5rem;
+        }
+        [data-theme="dark"] .shuffle-card {
+            background: #1a2535;
+            border-color: #4a7fa5;
+        }
     </style>
 
     <%
@@ -180,6 +192,43 @@
                     <input type="hidden" name="pitcher[zone]" value="<%= pitcher.zone ? pitcher.zone._id : '' %>">
                 </div>
 
+                <!-- ── Shuffle Settings Card (only shown if pitcher has pitch types) ── -->
+                <%
+                    const _ss = pitcher.shuffleSettings || {};
+                    const _spct = _ss.strikeChancePct != null ? _ss.strikeChancePct : (currentUser.preferences.strikeChancePct || 70);
+                %>
+                <div class="shuffle-card mb-4" id="shuffleCard">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="fw-bold"><i class="bi bi-shuffle me-2"></i>Shuffle Settings</span>
+                        <div class="d-flex gap-2 align-items-center">
+                            <span class="text-muted small" id="shuffleSaveStatus"></span>
+                            <button type="button" class="btn btn-primary btn-sm" id="shuffleQuickSaveBtn" style="display:none;">
+                                <i class="bi bi-check-circle"></i> Save Shuffle Settings
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="restoreShuffleDefaults">
+                                <i class="bi bi-arrow-counterclockwise"></i> Restore Defaults
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Strike/Chase slider -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="small fw-bold text-success">Strike: <span id="strikeChanceLbl"><%= _spct %></span>%</span>
+                            <span class="small fw-bold text-warning">Chase: <span id="chaseChanceLbl"><%= 100 - _spct %></span>%</span>
+                        </div>
+                        <input type="range" class="form-range" min="0" max="100" step="5"
+                               id="strikeChanceSlider"
+                               name="shuffleSettings[strikeChancePct]"
+                               value="<%= _spct %>">
+                        <div class="text-muted" style="font-size:0.75rem;">Profile default: <%= currentUser.preferences.strikeChancePct || 70 %>% strikes</div>
+                    </div>
+
+                    <!-- Pitch frequency sliders (built dynamically by JS) -->
+                    <div class="mb-1 small fw-bold text-muted">Pitch Frequency</div>
+                    <div id="pitchFreqSliders"></div>
+                </div>
+
                 <div class="d-flex justify-content-between align-items-center mb-3 mt-4">
                     <h5 class="fw-bold mb-0">Pitch Types & Locations</h5>
                     <div class="btn-group" role="group">
@@ -200,7 +249,6 @@
                 <div id="pitchTypes">
                     <% for (var i = 0; i < pitcher.pitchTypes.length; i++) { %>
                         <% var pitch = pitcher.pitchTypes[i]; %>
-                        <% var knownNames = team.sport === 'softball' ? ['Fastball','Riseball','Dropball','Curveball','Changeup','Screwball','Drop Curve','Offspeed'] : ['Fastball','Two-Seam Fastball','Cutter','Sinker','Curveball','Slider','Sweeper','Slurve','Changeup','Splitter','Screwball','Knuckleball']; %>
                         <div class="pitch-section pitch-type-row">
                             <div class="pitch-section-header">
                                 <div class="d-flex align-items-center gap-2 flex-wrap">
@@ -239,58 +287,6 @@
                 </div>
 
                 <button type="button" class="btn btn-outline-secondary mb-4" id="addPitch"><i class="bi bi-plus-circle"></i> Add Another Pitch</button>
-                <!-- ── Shuffle Settings ───────────────────────────────────── -->
-<div class="accordion mt-4 mb-4" id="shuffleAccordion">
-    <div class="accordion-item" style="border:1px solid #dee2e6;border-radius:12px;overflow:hidden;">
-        <h2 class="accordion-header">
-            <button class="accordion-button collapsed fw-semibold" type="button"
-                    data-bs-toggle="collapse" data-bs-target="#shuffleSettingsBody">
-                <i class="bi bi-shuffle me-2"></i> Shuffle Settings
-                <span class="text-muted fw-normal ms-2" style="font-size:0.8rem;">— optional per-pitcher overrides</span>
-            </button>
-        </h2>
-        <div id="shuffleSettingsBody" class="accordion-collapse collapse">
-            <div class="accordion-body">
-
-                <!-- Strike/Chase % slider -->
-                <div class="mb-4">
-                    <label class="form-label fw-bold">Strike Zone % 
-                        <span class="text-muted fw-normal">(when shuffling locations)</span>
-                    </label>
-                    <div class="d-flex align-items-center gap-3">
-                        <span class="text-success fw-bold" style="min-width:80px;">Strike: <span id="strikeChanceLbl"><%= pitcher.shuffleSettings && pitcher.shuffleSettings.strikeChancePct != null ? pitcher.shuffleSettings.strikeChancePct : (currentUser.preferences.strikeChancePct || 70) %></span>%</span>
-                        <input type="range" class="form-range flex-grow-1" min="0" max="100" step="5"
-                               id="strikeChanceSlider"
-                               name="shuffleSettings[strikeChancePct]"
-                               value="<%= pitcher.shuffleSettings && pitcher.shuffleSettings.strikeChancePct != null ? pitcher.shuffleSettings.strikeChancePct : (currentUser.preferences.strikeChancePct || 70) %>">
-                        <span class="text-warning fw-bold" style="min-width:80px;">Chase: <span id="chaseChanceLbl"><%= 100 - (pitcher.shuffleSettings && pitcher.shuffleSettings.strikeChancePct != null ? pitcher.shuffleSettings.strikeChancePct : (currentUser.preferences.strikeChancePct || 70)) %></span>%</span>
-                    </div>
-                    <small class="text-muted">Default from your profile: <%= currentUser.preferences.strikeChancePct || 70 %>% strikes</small>
-                </div>
-
-                <!-- Pitch type weight sliders -->
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Pitch Type Frequency
-                        <span class="text-muted fw-normal">(must add up to 100%)</span>
-                    </label>
-                    <div id="pitchWeightSliders"></div>
-                    <div class="mt-2 d-flex align-items-center gap-2">
-                        <span class="fw-bold">Total: <span id="weightTotal" class="text-success">100</span>%</span>
-                        <span id="weightWarning" class="text-danger small" style="display:none;">
-                            <i class="bi bi-exclamation-triangle-fill"></i> Must equal 100% — adjust sliders before saving
-                        </span>
-                    </div>
-                </div>
-
-                <!-- Restore to defaults -->
-                <button type="button" class="btn btn-outline-secondary btn-sm" id="restoreShuffleDefaults">
-                    <i class="bi bi-arrow-counterclockwise"></i> Restore to Profile Defaults
-                </button>
-
-            </div>
-        </div>
-    </div>
-</div>
 
                 <div class="d-flex gap-2 flex-shrink-0">
                     <button type="submit" class="btn btn-primary btn-lg"><i class="bi bi-check-circle"></i> Save Changes</button>
@@ -442,18 +438,18 @@
             const isInsideAway = locNames.has('inside-up') || locNames.has('inside-down');
 
             if (isZoneD(pitch.locations)) {
-                    if (isInsideAway) {
-                        makeOverlay('up-out',     'up out',   ['corner-top-glove','away-up','inside-up','corner-top-arm'],     ['up-out'],   ['up-out']);
-                        makeOverlay('down-out',   'down out', ['corner-bot-glove','away-down','inside-down','corner-bot-arm'], ['down-out'], ['down-out']);
-                        makeOverlay('away-out',   'away out',   ['away-out'],  ['away-up','away-down'],     []);
-                        makeOverlay('inside-out', 'inside out', ['inside-out'],['inside-up','inside-down'], []);
-                    } else {
-                        makeOverlay('up-out',    'up out',   ['corner-top-glove','glove-up','arm-up','corner-top-arm'],     ['up-out'],   ['up-out']);
-                        makeOverlay('down-out',  'down out', ['corner-bot-glove','glove-down','arm-down','corner-bot-arm'], ['down-out'], ['down-out']);
-                        makeOverlay('glove-out', 'glove out', ['glove-out'], ['glove-up', 'glove-down'], []);
-                        makeOverlay('arm-out',   'arm out',   ['arm-out'],   ['arm-up', 'arm-down'], []);
-                    }
+                if (isInsideAway) {
+                    makeOverlay('up-out',     'up out',   ['corner-top-glove','away-up','inside-up','corner-top-arm'],     ['up-out'],   ['up-out']);
+                    makeOverlay('down-out',   'down out', ['corner-bot-glove','away-down','inside-down','corner-bot-arm'], ['down-out'], ['down-out']);
+                    makeOverlay('away-out',   'away out',   ['away-out'],  ['away-up','away-down'],     []);
+                    makeOverlay('inside-out', 'inside out', ['inside-out'],['inside-up','inside-down'], []);
                 } else {
+                    makeOverlay('up-out',    'up out',   ['corner-top-glove','glove-up','arm-up','corner-top-arm'],     ['up-out'],   ['up-out']);
+                    makeOverlay('down-out',  'down out', ['corner-bot-glove','glove-down','arm-down','corner-bot-arm'], ['down-out'], ['down-out']);
+                    makeOverlay('glove-out', 'glove out', ['glove-out'], ['glove-up', 'glove-down'], []);
+                    makeOverlay('arm-out',   'arm out',   ['arm-out'],   ['arm-up', 'arm-down'], []);
+                }
+            } else {
                 if (isInsideAway) {
                     makeOverlay('up-out',         'up out',     ['inside-up', 'mid-up', 'away-up'],         ['up-out'],   []);
                     makeOverlay('down-out',       'down out',   ['inside-down', 'mid-down', 'away-down'],    ['down-out'], []);
@@ -471,7 +467,8 @@
                 }
             }
         }
-       function buildGrid(pitchIndex) {
+
+        function buildGrid(pitchIndex) {
             const pitch = pitchData[pitchIndex];
             if (!pitch || !pitch.locations) return;
             const grid    = document.getElementById(`grid-${pitchIndex}`);
@@ -502,28 +499,27 @@
                 grid.appendChild(box);
             });
 
-    // Inject Zone D corner fillers BEFORE paint so spanBounds can measure them
-                if (isZoneD(pitch.locations)) {
-                    const upOut   = pitch.locations.find(l => l.name === 'up-out');
-                    const downOut = pitch.locations.find(l => l.name === 'down-out');
-                    const upCls   = (upOut   && !upOut.enabled)   ? 'loc-box disabled' : 'loc-box chase';
-                    const downCls = (downOut && !downOut.enabled)  ? 'loc-box disabled' : 'loc-box chase';
-                    [
-                    { row: 1, col: isRHP ? 1 : 4, cls: upCls,   name: 'corner-top-arm'   },
-                    { row: 1, col: isRHP ? 4 : 1, cls: upCls,   name: 'corner-top-glove' },
-                    { row: 4, col: isRHP ? 1 : 4, cls: downCls, name: 'corner-bot-arm'   },
-                    { row: 4, col: isRHP ? 4 : 1, cls: downCls, name: 'corner-bot-glove' },
-                    ].forEach(pos => {
-                        const filler = document.createElement('div');
-                        filler.className        = pos.cls;
-                        filler.dataset.locName  = pos.name;
-                        filler.style.gridRow    = String(pos.row);
-                        filler.style.gridColumn = String(pos.col);
-                        filler.style.pointerEvents = 'none';
-                        filler.style.cursor     = 'default';
-                        grid.appendChild(filler);
-                    });
-                }
+            if (isZoneD(pitch.locations)) {
+                const upOut   = pitch.locations.find(l => l.name === 'up-out');
+                const downOut = pitch.locations.find(l => l.name === 'down-out');
+                const upCls   = (upOut   && !upOut.enabled)   ? 'loc-box disabled' : 'loc-box chase';
+                const downCls = (downOut && !downOut.enabled)  ? 'loc-box disabled' : 'loc-box chase';
+                [
+                { row: 1, col: isRHP ? 1 : 4, cls: upCls,   name: 'corner-top-arm'   },
+                { row: 1, col: isRHP ? 4 : 1, cls: upCls,   name: 'corner-top-glove' },
+                { row: 4, col: isRHP ? 1 : 4, cls: downCls, name: 'corner-bot-arm'   },
+                { row: 4, col: isRHP ? 4 : 1, cls: downCls, name: 'corner-bot-glove' },
+                ].forEach(pos => {
+                    const filler = document.createElement('div');
+                    filler.className        = pos.cls;
+                    filler.dataset.locName  = pos.name;
+                    filler.style.gridRow    = String(pos.row);
+                    filler.style.gridColumn = String(pos.col);
+                    filler.style.pointerEvents = 'none';
+                    filler.style.cursor     = 'default';
+                    grid.appendChild(filler);
+                });
+            }
 
             requestAnimationFrame(() => { drawOutline(pitchIndex); drawOverlays(pitchIndex, pitch); });
         }
@@ -640,7 +636,12 @@
             if (val === 'custom|') { nameInput.value = ''; abbrInput.value = ''; nameInput.placeholder = 'Type pitch name'; abbrInput.placeholder = 'Type abbr.'; nameInput.focus(); }
             else { const [name, abbr] = val.split('|'); nameInput.value = name; abbrInput.value = abbr; }
         }
-        document.getElementById('pitchTypes').addEventListener('change', (e) => { if (e.target.classList.contains('pitch-preset')) applyPreset(e.target); });
+        document.getElementById('pitchTypes').addEventListener('change', (e) => {
+            if (e.target.classList.contains('pitch-preset')) {
+                applyPreset(e.target);
+                setTimeout(buildFreqSliders, 50);
+            }
+        });
 
         let pitchCount = <%= pitcher.pitchTypes.length %>;
         document.getElementById('addPitch').addEventListener('click', () => {
@@ -709,31 +710,60 @@
             });
         }
     </script>
+
     <script>
 (function () {
     const globalStrikePct = <%= currentUser.preferences.strikeChancePct || 70 %>;
-    const savedWeights    = <%- JSON.stringify(pitcher.shuffleSettings && pitcher.shuffleSettings.pitchWeights ? Object.fromEntries(pitcher.shuffleSettings.pitchWeights) : {}) %>;
+    const pitcherId       = '<%= pitcher._id %>';
+    const teamId          = '<%= team._id %>';
 
     const strikeSlider = document.getElementById('strikeChanceSlider');
     const strikeLbl    = document.getElementById('strikeChanceLbl');
     const chaseLbl     = document.getElementById('chaseChanceLbl');
+    const saveBtn      = document.getElementById('shuffleQuickSaveBtn');
+    const saveStatus   = document.getElementById('shuffleSaveStatus');
+    const restoreBtn   = document.getElementById('restoreShuffleDefaults');
+    const freqContainer = document.getElementById('pitchFreqSliders');
 
-    strikeLbl.textContent = strikeSlider.value;
-    chaseLbl.textContent  = 100 - parseInt(strikeSlider.value);
-    strikeSlider.addEventListener('input', () => {
-        strikeLbl.textContent = strikeSlider.value;
-        chaseLbl.textContent  = 100 - parseInt(strikeSlider.value);
-    });
+    if (!strikeSlider) return;
 
-    function buildWeightSliders() {
-        const container  = document.getElementById('pitchWeightSliders');
-        const pitchRows  = [...document.querySelectorAll('.pitch-type-row')];
-        const pitchNames = pitchRows.map(row => row.querySelector('.pitch-name')?.value?.trim()).filter(Boolean);
-        if (!pitchNames.length) { container.innerHTML = '<p class="text-muted small">Add pitch types above first.</p>'; return; }
+    const savedWeights = <%- JSON.stringify(pitcher.shuffleSettings && pitcher.shuffleSettings.pitchWeights ? Object.fromEntries(pitcher.shuffleSettings.pitchWeights) : {}) %>;
 
-        container.innerHTML = '';
+    function markChanged() {
+        if (saveBtn) saveBtn.style.display = '';
+    }
 
-        // Calculate initial values as percentages that sum to 100
+    function getPitchWeights() {
+        const weights = {};
+        if (freqContainer) {
+            freqContainer.querySelectorAll('.pitch-weight-slider').forEach(s => {
+                weights[s.dataset.pitch] = parseInt(s.value);
+            });
+        }
+        return weights;
+    }
+
+    function updatePitchPcts() {
+        if (!freqContainer) return;
+        const sliders = [...freqContainer.querySelectorAll('.pitch-weight-slider')];
+        const total = sliders.reduce((sum, s) => sum + parseInt(s.value), 0);
+        sliders.forEach(s => {
+            const pct = total > 0 ? Math.round((parseInt(s.value) / total) * 100) : 0;
+            const lbl = freqContainer.querySelector(`.weight-lbl[data-pitch="${s.dataset.pitch}"]`);
+            if (lbl) lbl.textContent = pct + '%';
+        });
+    }
+
+    function buildFreqSliders() {
+        if (!freqContainer) return;
+        const pitchNames = [...document.querySelectorAll('.pitch-name')]
+            .map(el => el.value.trim()).filter(Boolean);
+
+        if (!pitchNames.length) {
+            freqContainer.innerHTML = '<p class="text-muted small mb-0">Add pitch types below to set frequency.</p>';
+            return;
+        }
+
         const rawVals = pitchNames.map(name => {
             const w = savedWeights[name];
             return (w != null && !isNaN(w)) ? parseInt(w) : 1;
@@ -741,56 +771,83 @@
         const rawTotal = rawVals.reduce((a, b) => a + b, 0);
         const initPcts = rawVals.map(v => rawTotal > 0 ? Math.round((v / rawTotal) * 100) : Math.round(100 / pitchNames.length));
 
+        freqContainer.innerHTML = '';
         pitchNames.forEach((name, i) => {
             const div = document.createElement('div');
-            div.className = 'mb-3';
+            div.className = 'mb-2';
             div.innerHTML = `
                 <div class="d-flex align-items-center gap-3">
-                    <span class="fw-bold" style="min-width:120px;font-size:0.85rem;">${name}</span>
+                    <span class="small fw-bold" style="min-width:110px;">${name}</span>
                     <input type="range" class="form-range flex-grow-1 pitch-weight-slider"
                            min="0" max="100" step="5" value="${initPcts[i]}"
                            name="shuffleSettings[pitchWeights][${name}]"
-                           data-pitch-name="${name}">
-                    <span class="fw-bold weight-lbl" style="min-width:40px;">${initPcts[i]}%</span>
+                           data-pitch="${name}">
+                    <span class="small fw-bold weight-lbl" data-pitch="${name}" style="min-width:38px;">${initPcts[i]}%</span>
                 </div>`;
-            container.appendChild(div);
+            freqContainer.appendChild(div);
         });
 
-        // Hide the total/warning — not needed with auto-balance
-        document.getElementById('weightTotal').closest('.mt-2').style.display = 'none';
+        freqContainer.querySelectorAll('.pitch-weight-slider').forEach(s => {
+            s.addEventListener('input', () => { updatePitchPcts(); markChanged(); });
+        });
+    }
 
-        container.querySelectorAll('.pitch-weight-slider').forEach(slider => {
-            slider.addEventListener('input', () => {
-                updatePitchPcts();
+    async function doAjaxSave() {
+        if (saveStatus) saveStatus.textContent = 'Saving...';
+        try {
+            const resp = await fetch(`/teams/${teamId}/pitchers/${pitcherId}/shuffle-settings`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    strikeChancePct: parseInt(strikeSlider.value),
+                    pitchWeights: getPitchWeights()
+                })
             });
-        });
+            const data = await resp.json();
+            if (saveStatus) saveStatus.textContent = data.ok ? '✓ Saved' : 'Save failed';
+            if (saveBtn && data.ok) saveBtn.style.display = 'none';
+            setTimeout(() => { if (saveStatus) saveStatus.textContent = ''; }, 2000);
+        } catch (e) {
+            if (saveStatus) saveStatus.textContent = 'Save failed';
+        }
     }
 
-    function updatePitchPcts() {
-        const sliders = [...document.querySelectorAll('.pitch-weight-slider')];
-        const total = sliders.reduce((sum, s) => sum + parseInt(s.value), 0);
-        sliders.forEach(s => {
-            const pct = total > 0 ? Math.round((parseInt(s.value) / total) * 100) : 0;
-            s.closest('div.mb-3').querySelector('.weight-lbl').textContent = pct + '%';
-        });
-        // Re-enable save button always
-        const saveBtn = document.querySelector('#pitcherForm button[type="submit"]');
-        if (saveBtn) saveBtn.disabled = false;
-    }
-
-    document.getElementById('restoreShuffleDefaults').addEventListener('click', () => {
-        strikeSlider.value    = globalStrikePct;
-        strikeLbl.textContent = globalStrikePct;
-        chaseLbl.textContent  = 100 - globalStrikePct;
-        const sliders = [...document.querySelectorAll('.pitch-weight-slider')];
-        const equal   = sliders.length ? Math.round(100 / sliders.length) : 0;
-        sliders.forEach(s => {
-            s.value = equal;
-            s.closest('div.mb-3').querySelector('.weight-lbl').textContent = equal + '%';
-        });
-        updatePitchPcts();
+    strikeSlider.addEventListener('input', () => {
+        strikeLbl.textContent = strikeSlider.value;
+        chaseLbl.textContent  = 100 - parseInt(strikeSlider.value);
+        markChanged();
     });
 
-    document.getElementById('shuffleSettingsBody').addEventListener('show.bs.collapse', buildWeightSliders);
+    if (saveBtn) saveBtn.addEventListener('click', doAjaxSave);
+
+    if (restoreBtn) {
+        restoreBtn.addEventListener('click', () => {
+            strikeSlider.value    = globalStrikePct;
+            strikeLbl.textContent = globalStrikePct;
+            chaseLbl.textContent  = 100 - globalStrikePct;
+            const sliders = [...(freqContainer ? freqContainer.querySelectorAll('.pitch-weight-slider') : [])];
+            const equal   = sliders.length ? Math.round(100 / sliders.length) : 0;
+            sliders.forEach(s => { s.value = equal; });
+            updatePitchPcts();
+            markChanged();
+        });
+    }
+
+    // Rebuild freq sliders when pitch names change or pitches are added/removed
+    document.getElementById('pitchTypes').addEventListener('input', (e) => {
+        if (e.target.classList.contains('pitch-name')) {
+            buildFreqSliders();
+        }
+    });
+    document.getElementById('pitchTypes').addEventListener('click', (e) => {
+        if (e.target.closest('.remove-pitch')) {
+            setTimeout(buildFreqSliders, 50);
+        }
+    });
+    document.getElementById('addPitch').addEventListener('click', () => {
+        setTimeout(buildFreqSliders, 50);
+    });
+
+    buildFreqSliders();
 })();
 </script>
