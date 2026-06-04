@@ -77,7 +77,7 @@ router.post('/', isLoggedIn, upload.single('logo'), async (req, res, next) => {
         req.flash('success', `${team.name} created!`);
         const onboarding = req.body.onboarding === '1';
         if (onboarding) {
-            return res.redirect(`/teams/${team._id}/pitchers/new?redirect=/teams/${team._id}&onboarding=1`);
+            return res.redirect(`/teams/${team._id}/pitchers/new?onboarding=1`);
         }
         res.redirect(`/teams/${team._id}`);
     } catch (e) {
