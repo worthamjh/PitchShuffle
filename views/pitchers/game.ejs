@@ -244,7 +244,6 @@
             </div>
         </div>
     </div>
-    <div id="tourDebug" style="position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,0.8);color:#fff;font-size:11px;padding:4px 8px;z-index:9999;display:none;"></div>
 </div>
 
 <script type="application/json" id="pitcherJson"><%- JSON.stringify(pitcher) %></script>
@@ -708,19 +707,12 @@
     });
         if (!localStorage.getItem(TOUR_KEY)) {
         localStorage.setItem(TOUR_KEY, '1');
-        const dbg = document.getElementById('tourDebug');
-        if (dbg) dbg.style.display = 'block';
         function tryShowTour(attemptsLeft) {
             const el = document.getElementById('pitchRow');
-            const h = el ? el.getBoundingClientRect().height : -1;
-            if (dbg) dbg.textContent = `attempt ${10 - attemptsLeft + 1}: pitchRow height=${h}`;
-            if (el && h > 0) {
-                if (dbg) dbg.textContent = `showing tour, height=${h}`;
+            if (el && el.getBoundingClientRect().height > 0) {
                 _tourShow(0);
             } else if (attemptsLeft > 0) {
                 setTimeout(() => tryShowTour(attemptsLeft - 1), 300);
-            } else {
-                if (dbg) dbg.textContent = `gave up after 10 attempts, last height=${h}`;
             }
         }
         setTimeout(() => tryShowTour(10), 500);
