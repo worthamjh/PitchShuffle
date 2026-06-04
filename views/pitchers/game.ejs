@@ -98,7 +98,8 @@
     .loc-box.chase        { background: var(--chase-bg);  border-color: var(--chase-border);  color: var(--chase-text); }
     .loc-box.anchor       { background: transparent; border-color: transparent; pointer-events: none; cursor: default; }
     .loc-box.covered      { visibility: hidden; pointer-events: none; }
-    .loc-box.selected-loc { outline: 3px solid var(--ps-navy); outline-offset: -2px; z-index: 2; }
+    .loc-box.selected-loc { outline: 3px solid var(--ps-navy); outline-offset: -2px; z-index: 2; filter: brightness(0.82); }
+    .chase-overlay.selected-loc { outline: 3px solid var(--ps-navy); outline-offset: -2px; z-index: 4; filter: brightness(0.82); }
 
     .chase-overlay {
         position: absolute; display: flex; align-items: center; justify-content: center;
@@ -106,7 +107,6 @@
         background: var(--chase-bg); border: 1px solid var(--chase-border); color: var(--chase-text);
         box-sizing: border-box; z-index: 3; user-select: none; transition: background 0.12s;
     }
-    .chase-overlay.selected-loc { outline: 3px solid var(--ps-navy); outline-offset: -2px; }
     .strike-zone-outline { position: absolute; border: 3px solid var(--ps-navy); pointer-events: none; z-index: 4; box-sizing: border-box; }
 
     [data-theme='dark'] .pitch-row, [data-theme='dark'] .action-row { background: #1a2535; border-color: #2a3f5a; }
@@ -136,6 +136,7 @@
     [data-theme="dark"] .chase-overlay  { background: var(--chase-bg); border-color: var(--chase-border); color: var(--chase-text); filter: brightness(0.6) saturate(0.9); }
     [data-theme="dark"] .chase-overlay:hover { filter: brightness(0.8) saturate(1); }
     [data-theme="dark"] .loc-box.disabled, [data-theme="dark"] .chase-overlay.disabled { filter: none; }
+    [data-theme="dark"] .loc-box.selected-loc, [data-theme="dark"] .chase-overlay.selected-loc { filter: brightness(0.95) saturate(1.1); }
 
     .ps-tour-overlay { position: fixed; inset: 0; z-index: 3000; pointer-events: none; display: none; }
     .ps-tour-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.62); pointer-events: none; }
@@ -639,7 +640,15 @@
         }
         const loc = locPool[Math.floor(Math.random() * locPool.length)];
         selectPitch(pitchIndex);
-        selectLocation(loc.name);
+        // Flash the cell if it's the same location as before
+        if (loc.name === selectedLocation) {
+            document.querySelectorAll(`[data-loc-name="${loc.name}"]`).forEach(el => {
+                el.classList.remove('selected-loc');
+            });
+            setTimeout(() => selectLocation(loc.name), 150);
+        } else {
+            selectLocation(loc.name);
+        }
     });
     document.getElementById('btnClear').addEventListener('click', clearSelection);
     document.getElementById('btnRepeat').addEventListener('click', () => { if (lastCall) speak(lastCall.pitchName, lastCall.locName); });
