@@ -135,6 +135,7 @@
             <button type="button" class="btn btn-outline-secondary mb-4" id="addPitch"><i class="bi bi-plus-circle"></i> Add Another Pitch</button>
 
             <% if (redirect) { %><input type="hidden" name="redirect" value="<%= redirect %>"><% } %>
+            <% if (locals.onboarding) { %><input type="hidden" name="onboarding" value="1"><% } %>
             <div class="d-flex gap-2">
                 <button type="submit" class="btn btn-primary btn-lg"><i class="bi bi-check-circle"></i> Save Pitcher</button>
                 <a href="<%= redirect || '/teams/' + team._id %>" class="btn btn-outline-secondary btn-lg"><i class="bi bi-x-circle"></i> Cancel</a>

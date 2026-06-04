@@ -167,5 +167,10 @@ router.get('/auth/google/callback',
         res.redirect('/');
     }
 );
-
+// ── Onboarding complete ───────────────────────────────────────
+router.get('/onboarding/complete', isLoggedIn, (req, res) => {
+    const { teamId, pitcherId } = req.query;
+    if (!teamId || !pitcherId) return res.redirect('/');
+    res.render('onboarding/complete', { teamId, pitcherId });
+});
 module.exports = router;

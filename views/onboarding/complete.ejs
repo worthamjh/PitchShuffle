@@ -1,0 +1,96 @@
+<%- layout('layouts/boilerplate') %>
+
+<style>
+    .onboarding-complete {
+        max-width: 480px;
+        margin: 2rem auto;
+        text-align: center;
+        padding: 0 1rem;
+    }
+    .complete-icon {
+        width: 72px; height: 72px;
+        border-radius: 50%;
+        background: #d4edda;
+        color: #28a745;
+        font-size: 2rem;
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 1.25rem;
+    }
+    [data-theme="dark"] .complete-icon { background: #1a3a2a; color: #4cbb72; }
+    .steps-card {
+        background: var(--ps-card-bg, #fff);
+        border: 1px solid #dee2e6;
+        border-radius: 14px;
+        padding: 1.25rem 1.5rem;
+        text-align: left;
+        margin: 1.5rem 0;
+    }
+    [data-theme="dark"] .steps-card { border-color: #2a3f5a; }
+    .step-row {
+        display: flex; align-items: flex-start; gap: 0.85rem;
+        padding: 0.6rem 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    [data-theme="dark"] .step-row { border-color: #2a3f5a; }
+    .step-row:last-child { border-bottom: none; }
+    .step-num {
+        width: 28px; height: 28px; border-radius: 50%;
+        background: var(--ps-navy, #1a2e4a); color: #fff;
+        font-size: 0.8rem; font-weight: 700;
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0; margin-top: 1px;
+    }
+    .bluetooth-tip {
+        background: #eef2f7;
+        border: 1px solid #c0cfe0;
+        border-radius: 10px;
+        padding: 0.85rem 1rem;
+        font-size: 0.85rem;
+        text-align: left;
+        margin-bottom: 1.5rem;
+        display: flex; gap: 0.75rem; align-items: flex-start;
+    }
+    [data-theme="dark"] .bluetooth-tip { background: #1a2535; border-color: #2a3f5a; }
+</style>
+
+<div class="onboarding-complete">
+    <div class="complete-icon">
+        <i class="bi bi-check-lg"></i>
+    </div>
+    <h1 class="fw-bold mb-1">You're all set!</h1>
+    <p class="text-muted mb-0">Your team and pitcher are ready to go.</p>
+
+    <div class="steps-card">
+        <div class="fw-bold mb-2 small text-muted text-uppercase" style="letter-spacing:0.08em;">How to call a pitch</div>
+        <div class="step-row">
+            <div class="step-num">1</div>
+            <div><strong>Select a pitch type</strong> — tap one of your pitcher's pitch buttons at the top of the screen.</div>
+        </div>
+        <div class="step-row">
+            <div class="step-num">2</div>
+            <div><strong>Select a location</strong> — tap a zone on the strike zone grid.</div>
+        </div>
+        <div class="step-row">
+            <div class="step-num">3</div>
+            <div><strong>Tap Call Pitch</strong> — the call is announced aloud to your catcher's earpiece.</div>
+        </div>
+        <div class="step-row">
+            <div class="step-num">4</div>
+            <div><strong>Or tap Shuffle</strong> — let the app pick a random pitch type and location for you.</div>
+        </div>
+    </div>
+
+    <div class="bluetooth-tip">
+        <i class="bi bi-bluetooth fs-5 text-primary flex-shrink-0 mt-1"></i>
+        <div>
+            <strong>Connect your earpiece first.</strong> Pair a Bluetooth earpiece to your device before starting. Your catcher wears it — the pitch call goes directly to them, hidden from the other team.
+        </div>
+    </div>
+
+    <a href="/teams/<%= teamId %>/pitchers/game/<%= pitcherId %>" class="btn btn-primary btn-lg w-100 mb-3">
+        <i class="bi bi-play-fill"></i> Start Calling Pitches
+    </a>
+    <a href="/teams/<%= teamId %>" class="btn btn-outline-secondary w-100">
+        <i class="bi bi-people-fill"></i> Go to My Team
+    </a>
+</div>
