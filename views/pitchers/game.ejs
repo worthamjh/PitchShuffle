@@ -701,7 +701,18 @@
         if (_tourStep >= TOUR_STEPS.length) document.getElementById('psTourOverlay').style.display = 'none';
         else _tourShow(_tourStep);
     });
-    if (!localStorage.getItem(TOUR_KEY)) { localStorage.setItem(TOUR_KEY,'1'); setTimeout(() => requestAnimationFrame(() => _tourShow(0)), 1500); }
+        if (!localStorage.getItem(TOUR_KEY)) {
+        localStorage.setItem(TOUR_KEY, '1');
+        function tryShowTour(attemptsLeft) {
+            const el = document.getElementById('pitchRow');
+            if (el && el.getBoundingClientRect().height > 0) {
+                _tourShow(0);
+            } else if (attemptsLeft > 0) {
+                setTimeout(() => tryShowTour(attemptsLeft - 1), 300);
+            }
+        }
+        setTimeout(() => tryShowTour(10), 500);
+    }
 
     let resizeTimer;
     requestAnimationFrame(buildGrid);
