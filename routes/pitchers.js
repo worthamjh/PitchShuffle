@@ -46,6 +46,7 @@ router.get('/game/:pitcherId', isLoggedIn, isOwner, isPitcherInTeam, async (req,
 // ── AJAX: save shuffle settings in-game ──────────────────────
 router.post('/:pitcherId/shuffle-settings', isLoggedIn, isOwner, isPitcherInTeam, async (req, res, next) => {
     try {
+        console.log('shuffle-settings hit:', req.params.pitcherId, req.body);
         const pitcher = await Pitcher.findById(req.params.pitcherId);
         const { strikeChancePct, pitchWeights } = req.body;
         pitcher.shuffleSettings = pitcher.shuffleSettings || {};
