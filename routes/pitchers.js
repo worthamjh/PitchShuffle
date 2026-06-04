@@ -117,7 +117,9 @@ router.post('/', isLoggedIn, isOwner, async (req, res, next) => {
         team.pitchers.push(pitcher);
         await team.save();
         req.flash('success', `${pitcher.name} added.`);
-        if (req.body.onboarding === '1') {
+        const allTeams = await Team.find({ owner: req.user._id }).populate('pitchers');
+        const totalPitchers = allTeams.reduce((sum, t) => sum + t.pitchers.length, 0);
+        if (totalPitchers === 1) {
             return res.redirect(`/onboarding/complete?teamId=${team._id}&pitcherId=${pitcher._id}`);
         }
         const redirect = req.body.redirect;
