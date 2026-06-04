@@ -5,19 +5,6 @@
     <h1>PitchShuffle</h1>
     <p>Call pitches fast. Keep your catcher in sync.</p>
 
-    <% if (!currentUser || !currentUser.preferences || currentUser.preferences.showQuickGame !== false) { %>
-        <div class="d-flex gap-2 justify-content-center flex-wrap">
-            <a href="/quick-game" class="btn-quick-game">
-                <i class="bi bi-lightning-fill"></i> ⚾ Baseball
-            </a>
-            <a href="/quick-game?sport=softball" class="btn-quick-game">
-                <i class="bi bi-lightning-fill"></i> 🥎 Softball
-            </a>
-        </div>
-        <p class="quick-game-hint">Quick Game — jump straight in, no setup needed</p>
-        <div class="or-divider">or</div>
-    <% } %>
-
     <a href="/game" class="btn-new-game">
         <i class="bi bi-play-fill"></i> New Game
     </a>

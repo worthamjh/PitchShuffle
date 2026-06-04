@@ -146,18 +146,6 @@
                     </div>
                 </div>
             </div>
-            <!-- Quick Game -->
-            <div class="mb-4">
-                <label class="form-label fw-bold">Quick Game</label>
-                <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" name="showQuickGame" id="showQuickGame" value="true"
-                        <%= (!user.preferences || user.preferences.showQuickGame !== false) ? 'checked' : '' %>>
-                    <label class="form-check-label" for="showQuickGame">
-                        Show Quick Game on home screen
-                    </label>
-                </div>
-                <small class="text-muted">Turn this off if you always use a saved team and don't need Quick Game.</small>
-            </div>
             <!-- Game View Font Size -->
             <div class="mb-4">
                 <label class="form-label fw-bold">Game View Font Size</label>
@@ -267,7 +255,6 @@ document.getElementById('restoreDefaultsBtn').addEventListener('click', () => {
     document.getElementById('font-md').checked    = true;
     document.getElementById('font-lg').checked    = false;
     document.getElementById('voiceSelect').value  = '';
-    document.getElementById('showQuickGame').checked = true;
     document.getElementById('globalStrikeSlider').value = 70;
     document.getElementById('globalStrikeLbl').textContent = 70;
     document.getElementById('globalChaseLbl').textContent  = 30;
@@ -571,7 +558,7 @@ document.getElementById('testVoiceBtn').addEventListener('click', () => {
                     <div class="accordion-body text-muted">
                         Quick Game lets you jump straight into calling pitches without setting up a team or pitcher first. It uses a standard set of pitch types and a full Zone C strike zone.
                         <br><br>
-                        You can turn Quick Game on or off from the <strong>Visual Preferences</strong> section above.
+                        Quick Game is available from your Profile page when you don't have any pitchers set up yet.
                     </div>
                 </div>
             </div>
@@ -606,6 +593,25 @@ document.getElementById('testVoiceBtn').addEventListener('click', () => {
         </a>
     </div>
 </div>
+<!-- ── Quick Game ─────────────────────────────────────────────── -->
+<% const _hasPitchers = teams.some(t => t.pitchers && t.pitchers.length > 0); %>
+<% if (!_hasPitchers) { %>
+<div class="card mb-4">
+    <div class="card-header fw-bold"><i class="bi bi-lightning-fill text-warning"></i> Quick Game</div>
+    <div class="card-body">
+        <p class="fw-semibold mb-1">Try it out before setting up a team</p>
+        <p class="text-muted small mb-3">Jump straight into calling pitches with a standard pitch set and strike zone — no setup needed.</p>
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="/quick-game" class="btn btn-outline-secondary fw-bold">
+                <i class="bi bi-lightning-fill"></i> ⚾ Baseball Quick Game
+            </a>
+            <a href="/quick-game?sport=softball" class="btn btn-outline-secondary fw-bold">
+                <i class="bi bi-lightning-fill"></i> 🥎 Softball Quick Game
+            </a>
+        </div>
+    </div>
+</div>
+<% } %>
 
 <a href="/teams" class="btn btn-outline-secondary mb-4">
     <i class="bi bi-arrow-left"></i> Back to My Teams
