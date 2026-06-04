@@ -110,7 +110,10 @@
             <% }); %>
             <% } %>
 
-            <div class="mt-2 text-muted small" id="shuffleSaveStatus"></div>
+            <div class="mt-2" id="shuffleSaveStatus"></div>
+            <a href="<%= backHref %>" id="saveAndReturnBtn" class="btn btn-primary w-100 mt-2" style="display:none;">
+                <i class="bi bi-arrow-left"></i> Save & Return to Game
+            </a>
         </div>
     </div>
     <% } %>
@@ -246,7 +249,9 @@
 
     function scheduleShuffleSave() {
         clearTimeout(saveTimer);
-        if (saveStatus) saveStatus.textContent = 'Saving...';
+        if (saveStatus) saveStatus.textContent = '';
+        const saveBtn = document.getElementById('saveAndReturnBtn');
+        if (saveBtn) saveBtn.style.display = '';
         saveTimer = setTimeout(async () => {
             try {
                 const resp = await fetch(`/teams/${teamId2}/pitchers/${cpId}/shuffle-settings`, {
@@ -282,6 +287,25 @@
                 });
             } catch(err) {}
             window.location.href = backBtn.href;
+        });
+    }
+    const saveAndReturnBtn = document.getElementById('saveAndReturnBtn');
+    if (saveAndReturnBtn && strikeSlider) {
+        saveAndReturnBtn.addEventListener('click', async (e) => {
+            if (!cpId) return;
+            e.preventDefault();
+            clearTimeout(saveTimer);
+            try {
+                await fetch(`/teams/${teamId2}/pitchers/${cpId}/shuffle-settings`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        strikeChancePct: parseInt(strikeSlider.value),
+                        pitchWeights: getPitchWeights()
+                    })
+                });
+            } catch(err) {}
+            window.location.href = saveAndReturnBtn.href;
         });
     }
     if (strikeSlider) {
