@@ -43,6 +43,29 @@ router.get('/game/:pitcherId', isLoggedIn, isOwner, isPitcherInTeam, async (req,
         next(e);
     }
 });
+// ── AJAX: save shuffle settings in-game ──────────────────────
+router.post('/:pitcherId/shuffle-settings', isLoggedIn, isOwner, isPitcherInTeam, async (req, res, next) => {
+    try {
+        const pitcher = await Pitcher.findById(req.params.pitcherId);
+        const { strikeChancePct, pitchWeights } = req.body;
+        pitcher.shuffleSettings = pitcher.shuffleSettings || {};
+        if (strikeChancePct != null) {
+            pitcher.shuffleSettings.strikeChancePct = parseInt(strikeChancePct);
+        }
+        if (pitchWeights && typeof pitchWeights === 'object') {
+            const weights = new Map();
+            for (const [name, val] of Object.entries(pitchWeights)) {
+                weights.set(name, parseInt(val));
+            }
+            pitcher.shuffleSettings.pitchWeights = weights;
+        }
+        pitcher.markModified('shuffleSettings');
+        await pitcher.save();
+        res.json({ ok: true });
+    } catch (e) {
+        res.status(500).json({ ok: false, error: e.message });
+    }
+});
 
 // ── Standard pitcher CRUD ─────────────────────────────────────
 

@@ -9,6 +9,13 @@
   const addPitcherHref = currentPitcherId
     ? `/teams/${team._id}/pitchers/new?redirect=/teams/${team._id}/pitchers/game?from=${currentPitcherId}`
     : `/teams/${team._id}/pitchers/new`;
+
+  const currentPitcher = currentPitcherId
+    ? team.pitchers.find(p => p._id.toString() === currentPitcherId.toString())
+    : null;
+  const otherPitchers = currentPitcher
+    ? team.pitchers.filter(p => p._id.toString() !== currentPitcherId.toString())
+    : team.pitchers;
 %>
 
 <div class="page-header d-flex justify-content-between align-items-center">
@@ -31,18 +38,86 @@
     </div>
 <% } else { %>
 
-    <p class="text-muted mb-2">Select the new pitcher coming in, then tap Change Pitcher.</p>
+    <% if (currentPitcher) { %>
+    <p class="text-muted mb-2">Adjust the current pitcher's shuffle settings below, or select a new pitcher coming in and tap <strong>Change Pitcher</strong>.</p>
+    <% } else { %>
+    <p class="text-muted mb-2">Select a pitcher and tap <strong>Change Pitcher</strong> to begin.</p>
+    <% } %>
 
-    <!-- Sort bar -->
-    <div class="sort-bar mb-3">
-        <span>Sort:</span>
-        <button class="sort-btn" data-sort="lastName">Last Name</button>
-        <button class="sort-btn" data-sort="firstName">First Name</button>
-        <button class="sort-btn" data-sort="number">Number</button>
+    <!-- Current pitcher card with shuffle settings -->
+    <% if (currentPitcher) { %>
+    <div class="mb-3" id="currentPitcherSection">
+        <div class="d-flex align-items-center gap-2 mb-2">
+            <span class="badge" style="background: var(--ps-navy);">Currently Pitching</span>
+        </div>
+        <div class="current-pitcher-card">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="pitcher-number-badge">#<%= currentPitcher.number %></div>
+                <div>
+                    <div class="fw-bold fs-5">
+                        <%= currentPitcher.firstName ? currentPitcher.firstName + ' ' + currentPitcher.lastName : (currentPitcher.lastName || currentPitcher.name) %>
+                    </div>
+                    <div class="text-muted small">
+                        <%= currentPitcher.throws === 'R' ? 'RHP' : 'LHP' %> &middot;
+                        <%= currentPitcher.pitchTypes.length %> pitch type<%= currentPitcher.pitchTypes.length !== 1 ? 's' : '' %>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shuffle settings -->
+            <%
+                const _css = currentPitcher.shuffleSettings || {};
+                const _cspct = _css.strikeChancePct != null ? _css.strikeChancePct
+                    : (currentUser && currentUser.preferences && currentUser.preferences.strikeChancePct != null
+                        ? currentUser.preferences.strikeChancePct : 70);
+                const _cpwRaw = _css.pitchWeights;
+                const _cpw = (_cpwRaw instanceof Map)
+                    ? Object.fromEntries(_cpwRaw)
+                    : (_cpwRaw || {});
+                const _ctotalW = currentPitcher.pitchTypes.reduce((sum, pt) => {
+                    const w = _cpw[pt.name];
+                    return sum + ((w != null && !isNaN(w)) ? parseInt(w) : 1);
+                }, 0);
+            %>
+            <div class="mb-3">
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="small fw-bold text-success">Strike: <span id="strikeLabel"><%= _cspct %></span>%</span>
+                    <span class="small fw-bold text-warning">Chase: <span id="chaseLabel"><%= 100 - _cspct %></span>%</span>
+                </div>
+                <input type="range" class="form-range" min="0" max="100" step="5"
+                       id="strikeSlider" value="<%= _cspct %>">
+            </div>
+
+            <% if (currentPitcher.pitchTypes.length > 0) { %>
+            <div class="mb-1 small fw-bold text-muted">Pitch Frequency</div>
+            <% currentPitcher.pitchTypes.forEach(function(pt) { %>
+                <%
+                    const _cw2 = _cpw[pt.name];
+                    const _cwVal = (_cw2 != null && !isNaN(_cw2)) ? parseInt(_cw2) : 1;
+                    const _cpct = _ctotalW > 0 ? Math.round((_cwVal / _ctotalW) * 100) : 0;
+                    const _sliderVal = _cpct; // slider shows percentage directly
+                %>
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="small"><%= pt.name %> <span class="text-muted">(<%= pt.abbreviation %>)</span></span>
+                        <span class="small fw-bold pitch-pct-label" data-pitch="<%= pt.name %>"><%= _cpct %>%</span>
+                    </div>
+                    <input type="range" class="form-range pitch-weight-slider"
+                           min="0" max="100" step="5"
+                           data-pitch="<%= pt.name %>"
+                           value="<%= _cpct %>">
+                </div>
+            <% }); %>
+            <% } %>
+
+            <div class="mt-2 text-muted small" id="shuffleSaveStatus"></div>
+        </div>
     </div>
+    <% } %>
 
+    <!-- Other pitchers -->
     <div class="row row-cols-1 row-cols-md-2 g-3 mb-4" id="pitcherList">
-        <% for (let pitcher of team.pitchers) { %>
+        <% for (let pitcher of otherPitchers) { %>
             <div class="col pitcher-col"
                  data-lastname="<%= (pitcher.lastName || '').toLowerCase() %>"
                  data-firstname="<%= (pitcher.firstName || '').toLowerCase() %>"
@@ -118,58 +193,24 @@
         flex-shrink: 0;
     }
     .pitcher-select-info { flex: 1; }
-
-    .sort-bar {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        flex-wrap: wrap;
+    .current-pitcher-card {
+        border: 2px solid var(--ps-navy);
+        border-radius: 12px;
+        padding: 1rem;
+        background: #eef2f7;
     }
-    .sort-bar span {
-        font-size: 0.8rem;
-        color: #6c757d;
-        font-weight: 600;
+    [data-theme="dark"] .current-pitcher-card {
+        background: #1a2535;
+        border-color: #4a7fa5;
     }
-    .sort-btn {
-        font-size: 0.78rem;
-        padding: 0.25rem 0.65rem;
-        border-radius: 20px;
-        border: 1.5px solid #dee2e6;
-        background: #fff;
-        color: #6c757d;
-        cursor: pointer;
-        transition: all 0.15s;
-        font-weight: 600;
-    }
-    .sort-btn:hover  { border-color: #8fa8c8; color: #1a2e4a; }
-    .sort-btn.active { background: var(--ps-navy, #1a2e4a); border-color: var(--ps-navy, #1a2e4a); color: #fff; }
 </style>
 
 <script>
-    const teamId   = '<%= team._id %>';
-    const SORT_KEY = 'ps_pitcher_sort';
-    const list     = document.getElementById('pitcherList');
-    const btns     = document.querySelectorAll('.sort-btn');
+    const teamId = '<%= team._id %>';
+    const list   = document.getElementById('pitcherList');
 
-    // ── Sort ─────────────────────────────────────────────────
-    function applySort(mode) {
-        localStorage.setItem(SORT_KEY, mode);
-        btns.forEach(b => b.classList.toggle('active', b.dataset.sort === mode));
-        const cols = [...list.querySelectorAll('.pitcher-col')];
-        cols.sort((a, b) => {
-            if (mode === 'number') return Number(a.dataset.number) - Number(b.dataset.number);
-            const aVal = mode === 'lastName' ? a.dataset.lastname : a.dataset.firstname;
-            const bVal = mode === 'lastName' ? b.dataset.lastname : b.dataset.firstname;
-            return aVal.localeCompare(bVal);
-        });
-        cols.forEach(col => list.appendChild(col));
-    }
-
-    btns.forEach(btn => btn.addEventListener('click', () => applySort(btn.dataset.sort)));
-    applySort(localStorage.getItem(SORT_KEY) || 'lastName');
-
-    // ── Selection ─────────────────────────────────────────────
-    list.addEventListener('click', e => {
+        // ── Selection ─────────────────────────────────────────────
+         list.addEventListener('click', e => {
         const card = e.target.closest('.pitcher-select-card');
         if (!card) return;
         document.querySelectorAll('.pitcher-select-card').forEach(c => c.classList.remove('selected'));
@@ -178,5 +219,64 @@
         btn.href = `/teams/${teamId}/pitchers/game/${card.dataset.pitcherId}`;
         btn.classList.remove('disabled');
         document.getElementById('selectHint').style.display = 'none';
+    });
+    // ── Shuffle settings AJAX save ────────────────────────────
+    const teamId2    = '<%= team._id %>';
+    const cpId       = '<%= currentPitcherId %>';
+    const strikeSlider = document.getElementById('strikeSlider');
+    const pitchSliders = document.querySelectorAll('.pitch-weight-slider');
+    const saveStatus   = document.getElementById('shuffleSaveStatus');
+    let saveTimer;
+
+    function getPitchWeights() {
+        const weights = {};
+        pitchSliders.forEach(s => { weights[s.dataset.pitch] = parseInt(s.value); });
+        return weights;
+    }
+
+    function updatePitchPcts() {
+        const weights = getPitchWeights();
+        const total = Object.values(weights).reduce((a, b) => a + b, 0);
+        pitchSliders.forEach(s => {
+            const pct = total > 0 ? Math.round((parseInt(s.value) / total) * 100) : 0;
+            const lbl = document.querySelector(`.pitch-pct-label[data-pitch="${s.dataset.pitch}"]`);
+            if (lbl) lbl.textContent = pct + '%';
+        });
+    }
+
+    function scheduleShuffleSave() {
+        clearTimeout(saveTimer);
+        if (saveStatus) saveStatus.textContent = 'Saving...';
+        saveTimer = setTimeout(async () => {
+            try {
+                const resp = await fetch(`/teams/${teamId2}/pitchers/${cpId}/shuffle-settings`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        strikeChancePct: parseInt(strikeSlider.value),
+                        pitchWeights: getPitchWeights()
+                    })
+                });
+                const data = await resp.json();
+                if (saveStatus) saveStatus.textContent = data.ok ? '✓ Saved' : 'Save failed';
+                setTimeout(() => { if (saveStatus) saveStatus.textContent = ''; }, 2000);
+            } catch (e) {
+                if (saveStatus) saveStatus.textContent = 'Save failed';
+            }
+        }, 800);
+    }
+
+    if (strikeSlider) {
+        strikeSlider.addEventListener('input', function() {
+            document.getElementById('strikeLabel').textContent = this.value;
+            document.getElementById('chaseLabel').textContent  = 100 - this.value;
+            scheduleShuffleSave();
+        });
+    }
+    pitchSliders.forEach(s => {
+        s.addEventListener('input', () => {
+            updatePitchPcts();
+            scheduleShuffleSave();
+        });
     });
 </script>
