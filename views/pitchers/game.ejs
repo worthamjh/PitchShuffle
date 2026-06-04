@@ -199,6 +199,7 @@
         </div>
     </div>
 
+    <% if (team.sport !== 'softball') { %>
     <div class="pickoff-overlay" id="pickoffOverlay" style="display:none;">
         <div class="pickoff-diamond">
             <div class="base-2nd"><button class="base-btn" data-base="2nd">2nd Base</button></div>
@@ -207,9 +208,12 @@
             <button class="btn-cancel-pickoff" id="btnCancelPickoff"><i class="bi bi-x-circle"></i> Cancel</button>
         </div>
     </div>
+    <% } %>
 
     <div class="special-row">
+        <% if (team.sport !== 'softball') { %>
         <button class="btn-pickoff" id="btnPickoff"><i class="bi bi-person-fill-slash"></i> Pickoff</button>
+        <% } %>
         <button class="btn-pitchout" id="btnPitchout"><i class="bi bi-slash-circle"></i> Pitchout</button>
     </div>
 
@@ -719,9 +723,11 @@
     window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(buildGrid, 100); });
 
     const pickoffOverlay = document.getElementById('pickoffOverlay');
-    document.getElementById('btnPickoff').addEventListener('click', () => { pickoffOverlay.style.display = 'flex'; });
-    document.getElementById('btnCancelPickoff').addEventListener('click', () => { pickoffOverlay.style.display = 'none'; });
-    pickoffOverlay.querySelectorAll('.base-btn[data-base]').forEach(btn => {
+    const btnPickoff = document.getElementById('btnPickoff');
+    if (btnPickoff && pickoffOverlay) {
+        btnPickoff.addEventListener('click', () => { pickoffOverlay.style.display = 'flex'; });
+        document.getElementById('btnCancelPickoff').addEventListener('click', () => { pickoffOverlay.style.display = 'none'; });
+        pickoffOverlay.querySelectorAll('.base-btn[data-base]').forEach(btn => {
         btn.addEventListener('click', () => {
             const base = btn.dataset.base; if (!base) return;
             pickoffOverlay.style.display = 'none';
@@ -737,7 +743,8 @@
             btnCall.removeEventListener('click', normalCallHandler);
             btnCall.addEventListener('click', handlePickoffCall);
         });
-    });
+        });
+    }
     document.getElementById('btnPitchout').addEventListener('click', () => {
         clearSelection();
         const label = document.querySelector('#callBar .call-label'), text = document.getElementById('callText');
