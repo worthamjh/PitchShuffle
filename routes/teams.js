@@ -36,7 +36,7 @@ router.get('/new', isLoggedIn, async (req, res, next) => {
             req.flash('error', `You can have a maximum of ${TEAM_LIMIT} teams.`);
             return res.redirect('/teams');
         }
-        res.render('teams/new');
+        res.render('teams/new', { onboarding: req.query.onboarding === '1' });
     } catch (e) {
         next(e);
     }
@@ -75,6 +75,10 @@ router.post('/', isLoggedIn, upload.single('logo'), async (req, res, next) => {
         req.user.teams.push(team);
         await req.user.save();
         req.flash('success', `${team.name} created!`);
+        const onboarding = req.body.onboarding === '1';
+        if (onboarding) {
+            return res.redirect(`/teams/${team._id}/pitchers/new?redirect=/teams/${team._id}&onboarding=1`);
+        }
         res.redirect(`/teams/${team._id}`);
     } catch (e) {
         next(e);
@@ -105,7 +109,6 @@ router.get('/:id/edit', isLoggedIn, isOwner, async (req, res, next) => {
 
 // Update team
 router.put('/:id', isLoggedIn, isOwner, upload.single('logo'), async (req, res, next) => {
-    console.log('PUT /teams/:id hit', req.params.id, req.body);
     try {
         const t    = req.body.team;
         const team = await Team.findById(req.params.id);

@@ -75,8 +75,9 @@ router.get('/new', isLoggedIn, isOwner, async (req, res, next) => {
         const team     = await Team.findById(req.params.teamId);
         const zones    = await StrikeZone.find({});
         const redirect = req.query.redirect || null;
+        const onboarding = req.query.onboarding === '1';
         setTeamLocals(res, team);
-        res.render('pitchers/new', { team, zones, redirect, user: req.user });
+        res.render('pitchers/new', { team, zones, redirect, onboarding, user: req.user });
     } catch (e) {
         next(e);
     }

@@ -1,12 +1,20 @@
 <%- layout('layouts/boilerplate') %>
 
 <div class="page-header">
-    <h1><i class="bi bi-plus-circle"></i> New Team</h1>
+    <% if (locals.onboarding) { %>
+        <h1><i class="bi bi-people-fill"></i> First, create your team</h1>
+        <p class="text-white-50 mb-0">Step 1 of 2 — you'll add a pitcher next.</p>
+    <% } else { %>
+        <h1><i class="bi bi-plus-circle"></i> New Team</h1>
+    <% } %>
 </div>
 
 <div class="card">
     <div class="card-body p-4">
         <form action="/teams" method="POST" enctype="multipart/form-data">
+            <% if (locals.onboarding) { %>
+                <input type="hidden" name="onboarding" value="1">
+            <% } %>
 
             <div class="mb-4">
                 <label for="name" class="form-label fw-bold">Team Name</label>

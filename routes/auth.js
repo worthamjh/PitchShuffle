@@ -120,7 +120,7 @@ router.post('/register', async (req, res, next) => {
         req.login(registeredUser, err => {
             if (err) return next(err);
             req.flash('success', `Welcome to PitchShuffle, ${registeredUser.username}!`);
-            res.redirect('/');
+            res.redirect('/teams/new?onboarding=1');
         });
     } catch (e) {
         req.flash('error', e.message || 'Registration failed. Please try again.');
@@ -158,8 +158,12 @@ router.get('/auth/google/callback',
         failureFlash:    true,
         keepSessionInfo: true,
     }),
-    (req, res) => {
+    async (req, res) => {
         req.flash('success', `Welcome, ${req.user.username}!`);
+        try {
+            const teams = await Team.find({ owner: req.user._id });
+            if (teams.length === 0) return res.redirect('/teams/new?onboarding=1');
+        } catch (e) {}
         res.redirect('/');
     }
 );
