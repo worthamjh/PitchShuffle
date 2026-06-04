@@ -95,17 +95,17 @@
                     const _cw2 = _cpw[pt.name];
                     const _cwVal = (_cw2 != null && !isNaN(_cw2)) ? parseInt(_cw2) : 1;
                     const _cpct = _ctotalW > 0 ? Math.round((_cwVal / _ctotalW) * 100) : 0;
-                    const _sliderVal = _cpct; // slider shows percentage directly
                 %>
-                <div class="mb-2">
-                    <div class="d-flex justify-content-between mb-1">
-                        <span class="small"><%= pt.name %> <span class="text-muted">(<%= pt.abbreviation %>)</span></span>
-                        <span class="small fw-bold pitch-pct-label" data-pitch="<%= pt.name %>"><%= _cpct %>%</span>
+                <div class="mb-3">
+                    <div class="small fw-bold mb-1"><%= pt.name %> <span class="text-muted fw-normal">(<%= pt.abbreviation %>)</span> <span class="pitch-pct-label" data-pitch="<%= pt.name %>"><%= _cpct %>%</span></div>
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" class="btn btn-outline-secondary btn-sm freq-minus" data-pitch="<%= pt.name %>" style="width:36px;height:36px;padding:0;font-size:1.1rem;flex-shrink:0;">−</button>
+                        <input type="range" class="form-range flex-grow-1 pitch-weight-slider"
+                               min="0" max="100" step="5"
+                               data-pitch="<%= pt.name %>"
+                               value="<%= _cpct %>">
+                        <button type="button" class="btn btn-outline-secondary btn-sm freq-plus" data-pitch="<%= pt.name %>" style="width:36px;height:36px;padding:0;font-size:1.1rem;flex-shrink:0;">+</button>
                     </div>
-                    <input type="range" class="form-range pitch-weight-slider"
-                           min="0" max="100" step="5"
-                           data-pitch="<%= pt.name %>"
-                           value="<%= _cpct %>">
                 </div>
             <% }); %>
             <% } %>
@@ -205,6 +205,18 @@
     [data-theme="dark"] .current-pitcher-card {
         background: #1a2535;
         border-color: #4a7fa5;
+    }
+    input[type="range"] {
+        height: 36px;
+        cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+        width: 28px;
+        height: 28px;
+    }
+    input[type="range"]::-moz-range-thumb {
+        width: 28px;
+        height: 28px;
     }
 </style>
 
@@ -306,6 +318,20 @@
                 });
             } catch(err) {}
             window.location.href = saveAndReturnBtn.href;
+        });
+    }
+    const freqContainer2 = document.querySelector('.current-pitcher-card');
+    if (freqContainer2) {
+        freqContainer2.addEventListener('click', (e) => {
+            const btn = e.target.closest('.freq-minus, .freq-plus');
+            if (!btn) return;
+            const pitchName = btn.dataset.pitch;
+            const slider = freqContainer2.querySelector(`.pitch-weight-slider[data-pitch="${pitchName}"]`);
+            if (!slider) return;
+            const delta = btn.classList.contains('freq-plus') ? 5 : -5;
+            slider.value = Math.max(0, Math.min(100, parseInt(slider.value) + delta));
+            updatePitchPcts();
+            scheduleShuffleSave();
         });
     }
     if (strikeSlider) {
