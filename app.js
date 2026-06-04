@@ -38,7 +38,16 @@ app.use(methodOverride('_method'));
 // app.use(morgan('dev'));
 app.use(express.static(path.join(__dirname, 'public')));
 
-const sessionConfig = { secret: process.env.SESSION_SECRET || 'yoursecret', resave: false, saveUninitialized: true };
+const sessionConfig = {
+    secret: process.env.SESSION_SECRET || 'yoursecret',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure:   process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        maxAge:   1000 * 60 * 60 * 24 * 7
+    }
+};
 app.use(session(sessionConfig));
 app.use(flash());
 

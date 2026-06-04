@@ -105,6 +105,7 @@ router.get('/:id/edit', isLoggedIn, isOwner, async (req, res, next) => {
 
 // Update team
 router.put('/:id', isLoggedIn, isOwner, upload.single('logo'), async (req, res, next) => {
+    console.log('PUT /teams/:id hit', req.params.id, req.body);
     try {
         const t    = req.body.team;
         const team = await Team.findById(req.params.id);

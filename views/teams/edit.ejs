@@ -6,7 +6,8 @@
 
 <div class="card">
     <div class="card-body p-4">
-        <form action="/teams/<%= team._id %>?_method=PUT" method="POST" enctype="multipart/form-data">
+        <form action="/teams/<%= team._id %>" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="_method" value="PUT">
 
             <div class="mb-4">
                 <label for="name" class="form-label fw-bold">Team Name</label>
@@ -102,7 +103,17 @@
                     </div>
                 </div>
             </div>
-            <!-- ── Shuffle Defaults ───────────────────────────────────── -->
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="bi bi-check-circle"></i> Save Changes
+                </button>
+                <a href="/teams/<%= team._id %>" class="btn btn-outline-secondary btn-lg">
+                    <i class="bi bi-x-circle"></i> Cancel
+                </a>
+            </div>
+        </form>
+                    <!-- ── Shuffle Defaults ───────────────────────────────────── -->
             <div class="mb-4 mt-2">
                 <hr>
                 <h5 class="fw-bold mb-1"><i class="bi bi-shuffle"></i> Shuffle Defaults for This Team</h5>
@@ -119,69 +130,67 @@
                     </form>
                 </div>
             </div>
-            <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-primary btn-lg">
-                    <i class="bi bi-check-circle"></i> Save Changes
-                </button>
-                <a href="/teams/<%= team._id %>" class="btn btn-outline-secondary btn-lg">
-                    <i class="bi bi-x-circle"></i> Cancel
-                </a>
-            </div>
-
-        </form>
         <script>
-            const primaryColor   = document.getElementById('primaryColor');
-            const secondaryColor = document.getElementById('secondaryColor');
-            const strikeColor    = document.getElementById('strikeColor');
-            const chaseColor     = document.getElementById('chaseColor');
+            try {
+                const primaryColor   = document.getElementById('primaryColor');
+                const secondaryColor = document.getElementById('secondaryColor');
+                const strikeColor    = document.getElementById('strikeColor');
+                const chaseColor     = document.getElementById('chaseColor');
 
-            const DEFAULTS = {
-                primary:   '#1a2e4a',
-                secondary: '#4a7fa5',
-                strike:    '#c8ecd4',
-                chase:     '#fef3cd'
-            };
+                const DEFAULTS = {
+                    primary:   '#1a2e4a',
+                    secondary: '#4a7fa5',
+                    strike:    '#c8ecd4',
+                    chase:     '#fef3cd'
+                };
 
-            document.getElementById('restoreDefaultColors').addEventListener('click', () => {
-                primaryColor.value   = DEFAULTS.primary;
-                secondaryColor.value = DEFAULTS.secondary;
-                strikeColor.value    = DEFAULTS.strike;
-                chaseColor.value     = DEFAULTS.chase;
-                checkColors();
-            });
-
-            const removeLogoCheckbox = document.getElementById('removeLogo');
-            const logoInput          = document.getElementById('logo');
-            if (removeLogoCheckbox) {
-                removeLogoCheckbox.addEventListener('change', () => {
-                    logoInput.disabled = removeLogoCheckbox.checked;
-                    if (removeLogoCheckbox.checked) logoInput.value = '';
+                document.getElementById('restoreDefaultColors').addEventListener('click', () => {
+                    primaryColor.value   = DEFAULTS.primary;
+                    secondaryColor.value = DEFAULTS.secondary;
+                    strikeColor.value    = DEFAULTS.strike;
+                    chaseColor.value     = DEFAULTS.chase;
+                    checkColors();
                 });
+
+                const removeLogoCheckbox = document.getElementById('removeLogo');
+                const logoInput          = document.getElementById('logo');
+                if (removeLogoCheckbox) {
+                    removeLogoCheckbox.addEventListener('change', () => {
+                        logoInput.disabled = removeLogoCheckbox.checked;
+                        if (removeLogoCheckbox.checked) logoInput.value = '';
+                    });
+                }
+
+                const navWarning = document.createElement('div');
+                navWarning.className = 'alert alert-warning py-2 px-3 mt-2 mb-0 small';
+                navWarning.style.display = 'none';
+                navWarning.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-1"></i> Primary and secondary colors are the same — pitcher badges won\'t be visible.';
+                const navParent = secondaryColor ? secondaryColor.closest('.col-sm-6') : null;
+                if (navParent) navParent.appendChild(navWarning);
+
+                const zoneWarning = document.createElement('div');
+                zoneWarning.className = 'alert alert-warning py-2 px-3 mt-2 mb-0 small';
+                zoneWarning.style.display = 'none';
+                zoneWarning.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-1"></i> Strike and chase zone colors are the same — they won\'t be distinguishable.';
+                const zoneParent = chaseColor ? chaseColor.closest('.col-sm-6') : null;
+                if (zoneParent) zoneParent.appendChild(zoneWarning);
+
+                function checkColors() {
+                    if (navWarning && primaryColor && secondaryColor)
+                        navWarning.style.display = primaryColor.value === secondaryColor.value ? '' : 'none';
+                    if (zoneWarning && strikeColor && chaseColor)
+                        zoneWarning.style.display = strikeColor.value === chaseColor.value ? '' : 'none';
+                }
+
+                [primaryColor, secondaryColor, strikeColor, chaseColor].forEach(el => {
+                    if (el) el.addEventListener('input', checkColors);
+                });
+
+                checkColors();
+            } catch(e) {
+                console.error('Edit team script error:', e);
             }
-
-            const navWarning = document.createElement('div');
-            navWarning.className = 'alert alert-warning py-2 px-3 mt-2 mb-0 small';
-            navWarning.style.display = 'none';
-            navWarning.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-1"></i> Primary and secondary colors are the same — pitcher badges won\'t be visible.';
-            secondaryColor.closest('.col-sm-6').appendChild(navWarning);
-
-            const zoneWarning = document.createElement('div');
-            zoneWarning.className = 'alert alert-warning py-2 px-3 mt-2 mb-0 small';
-            zoneWarning.style.display = 'none';
-            zoneWarning.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-1"></i> Strike and chase zone colors are the same — they won\'t be distinguishable.';
-            chaseColor.closest('.col-sm-6').appendChild(zoneWarning);
-
-            function checkColors() {
-                navWarning.style.display  = primaryColor.value === secondaryColor.value ? '' : 'none';
-                zoneWarning.style.display = strikeColor.value  === chaseColor.value     ? '' : 'none';
-            }
-
-            [primaryColor, secondaryColor, strikeColor, chaseColor].forEach(el =>
-                el.addEventListener('input', checkColors)
-            );
-
-            checkColors();
-        </script>
+            </script>
     </div>
     <!-- Shuffle Bulk Strike % Modal -->
 <div class="modal fade" id="shuffleBulkModal" tabindex="-1" aria-hidden="true">
