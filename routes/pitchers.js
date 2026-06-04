@@ -224,7 +224,7 @@ router.put('/:pitcherId', isLoggedIn, isOwner, isPitcherInTeam, async (req, res,
         pitcher.markModified('previousPitchTypes');
         await pitcher.save();
         req.flash('success', 'Pitcher updated.');
-        res.redirect(`/teams/${req.params.teamId}/pitchers/${pitcher._id}/edit`);
+        res.redirect(`/teams/${req.params.teamId}/pitchers/${pitcher._id}`);
     } catch (e) {
         next(e);
     }

@@ -138,7 +138,10 @@
 
                 <%
                     const _ss2   = pitcher.shuffleSettings || {};
-                    const _pw2   = _ss2.pitchWeights || {};
+                    const _pw2Raw = _ss2.pitchWeights;
+                    const _pw2 = (_pw2Raw instanceof Map)
+                        ? Object.fromEntries(_pw2Raw)
+                        : (_pw2Raw || {});
                     const _totalW2 = pitcher.pitchTypes.reduce((sum, pt2) => {
                         const w = _pw2[pt2.name];
                         return sum + ((w != null && !isNaN(w)) ? parseInt(w) : 1);
@@ -147,6 +150,7 @@
                     const _pitchWVal = (_pitchW != null && !isNaN(_pitchW)) ? parseInt(_pitchW) : 1;
                     const _pitchPct  = _totalW2 > 0 ? Math.round((_pitchWVal / _totalW2) * 100) : 0;
                 %>
+                <div class="small text-muted mb-1">DEBUG: <%= JSON.stringify(_pw2) %></div>
                 <div class="mt-3 pt-2 border-top">
                     <div class="d-flex justify-content-between mb-1">
                         <span class="small text-muted"><i class="bi bi-shuffle"></i> Shuffle Frequency</span>

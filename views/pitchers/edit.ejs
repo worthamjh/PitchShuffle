@@ -109,7 +109,7 @@
         <div class="small fw-semibold mb-1 opacity-75"><i class="bi bi-pencil"></i> Edit</div>
         <h1 class="mb-2"><%= pitcher.firstName ? pitcher.firstName + ' ' + pitcher.lastName : (pitcher.lastName || pitcher.name) %> #<%= pitcher.number %></h1>
         <div class="d-flex gap-2 flex-wrap">
-            <a href="/teams/<%= team._id %>" class="btn btn-outline-light"><i class="bi bi-arrow-left"></i> Back to Team</a>
+            <a href="/teams/<%= team._id %>/pitchers/<%= pitcher._id %>" class="btn btn-outline-light"><i class="bi bi-arrow-left"></i> Back to Pitcher</a>
         </div>
     </div>
 
@@ -277,7 +277,7 @@
                     <div class="mt-2 d-flex align-items-center gap-2">
                         <span class="fw-bold">Total: <span id="weightTotal" class="text-success">100</span>%</span>
                         <span id="weightWarning" class="text-danger small" style="display:none;">
-                            <i class="bi bi-exclamation-triangle-fill"></i> Must equal 100%
+                            <i class="bi bi-exclamation-triangle-fill"></i> Must equal 100% — adjust sliders before saving
                         </span>
                     </div>
                 </div>
@@ -710,82 +710,87 @@
         }
     </script>
     <script>
-// ── Shuffle Settings ──────────────────────────────────────────
 (function () {
     const globalStrikePct = <%= currentUser.preferences.strikeChancePct || 70 %>;
     const savedWeights    = <%- JSON.stringify(pitcher.shuffleSettings && pitcher.shuffleSettings.pitchWeights ? Object.fromEntries(pitcher.shuffleSettings.pitchWeights) : {}) %>;
 
-    // Strike/Chase slider
-    const strikeSlider   = document.getElementById('strikeChanceSlider');
-    const strikeLbl      = document.getElementById('strikeChanceLbl');
-    const chaseLbl       = document.getElementById('chaseChanceLbl');
-    // Initialize labels on page load
+    const strikeSlider = document.getElementById('strikeChanceSlider');
+    const strikeLbl    = document.getElementById('strikeChanceLbl');
+    const chaseLbl     = document.getElementById('chaseChanceLbl');
+
     strikeLbl.textContent = strikeSlider.value;
     chaseLbl.textContent  = 100 - parseInt(strikeSlider.value);
-
     strikeSlider.addEventListener('input', () => {
         strikeLbl.textContent = strikeSlider.value;
         chaseLbl.textContent  = 100 - parseInt(strikeSlider.value);
     });
 
-    // Build pitch weight sliders dynamically from current pitch rows
     function buildWeightSliders() {
         const container  = document.getElementById('pitchWeightSliders');
         const pitchRows  = [...document.querySelectorAll('.pitch-type-row')];
         const pitchNames = pitchRows.map(row => row.querySelector('.pitch-name')?.value?.trim()).filter(Boolean);
         if (!pitchNames.length) { container.innerHTML = '<p class="text-muted small">Add pitch types above first.</p>'; return; }
 
-        const equalShare = Math.round(100 / pitchNames.length);
         container.innerHTML = '';
 
+        // Calculate initial values as percentages that sum to 100
+        const rawVals = pitchNames.map(name => {
+            const w = savedWeights[name];
+            return (w != null && !isNaN(w)) ? parseInt(w) : 1;
+        });
+        const rawTotal = rawVals.reduce((a, b) => a + b, 0);
+        const initPcts = rawVals.map(v => rawTotal > 0 ? Math.round((v / rawTotal) * 100) : Math.round(100 / pitchNames.length));
+
         pitchNames.forEach((name, i) => {
-            const saved = savedWeights[name];
-            const val   = saved != null ? saved : equalShare;
-            const div   = document.createElement('div');
+            const div = document.createElement('div');
             div.className = 'mb-3';
             div.innerHTML = `
                 <div class="d-flex align-items-center gap-3">
                     <span class="fw-bold" style="min-width:120px;font-size:0.85rem;">${name}</span>
                     <input type="range" class="form-range flex-grow-1 pitch-weight-slider"
-                           min="0" max="100" step="5" value="${val}"
+                           min="0" max="100" step="5" value="${initPcts[i]}"
                            name="shuffleSettings[pitchWeights][${name}]"
                            data-pitch-name="${name}">
-                    <span class="fw-bold weight-lbl" style="min-width:40px;">${val}%</span>
+                    <span class="fw-bold weight-lbl" style="min-width:40px;">${initPcts[i]}%</span>
                 </div>`;
             container.appendChild(div);
         });
 
-        updateTotal();
+        // Hide the total/warning — not needed with auto-balance
+        document.getElementById('weightTotal').closest('.mt-2').style.display = 'none';
+
         container.querySelectorAll('.pitch-weight-slider').forEach(slider => {
             slider.addEventListener('input', () => {
-                slider.closest('div.mb-3').querySelector('.weight-lbl').textContent = slider.value + '%';
-                updateTotal();
+                updatePitchPcts();
             });
         });
     }
 
-    function updateTotal() {
+    function updatePitchPcts() {
         const sliders = [...document.querySelectorAll('.pitch-weight-slider')];
-        const total   = sliders.reduce((sum, s) => sum + parseInt(s.value), 0);
-        const totalEl = document.getElementById('weightTotal');
-        const warnEl  = document.getElementById('weightWarning');
-        totalEl.textContent = total;
-        totalEl.className   = total === 100 ? 'text-success' : 'text-danger';
-        warnEl.style.display = total === 100 ? 'none' : '';
+        const total = sliders.reduce((sum, s) => sum + parseInt(s.value), 0);
+        sliders.forEach(s => {
+            const pct = total > 0 ? Math.round((parseInt(s.value) / total) * 100) : 0;
+            s.closest('div.mb-3').querySelector('.weight-lbl').textContent = pct + '%';
+        });
+        // Re-enable save button always
+        const saveBtn = document.querySelector('#pitcherForm button[type="submit"]');
+        if (saveBtn) saveBtn.disabled = false;
     }
 
-    // Restore defaults button
     document.getElementById('restoreShuffleDefaults').addEventListener('click', () => {
         strikeSlider.value    = globalStrikePct;
         strikeLbl.textContent = globalStrikePct;
         chaseLbl.textContent  = 100 - globalStrikePct;
-        const sliders  = [...document.querySelectorAll('.pitch-weight-slider')];
-        const equal    = sliders.length ? Math.floor(100 / sliders.length) : 0;
-        sliders.forEach(s => { s.value = equal; s.closest('div.mb-3').querySelector('.weight-lbl').textContent = equal + '%'; });
-        updateTotal();
+        const sliders = [...document.querySelectorAll('.pitch-weight-slider')];
+        const equal   = sliders.length ? Math.round(100 / sliders.length) : 0;
+        sliders.forEach(s => {
+            s.value = equal;
+            s.closest('div.mb-3').querySelector('.weight-lbl').textContent = equal + '%';
+        });
+        updatePitchPcts();
     });
 
-    // Build sliders when accordion opens
     document.getElementById('shuffleSettingsBody').addEventListener('show.bs.collapse', buildWeightSliders);
 })();
 </script>
