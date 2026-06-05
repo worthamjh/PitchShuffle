@@ -89,28 +89,16 @@ router.post('/', isLoggedIn, upload.single('logo'), async (req, res, next) => {
 router.get('/:id', isLoggedIn, isOwner, async (req, res, next) => {
     try {
         const team = await Team.findById(req.params.id).populate('pitchers');
-        
-        // Clean up any orphaned pitcher refs (deleted pitchers still in array)
-        const validPitchers = team.pitchers.filter(p => p !== null);
-        if (validPitchers.length !== team.pitchers.length) {
-            team.pitchers = validPitchers.map(p => p._id);
-            await team.save();
-            await team.populate('pitchers');
+
+        // Clean up any ghost pitcher refs (Mongoose silently drops nulls on populate)
+        const rawTeam = await Team.findById(req.params.id).select('pitchers');
+        if (rawTeam.pitchers.length !== team.pitchers.length) {
+            const validIds = team.pitchers.map(p => p._id);
+            await Team.findByIdAndUpdate(req.params.id, { pitchers: validIds });
         }
 
         setTeamLocals(res, team);
         res.render('teams/show', { team });
-    } catch (e) {
-        next(e);
-    }
-});
-
-// Edit team form
-router.get('/:id/edit', isLoggedIn, isOwner, async (req, res, next) => {
-    try {
-        const team = await Team.findById(req.params.id);
-        setTeamLocals(res, team);
-        res.render('teams/edit', { team });
     } catch (e) {
         next(e);
     }
