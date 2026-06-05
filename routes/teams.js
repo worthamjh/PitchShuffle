@@ -89,6 +89,15 @@ router.post('/', isLoggedIn, upload.single('logo'), async (req, res, next) => {
 router.get('/:id', isLoggedIn, isOwner, async (req, res, next) => {
     try {
         const team = await Team.findById(req.params.id).populate('pitchers');
+        
+        // Clean up any orphaned pitcher refs (deleted pitchers still in array)
+        const validPitchers = team.pitchers.filter(p => p !== null);
+        if (validPitchers.length !== team.pitchers.length) {
+            team.pitchers = validPitchers.map(p => p._id);
+            await team.save();
+            await team.populate('pitchers');
+        }
+
         setTeamLocals(res, team);
         res.render('teams/show', { team });
     } catch (e) {
