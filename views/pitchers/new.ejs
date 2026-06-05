@@ -2,6 +2,9 @@
 
 <style>
     .zone-grid { display: grid; gap: 0; margin: 0 auto; border: 2px solid #adb5bd; width: fit-content; }
+    .zone-grid-wrapper { display: inline-block; position: relative; }
+    .zone-container { display: flex; justify-content: center; padding: 1rem 0; }
+    .pitchers-view-label { text-align: center; font-size: 0.7rem; font-weight: 600; color: #6c757d; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
     .loc-box {
         width: 70px; height: 70px; border-radius: 0;
         display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -35,9 +38,6 @@
     .chase-overlay.disabled       { background: #e9ecef; border-color: #ced4da; color: #adb5bd; text-decoration: line-through; }
     .chase-overlay.disabled:hover { background: #e9ecef; border-color: #ced4da; }
     .strike-zone-outline { position: absolute; pointer-events: none; border: 3px solid var(--ps-navy); z-index: 10; }
-    .zone-grid-wrapper   { display: inline-block; position: relative; }
-    .pitchers-view-label { text-align: center; font-size: 0.7rem; font-weight: 600; color: #6c757d; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
-    .zone-container  { display: flex; justify-content: center; padding: 1rem 0; }
     .pitch-section   { border: 1px solid #dee2e6; border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; background: #fff; }
     .pitch-section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
     [data-theme="dark"] .loc-box.strike  { background: var(--strike-bg); border-color: var(--strike-border); color: var(--strike-text); filter: brightness(0.6) saturate(0.9); }
