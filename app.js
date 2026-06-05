@@ -13,7 +13,7 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const User = require('./models/user');
-
+const MongoStore = require('connect-mongo');
 const authRoutes         = require('./routes/auth');
 const teamRoutes         = require('./routes/teams');
 const pitcherRoutes      = require('./routes/pitchers');
@@ -34,7 +34,6 @@ app.set('view engine', 'ejs');
 app.use('/webhook/stripe', webhookRoutes);
 
 app.use(express.urlencoded({ extended: true }));
-app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(methodOverride('_method'));
 // app.use(morgan('dev'));
@@ -44,10 +43,14 @@ const sessionConfig = {
     secret: process.env.SESSION_SECRET || 'yoursecret',
     resave: false,
     saveUninitialized: false,
+    store: MongoStore.create({
+        mongoUrl: process.env.MONGODB_URI,
+        touchAfter: 24 * 3600  // only update session once per day unless data changes
+    }),
     cookie: {
         secure:   process.env.NODE_ENV === 'production',
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-        maxAge:   1000 * 60 * 60 * 24 * 7
+        maxAge:   1000 * 60 * 60 * 24 * 30  // 30 days
     }
 };
 app.use(session(sessionConfig));

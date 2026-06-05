@@ -1,15 +1,23 @@
-const CACHE_NAME = 'pitchshuffle-v2';
+const CACHE_NAME = 'pitchshuffle-v3';
+const DATA_CACHE_NAME = 'pitchshuffle-data-v3';
 
 // Core assets to cache on install — app shell
 const PRECACHE = [
     '/',
     '/stylesheets/style.css',
+    '/offline.html',
     'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css',
     'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js',
     'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css',
 ];
 
-// ── Install — cache the app shell ────────────────────────────
+// Routes to cache at runtime when visited (network first, cache as fallback)
+const RUNTIME_CACHE_PATTERNS = [
+    /\/game\//,
+    /\/teams\/[^/]+\/game-select/,
+];
+
+// ── Install ───────────────────────────────────────────────────
 self.addEventListener('install', event => {
     event.waitUntil(
         caches.open(CACHE_NAME)
@@ -18,27 +26,24 @@ self.addEventListener('install', event => {
     );
 });
 
-// ── Activate — clean up old caches ───────────────────────────
+// ── Activate ──────────────────────────────────────────────────
 self.addEventListener('activate', event => {
     event.waitUntil(
         caches.keys().then(keys =>
             Promise.all(
                 keys
-                    .filter(key => key !== CACHE_NAME)
+                    .filter(key => key !== CACHE_NAME && key !== DATA_CACHE_NAME)
                     .map(key => caches.delete(key))
             )
         ).then(() => self.clients.claim())
     );
 });
 
-// ── Fetch — network first, fall back to cache ─────────────────
-// Navigation requests (HTML pages): network first so data is fresh.
-// Static assets (CSS/JS/fonts): cache first for speed.
+// ── Fetch ─────────────────────────────────────────────────────
 self.addEventListener('fetch', event => {
     const { request } = event;
     const url = new URL(request.url);
 
-    // Skip non-GET and cross-origin API/auth requests
     if (request.method !== 'GET') return;
 
     // Static assets — cache first
@@ -64,10 +69,34 @@ self.addEventListener('fetch', event => {
         return;
     }
 
-    // Navigation — network first, fall back to cached home page
+    // Game/select pages — network first, cache as fallback
+    if (request.mode === 'navigate' && RUNTIME_CACHE_PATTERNS.some(p => p.test(url.pathname))) {
+        event.respondWith(
+            fetch(request)
+                .then(response => {
+                    // Cache a fresh copy every time it loads successfully
+                    if (response.ok) {
+                        const clone = response.clone();
+                        caches.open(DATA_CACHE_NAME).then(cache => cache.put(request, clone));
+                    }
+                    return response;
+                })
+                .catch(() => {
+                    // Offline — serve cached version if we have it
+                    return caches.match(request).then(cached => {
+                        return cached || caches.match('/offline.html');
+                    });
+                })
+        );
+        return;
+    }
+
+    // All other navigation — network first, fall back to offline page
     if (request.mode === 'navigate') {
         event.respondWith(
-            fetch(request).catch(() => caches.match('/'))
+            fetch(request).catch(() =>
+                caches.match(request).then(cached => cached || caches.match('/offline.html'))
+            )
         );
         return;
     }
