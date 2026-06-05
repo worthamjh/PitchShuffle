@@ -537,11 +537,13 @@
     function selectPitch(index) {
         selectedPitchIndex = index;
         document.querySelectorAll('.pitch-btn').forEach((btn, i) => btn.classList.toggle('active', i === index));
+        if (window._cancelSpecialCall) window._cancelSpecialCall();
         updateCallBar(); updateButtons();
     }
     function selectLocation(locName) {
         selectedLocation = locName;
         highlightLocation(locName);
+        if (window._cancelSpecialCall) window._cancelSpecialCall();
         updateCallBar(); updateButtons();
     }
     function highlightLocation(locName) {
@@ -739,9 +741,16 @@
                 speak('Pickoff', baseLabel);
                 btnCall.removeEventListener('click', handlePickoffCall);
                 btnCall.addEventListener('click', normalCallHandler);
+                window._cancelSpecialCall = null;
             }
             btnCall.removeEventListener('click', normalCallHandler);
             btnCall.addEventListener('click', handlePickoffCall);
+            // Store cleanup so selecting a pitch/location restores normal handler
+            window._cancelSpecialCall = () => {
+                btnCall.removeEventListener('click', handlePickoffCall);
+                btnCall.addEventListener('click', normalCallHandler);
+                window._cancelSpecialCall = null;
+            };
         });
         });
     }
@@ -753,6 +762,12 @@
         function handlePitchoutCall() { speak('Pitchout',''); btnCall.removeEventListener('click',handlePitchoutCall); btnCall.addEventListener('click',normalCallHandler); }
         btnCall.removeEventListener('click', normalCallHandler);
         btnCall.addEventListener('click', handlePitchoutCall);
+        // Store cleanup so selecting a pitch/location restores normal handler
+        window._cancelSpecialCall = () => {
+            btnCall.removeEventListener('click', handlePitchoutCall);
+            btnCall.addEventListener('click', normalCallHandler);
+            window._cancelSpecialCall = null;
+        };
     });
     function normalCallHandler() {
         if (selectedPitchIndex === null || !selectedLocation) return;
