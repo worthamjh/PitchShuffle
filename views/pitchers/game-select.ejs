@@ -347,4 +347,18 @@
             scheduleShuffleSave();
         });
     });
+    // ── Auto-sort to match team page preference ───────────────
+    (function () {
+        const mode = localStorage.getItem('ps_pitcher_sort') || 'lastName';
+        const grid = document.getElementById('pitcherList');
+        if (!grid) return;
+        const cols = [...grid.querySelectorAll('.pitcher-col')];
+        cols.sort((a, b) => {
+            if (mode === 'number') return Number(a.dataset.number) - Number(b.dataset.number);
+            const aVal = mode === 'lastName' ? a.dataset.lastname : a.dataset.firstname;
+            const bVal = mode === 'lastName' ? b.dataset.lastname : b.dataset.firstname;
+            return aVal.localeCompare(bVal);
+        });
+        cols.forEach(col => grid.appendChild(col));
+    }());
 </script>
