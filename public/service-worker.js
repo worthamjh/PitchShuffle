@@ -1,5 +1,5 @@
-const CACHE_NAME = 'pitchshuffle-v3';
-const DATA_CACHE_NAME = 'pitchshuffle-data-v3';
+const CACHE_NAME = 'pitchshuffle-v4';
+const DATA_CACHE_NAME = 'pitchshuffle-data-v4';
 
 // Core assets to cache on install — app shell
 const PRECACHE = [
@@ -13,8 +13,9 @@ const PRECACHE = [
 
 // Routes to cache at runtime when visited (network first, cache as fallback)
 const RUNTIME_CACHE_PATTERNS = [
+    /\/teams\/[^/]+\/pitchers\/game\/[^/]+/,
+    /\/teams\/[^/]+\/pitchers\/game-select/,
     /\/game\//,
-    /\/teams\/[^/]+\/game-select/,
 ];
 
 // ── Install ───────────────────────────────────────────────────
@@ -37,6 +38,23 @@ self.addEventListener('activate', event => {
             )
         ).then(() => self.clients.claim())
     );
+});
+
+// ── Message — proactive pre-cache ─────────────────────────────
+// Receives { type: 'PRECACHE_GAME_URLS', urls: [...] } from the page
+self.addEventListener('message', event => {
+    if (event.data && event.data.type === 'PRECACHE_GAME_URLS') {
+        const urls = event.data.urls || [];
+        caches.open(DATA_CACHE_NAME).then(cache => {
+            urls.forEach(url => {
+                fetch(url, { credentials: 'include' })
+                    .then(response => {
+                        if (response.ok) cache.put(url, response);
+                    })
+                    .catch(() => {}); // silently skip if offline
+            });
+        });
+    }
 });
 
 // ── Fetch ─────────────────────────────────────────────────────
@@ -69,12 +87,11 @@ self.addEventListener('fetch', event => {
         return;
     }
 
-    // Game/select pages — network first, cache as fallback
+    // Game pages — network first, cache as fallback
     if (request.mode === 'navigate' && RUNTIME_CACHE_PATTERNS.some(p => p.test(url.pathname))) {
         event.respondWith(
             fetch(request)
                 .then(response => {
-                    // Cache a fresh copy every time it loads successfully
                     if (response.ok) {
                         const clone = response.clone();
                         caches.open(DATA_CACHE_NAME).then(cache => cache.put(request, clone));
@@ -82,7 +99,6 @@ self.addEventListener('fetch', event => {
                     return response;
                 })
                 .catch(() => {
-                    // Offline — serve cached version if we have it
                     return caches.match(request).then(cached => {
                         return cached || caches.match('/offline.html');
                     });

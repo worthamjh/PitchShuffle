@@ -171,6 +171,11 @@
         window.PS_VOICE_URI = document.querySelector('meta[name="ps-voice-uri"]').content;
     </script>
     <% } %>
+    <% if (currentUser && locals.gameUrls && gameUrls.length) { %>
+    <script>
+        window.PS_GAME_URLS = <%- JSON.stringify(gameUrls) %>;
+    </script>
+    <% } %>
 </head>
 
 <body>
@@ -279,6 +284,19 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/service-worker.js')
+                    .then(reg => {
+                        // Pre-cache all game pages while online
+                        if (navigator.onLine && typeof window.PS_GAME_URLS !== 'undefined' && window.PS_GAME_URLS.length) {
+                            const sw = reg.active || reg.installing || reg.waiting;
+                            if (sw) {
+                                sw.postMessage({ type: 'PRECACHE_GAME_URLS', urls: window.PS_GAME_URLS });
+                            } else {
+                                navigator.serviceWorker.ready.then(r => {
+                                    r.active.postMessage({ type: 'PRECACHE_GAME_URLS', urls: window.PS_GAME_URLS });
+                                });
+                            }
+                        }
+                    })
                     .catch(err => console.warn('SW registration failed:', err));
             });
         }

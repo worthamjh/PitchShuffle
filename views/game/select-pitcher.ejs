@@ -20,7 +20,14 @@
     </div>
 <% } else { %>
     <p class="text-muted mb-1"><strong>Step 2 of 2</strong> — Select a pitcher</p>
-    <p class="text-muted small mb-2"><i class="bi bi-shield-fill"></i> <%= team.name %></p>
+    <p class="text-muted small mb-2 d-flex align-items-center gap-2">
+        <% if (team.logo) { %>
+            <img src="<%= team.logo %>" alt="" style="width:22px;height:22px;border-radius:4px;object-fit:contain;">
+        <% } else { %>
+            <i class="bi bi-shield-fill"></i>
+        <% } %>
+        <%= team.name %>
+    </p>
 
     <!-- Sort bar -->
     <div class="sort-bar mb-3">

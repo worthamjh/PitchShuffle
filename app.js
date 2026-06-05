@@ -20,6 +20,7 @@ const pitcherRoutes      = require('./routes/pitchers');
 const profileRoutes      = require('./routes/profile');
 const subscriptionRoutes = require('./routes/subscription');
 const webhookRoutes      = require('./routes/webhook');
+const { injectGameUrls } = require('./middleware');
 
 mongoose.connect(process.env.MONGODB_URI);
 const db = mongoose.connection;
@@ -126,7 +127,7 @@ app.use((req, res, next) => {
     res.locals.teamChaseColor     = null;
     next();
 });
-
+app.use(injectGameUrls);
 app.use('/',                       authRoutes);
 app.use('/teams',                  teamRoutes);
 app.use('/teams/:teamId/pitchers', pitcherRoutes);
