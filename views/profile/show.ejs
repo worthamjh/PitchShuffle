@@ -455,10 +455,33 @@ document.getElementById('testVoiceBtn').addEventListener('click', () => {
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed fw-semibold" type="button"
                             data-bs-toggle="collapse" data-bs-target="#help2">
-                        <i class="bi bi-people-fill me-2 text-primary"></i> Setting Up a Team
+                        <i class="bi bi-bluetooth me-2 text-primary"></i> Bluetooth & Earpiece Setup
                     </button>
                 </h2>
                 <div id="help2" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+                    <div class="accordion-body text-muted">
+                        PitchShuffle announces pitch calls using your device's built-in text-to-speech. To send calls wirelessly to your catcher:
+                        <br><br>
+                        <ol class="ps-3 mb-0">
+                            <li class="mb-2">Pair a Bluetooth earpiece to your device before the game.</li>
+                            <li class="mb-2">Once connected, your device's audio output routes to the earpiece automatically — no extra setup needed in PitchShuffle.</li>
+                            <li class="mb-2">Have your catcher wear the earpiece. Open PitchShuffle and start a game.</li>
+                            <li class="mb-2">Tap <strong>Call Pitch</strong> — the call will be announced through the earpiece.</li>
+                        </ol>
+                        <br>
+                        Any Bluetooth earpiece works. A single earbud is recommended so your catcher can still hear the field.
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed fw-semibold" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#help3">
+                        <i class="bi bi-people-fill me-2 text-primary"></i> Setting Up a Team
+                    </button>
+                </h2>
+                <div id="help3" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
                     <div class="accordion-body text-muted">
                         <ol class="ps-3 mb-0">
                             <li class="mb-2">Go to <strong>My Teams</strong> and tap <strong>New Team</strong>.</li>
@@ -472,11 +495,11 @@ document.getElementById('testVoiceBtn').addEventListener('click', () => {
             <div class="accordion-item">
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed fw-semibold" type="button"
-                            data-bs-toggle="collapse" data-bs-target="#help3">
+                            data-bs-toggle="collapse" data-bs-target="#help4">
                         <i class="bi bi-person-fill me-2 text-primary"></i> Adding a Pitcher
                     </button>
                 </h2>
-                <div id="help3" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+                <div id="help4" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
                     <div class="accordion-body text-muted">
                         <ol class="ps-3 mb-0">
                             <li class="mb-2">From your team page, tap <strong>Add Pitcher</strong>.</li>
@@ -492,11 +515,11 @@ document.getElementById('testVoiceBtn').addEventListener('click', () => {
             <div class="accordion-item">
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed fw-semibold" type="button"
-                            data-bs-toggle="collapse" data-bs-target="#help4">
+                            data-bs-toggle="collapse" data-bs-target="#help5">
                         <i class="bi bi-grid-3x3 me-2 text-primary"></i> Configuring Pitch Locations
                     </button>
                 </h2>
-                <div id="help4" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+                <div id="help5" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
                     <div class="accordion-body text-muted">
                         On a pitcher's edit page, each pitch type has a strike zone grid. Tap any location to toggle it on or off.
                         <br><br>
@@ -509,11 +532,11 @@ document.getElementById('testVoiceBtn').addEventListener('click', () => {
             <div class="accordion-item">
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed fw-semibold" type="button"
-                            data-bs-toggle="collapse" data-bs-target="#help5">
+                            data-bs-toggle="collapse" data-bs-target="#help6">
                         <i class="bi bi-play-fill me-2 text-primary"></i> Using the Game Screen
                     </button>
                 </h2>
-                <div id="help5" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+                <div id="help6" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
                     <div class="accordion-body text-muted">
                         Once you select a team and pitcher, the game screen shows:
                         <br><br>
@@ -530,11 +553,11 @@ document.getElementById('testVoiceBtn').addEventListener('click', () => {
             <div class="accordion-item">
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed fw-semibold" type="button"
-                            data-bs-toggle="collapse" data-bs-target="#help6">
+                            data-bs-toggle="collapse" data-bs-target="#help7">
                         <i class="bi bi-shuffle me-2 text-primary"></i> Why Use Shuffle?
                     </button>
                 </h2>
-                <div id="help6" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+                <div id="help7" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
                     <div class="accordion-body text-muted">
                         The <strong>Shuffle</strong> button is one of PitchShuffle's most powerful features.
                         <br><br>
@@ -550,11 +573,59 @@ document.getElementById('testVoiceBtn').addEventListener('click', () => {
             <div class="accordion-item">
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed fw-semibold" type="button"
-                            data-bs-toggle="collapse" data-bs-target="#help7">
+                            data-bs-toggle="collapse" data-bs-target="#help8">
+                        <i class="bi bi-shuffle me-2 text-primary"></i> Shuffle Settings
+                    </button>
+                </h2>
+                <div id="help8" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+                    <div class="accordion-body text-muted">
+                        Shuffle Settings let you control how the <strong>Shuffle</strong> button picks pitches for each pitcher.
+                        <br><br>
+                        <strong>Strike %</strong> — controls how often Shuffle picks a strike zone location vs a chase location. 70% means 7 out of 10 shuffled pitches will be in the strike zone.
+                        <br><br>
+                        <strong>Pitch Frequency</strong> — controls how often each pitch type gets selected. A fastball set to 60% and a curveball at 40% means the fastball will be chosen roughly 60% of the time.
+                        <br><br>
+                        These settings are per-pitcher and can be adjusted mid-game from the <strong>Change Pitcher</strong> screen without interrupting play. A global default Strike % can be set on this Profile page and applies to any pitcher without a custom override.
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed fw-semibold" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#help9">
+                        <i class="bi bi-volume-up-fill me-2 text-primary"></i> Improving Voice Quality
+                    </button>
+                </h2>
+                <div id="help9" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+                    <div class="accordion-body text-muted">
+                        PitchShuffle uses your device's built-in voices. The default voice may sound robotic — here's how to get a much more natural-sounding voice for free:
+                        <br><br>
+                        <strong>On iPhone or iPad:</strong>
+                        <ol class="ps-3 mb-2">
+                            <li class="mb-2">Go to <strong>Settings → Accessibility → Spoken Content → Voices</strong>.</li>
+                            <li class="mb-2">Select <strong>English</strong> and choose any voice marked <strong>Enhanced</strong> or <strong>Premium</strong>.</li>
+                            <li class="mb-2">Tap the download icon next to it. These are Siri-quality voices and sound significantly better.</li>
+                            <li class="mb-2">Once downloaded, come back to PitchShuffle's <strong>Profile → Pitch Call Voice</strong> and select your new voice from the dropdown.</li>
+                        </ol>
+                        <strong>On Android:</strong>
+                        <ol class="ps-3 mb-0">
+                            <li class="mb-2">Go to <strong>Settings → General Management → Text-to-Speech</strong>.</li>
+                            <li class="mb-2">Tap the gear icon next to your TTS engine and select a higher quality voice.</li>
+                            <li class="mb-2">Return to PitchShuffle and select it in <strong>Profile → Pitch Call Voice</strong>.</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed fw-semibold" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#help10">
                         <i class="bi bi-lightning-fill me-2 text-primary"></i> Quick Game Mode
                     </button>
                 </h2>
-                <div id="help7" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+                <div id="help10" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
                     <div class="accordion-body text-muted">
                         Quick Game lets you jump straight into calling pitches without setting up a team or pitcher first. It uses a standard set of pitch types and a full Zone C strike zone.
                         <br><br>
@@ -562,7 +633,6 @@ document.getElementById('testVoiceBtn').addEventListener('click', () => {
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
 </div>
