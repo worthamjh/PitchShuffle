@@ -55,20 +55,3 @@ module.exports.isSubscribed = (req, res, next) => {
     res.redirect('/subscription');
 };
 
-// Inject game URLs for service worker pre-caching
-module.exports.injectGameUrls = async (req, res, next) => {
-    if (!req.isAuthenticated()) return next();
-    try {
-        const teams = await Team.find({ owner: req.user._id }).populate('pitchers', '_id');
-        const urls = [];
-        for (const team of teams) {
-            for (const pitcher of team.pitchers) {
-                urls.push(`/teams/${team._id}/pitchers/game/${pitcher._id}`);
-            }
-        }
-        res.locals.gameUrls = urls;
-    } catch (e) {
-        // Non-fatal — don't block the request
-    }
-    next();
-};
