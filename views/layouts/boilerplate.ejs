@@ -301,6 +301,19 @@
             });
         }
     </script>
+    <script>
+        // Client-side image size validation — mirrors the 5MB server limit
+        document.addEventListener('change', e => {
+            const input = e.target;
+            if (input.type !== 'file' || !input.accept?.includes('image')) return;
+            const file = input.files[0];
+            if (!file) return;
+            if (file.size > 5 * 1024 * 1024) {
+                alert('Image must be under 5MB. Please choose a smaller file.');
+                input.value = '';
+            }
+        });
+    </script>
 </body>
 
 </html>
