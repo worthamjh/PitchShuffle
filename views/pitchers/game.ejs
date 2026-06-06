@@ -32,7 +32,7 @@
         flex-shrink: 0; max-height: 96px; overflow-y: auto; scrollbar-width: none;
     }
     .pitch-row::-webkit-scrollbar { display: none; }
-    .pitch-btn { flex: 1 1 calc(25% - 0.4rem); min-width: calc(25% - 0.4rem); }
+    .pitch-btn { flex: 1 1 auto; }
     .pitch-btn:hover  { background: #dce6f0; }
     .pitch-btn.active { background: var(--ps-navy); border-color: var(--ps-navy); color: var(--accent-text, #fff); }
 
@@ -251,6 +251,24 @@
     const pitcherData   = JSON.parse(document.getElementById('pitcherJson').textContent);
     const isRHP         = pitcherData.throws === 'R';
     const pitchTypes    = pitcherData.pitchTypes || [];
+    (function layoutPitchButtons() {
+    requestAnimationFrame(function() {
+        const count = pitchTypes.length;
+        const row = document.getElementById('pitchRow');
+        if (!row || count === 0) return;
+        let perRow;
+        if      (count <= 4) perRow = count;
+        else if (count === 5) perRow = 3;
+        else if (count === 6) perRow = 3;
+        else if (count === 7) perRow = 4;
+        else                  perRow = 4;
+        const pct = `calc(${100 / perRow}% - 0.4rem)`;
+        row.querySelectorAll('.pitch-btn').forEach(btn => {
+            btn.style.flexBasis = pct;
+            btn.style.maxWidth  = pct;
+        });
+    });
+})();
     const zoneLocations = pitcherData.zone ? pitcherData.zone.availableLocations : [];
 
     let selectedPitchIndex = null;
