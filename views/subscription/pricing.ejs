@@ -87,16 +87,17 @@
     </div>
 
     <!-- Pricing tiers -->
-    <% if (!isActive || status === 'cancelled' || status === 'past_due') { %>
+    <% if (true) { %>
 
         <!-- Monthly -->
         <div class="card border-0 shadow-sm mb-3">
             <div class="card-body p-4">
                 <div class="d-flex justify-content-between align-items-center mb-1">
                     <h5 class="fw-bold mb-0">Monthly</h5>
-                    <span class="fs-4 fw-bold">$5.99<span class="text-muted fs-6 fw-normal">/mo</span></span>
+                    <span class="fs-4 fw-bold">$7.99<span class="text-muted fs-6 fw-normal">/mo</span></span>
                 </div>
                 <p class="text-muted small mb-3">Includes 30-day free trial. Cancel anytime.</p>
+                <% if (!isActive || status === 'cancelled' || status === 'past_due') { %>
                 <form action="/subscription/checkout" method="POST">
                     <input type="hidden" name="plan" value="monthly">
                     <button type="submit" class="btn btn-primary w-100 fw-bold">
@@ -104,6 +105,11 @@
                         <%= status === 'none' ? 'Start Free Trial' : 'Subscribe Monthly' %>
                     </button>
                 </form>
+                <% } else { %>
+                <button class="btn btn-outline-secondary w-100 fw-bold" disabled>
+                    <i class="bi bi-check-circle me-1"></i> Current or Available Plan
+                </button>
+                <% } %>
             </div>
         </div>
 
@@ -118,19 +124,25 @@
                     <span class="fs-4 fw-bold">$14.99<span class="text-muted fs-6 fw-normal"> once</span></span>
                 </div>
                 <p class="text-muted small mb-3">One-time payment. Perfect for a single season.</p>
+                <% if (!isActive || status === 'cancelled' || status === 'past_due') { %>
                 <form action="/subscription/checkout" method="POST">
                     <input type="hidden" name="plan" value="season">
                     <button type="submit" class="btn btn-outline-primary w-100 fw-bold">
                         <i class="bi bi-calendar-check me-1"></i> Get Season Pass
                     </button>
                 </form>
+                <% } else { %>
+                <button class="btn btn-outline-secondary w-100 fw-bold" disabled>
+                    <i class="bi bi-check-circle me-1"></i> Currently Available
+                </button>
+                <% } %>
             </div>
         </div>
 
         <!-- Annual -->
         <div class="card border-2 shadow-sm mb-4" style="border-color: var(--ps-navy) !important;">
             <div class="card-header fw-bold text-center py-1" style="background: var(--ps-navy); color: var(--accent-text);">
-                Best Value — Save 30%
+                Best Value — Save over 45%
             </div>
             <div class="card-body p-4">
                 <div class="d-flex justify-content-between align-items-center mb-1">
@@ -138,6 +150,7 @@
                     <span class="fs-4 fw-bold">$49.99<span class="text-muted fs-6 fw-normal">/yr</span></span>
                 </div>
                 <p class="text-muted small mb-3">Includes 30-day free trial. Only $4.17/month.</p>
+                <% if (!isActive || status === 'cancelled' || status === 'past_due') { %>
                 <form action="/subscription/checkout" method="POST">
                     <input type="hidden" name="plan" value="annual">
                     <button type="submit" class="btn btn-primary w-100 fw-bold">
@@ -145,6 +158,11 @@
                         <%= status === 'none' ? 'Start Free Trial' : 'Subscribe Annually' %>
                     </button>
                 </form>
+                <% } else { %>
+                <button class="btn btn-outline-secondary w-100 fw-bold" disabled>
+                    <i class="bi bi-check-circle me-1"></i> Currently Available
+                </button>
+                <% } %>
             </div>
         </div>
 

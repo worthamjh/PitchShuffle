@@ -268,8 +268,8 @@
                                     <select class="form-select pitch-preset" style="max-width:200px;">
                                         <%- include('../partials/pitch-presets', { sport: team.sport, currentName: pitch.name }) %>
                                     </select>
-                                    <input type="text" class="form-control pitch-name fw-bold" name="pitcher[pitchTypes][<%= i %>][name]" value="<%= pitch.name %>" placeholder="Pitch name" style="max-width:160px;">
-                                    <input type="text" class="form-control pitch-abbr" name="pitcher[pitchTypes][<%= i %>][abbreviation]" value="<%= pitch.abbreviation %>" placeholder="Abbr." style="max-width:80px;">
+                                    <input type="text" class="form-control pitch-name fw-bold" name="pitcher[pitchTypes][<%= i %>][name]" value="<%= pitch.name %>" placeholder="Pitch name" style="max-width:160px;" maxlength="20">
+                                    <input type="text" class="form-control pitch-abbr" name="pitcher[pitchTypes][<%= i %>][abbreviation]" value="<%= pitch.abbreviation %>" placeholder="Abbr." style="max-width:80px;" maxlength="6">
                                 </div>
                                 <button type="button" class="btn btn-outline-danger btn-sm remove-pitch"><i class="bi bi-trash"></i></button>
                             </div>
@@ -676,8 +676,8 @@
                 <div class="pitch-section-header">
                     <div class="d-flex align-items-center gap-2 flex-wrap">
                         <select class="form-select pitch-preset" style="max-width:200px;">${PRESETS_HTML}</select>
-                        <input type="text" class="form-control pitch-name fw-bold" name="pitcher[pitchTypes][${pitchCount}][name]" placeholder="Pitch name" style="max-width:160px;">
-                        <input type="text" class="form-control pitch-abbr" name="pitcher[pitchTypes][${pitchCount}][abbreviation]" placeholder="Abbr." style="max-width:80px;">
+                        <input type="text" class="form-control pitch-name fw-bold" name="pitcher[pitchTypes][${pitchCount}][name]" placeholder="Pitch name" style="max-width:160px;" maxlength="20">
+                        <input type="text" class="form-control pitch-abbr" name="pitcher[pitchTypes][${pitchCount}][abbreviation]" placeholder="Abbr." style="max-width:80px;" maxlength="6">
                     </div>
                     <button type="button" class="btn btn-outline-danger btn-sm remove-pitch"><i class="bi bi-trash"></i></button>
                 </div>
