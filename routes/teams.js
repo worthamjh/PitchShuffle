@@ -104,6 +104,17 @@ router.get('/:id', isLoggedIn, isOwner, async (req, res, next) => {
     }
 });
 
+// Edit team form
+router.get('/:id/edit', isLoggedIn, isOwner, async (req, res, next) => {
+    try {
+        const team = await Team.findById(req.params.id);
+        setTeamLocals(res, team);
+        res.render('teams/edit', { team });
+    } catch (e) {
+        next(e);
+    }
+});
+
 // Update team
 router.put('/:id', isLoggedIn, isOwner, upload.single('logo'), async (req, res, next) => {
     try {
