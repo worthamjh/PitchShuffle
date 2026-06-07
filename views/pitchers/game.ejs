@@ -404,7 +404,7 @@
     _boxSize = Math.max(_boxSize, 44);
 
     // For Zone A (1 row, 2 cols) and Zone B (2 rows, 1 col): use rectangular cells
-    let _boxH = _boxSize;
+    _boxH = _boxSize;
     if (maxRow === 1 && maxCol === 2) {
         // Zone A: wide landscape — cap width, make height taller (like a real strike zone)
         _boxSize = Math.min(_boxW, 160);
@@ -478,6 +478,8 @@
         const labelH       = labelEl ? labelEl.offsetHeight + 2 : 0;
         const strikePosArr = Object.values(layout).filter(p => p.strike);
         if (!strikePosArr.length) return;
+        // Zone A and B: all cells are strike zone, grid border is sufficient — skip outline
+        if (strikePosArr.length <= 2 && !Object.values(layout).some(p => !p.strike)) return;
         let t = Infinity, l = Infinity, b = -Infinity, r = -Infinity;
         strikePosArr.forEach(pos => {
             const bnd = cellBounds(pos);

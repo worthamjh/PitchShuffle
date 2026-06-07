@@ -11,6 +11,7 @@
         }
         @media (min-width: 576px) { .loc-box { width: 88px; height: 88px; font-size: 0.6rem; } }
         @media (min-width: 992px) { .loc-box { width: 108px; height: 108px; font-size: 0.7rem; } }
+        .zone-grid .loc-box { height: 100%; width: 100%; }
         .loc-box.strike   { background-color: var(--strike-bg); border: 1px solid var(--strike-border); color: var(--strike-text); }
         .loc-box.chase    { background-color: var(--chase-bg); border: 1px solid var(--chase-border); color: var(--chase-text); }
         .loc-box.disabled { background-color: #e9ecef; border: 1px solid #ced4da; color: #adb5bd; text-decoration: line-through; }
@@ -324,8 +325,17 @@
             const maxRow = Math.max(...Object.values(layout).map(p => (p.row||1)+(p.rowSpan||1)-1));
             const maxCol = Math.max(...Object.values(layout).map(p => (p.col||1)+(p.colSpan||1)-1));
             let boxSize = window.innerWidth >= 992 ? 108 : window.innerWidth >= 576 ? 88 : 70;
-            if (maxRow <= 2) boxSize = Math.min(boxSize, 120);
-            grid.style.gridTemplateRows    = `repeat(${maxRow}, ${boxSize}px)`;
+            let boxH = boxSize;
+            if (maxRow === 1 && maxCol === 2) {
+                boxH = Math.round(boxSize * 1.6);
+            } else if (maxRow === 2 && maxCol === 1) {
+                boxSize = Math.round(boxSize * 1.8);
+                boxH    = Math.round(boxSize * 0.45);
+            } else if (maxRow <= 2) {
+                boxSize = Math.min(boxSize, 120);
+                boxH = boxSize;
+            }
+            grid.style.gridTemplateRows    = `repeat(${maxRow}, ${boxH}px)`;
             grid.style.gridTemplateColumns = `repeat(${maxCol}, ${boxSize}px)`;
             pitch.locations.forEach(loc => {
                 const pos = layout[loc.name]; if (!pos) return;

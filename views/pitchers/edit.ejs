@@ -31,6 +31,7 @@
 
         @media (min-width: 576px) { .loc-box { width: 88px; height: 88px; font-size: 0.6rem; } }
         @media (min-width: 992px) { .loc-box { width: 108px; height: 108px; font-size: 0.7rem; } }
+        .zone-grid .loc-box { height: 100%; width: 100%; }
 
         .loc-box.strike   { background: var(--strike-bg); border-color: var(--strike-border); color: var(--strike-text); }
         .loc-box.chase    { background: var(--chase-bg); border-color: var(--chase-border); color: var(--chase-text); }
@@ -459,8 +460,8 @@
 
             if (isZoneD(pitch.locations)) {
                 if (isInsideAway) {
-                    makeOverlay('up-out',   'up out',   ['glove-out-up', 'arm-up', 'mid-up', 'glove-up', 'arm-out-up'],          ['up-out'],   []);
-                    makeOverlay('down-out', 'down out', ['glove-out-down', 'arm-down', 'mid-down', 'glove-down', 'arm-out-down'], ['down-out'], []);
+                    makeOverlay('up-out',   'up out',   ['corner-top-glove','away-up','inside-up','corner-top-arm'],     ['up-out'],   ['up-out']);
+                    makeOverlay('down-out', 'down out', ['corner-bot-glove','away-down','inside-down','corner-bot-arm'], ['down-out'], ['down-out']);
                     makeOverlay('away-out',   'away out',   ['away-out'],  ['away-up','away-down'],     []);
                     makeOverlay('inside-out', 'inside out', ['inside-out'],['inside-up','inside-down'], []);
                 } else {
@@ -471,8 +472,8 @@
                 }
             } else {
                 if (isInsideAway) {
-                    makeOverlay('up-out',   'up out',   ['away-out-up', 'inside-up', 'mid-up', 'away-up', 'inside-out-up'],       ['up-out'],   []);
-                    makeOverlay('down-out', 'down out', ['away-out-down', 'inside-down', 'mid-down', 'away-down', 'inside-out-down'], ['down-out'], []);
+                    makeOverlay('up-out',   'up out',   ['away-up', 'mid-up', 'inside-up'],       ['up-out'],   []);
+                    makeOverlay('down-out', 'down out', ['away-down', 'mid-down', 'inside-down'],  ['down-out'], []);
                     makeOverlay('inside-out-mid', 'inside out', ['inside-out-mid'], ['inside-up', 'inside-mid', 'inside-down'], []);
                     makeOverlay('away-out-mid',   'away out',   ['away-out-mid'],   ['away-up', 'away-mid', 'away-down'],       []);
                 } else {
@@ -480,8 +481,8 @@
                     const gloveOutName = isRHP ? 'glove-out-mid' : 'arm-out-mid';
                     const armCells     = isRHP ? ['arm-up','arm-mid','arm-down']       : ['glove-up','glove-mid','glove-down'];
                     const gloveCells   = isRHP ? ['glove-up','glove-mid','glove-down'] : ['arm-up','arm-mid','arm-down'];
-                    makeOverlay('up-out',   'up out',   ['glove-out-up', 'arm-up', 'mid-up', 'glove-up', 'arm-out-up'],       ['up-out'],   []);
-                    makeOverlay('down-out', 'down out', ['glove-out-down', 'arm-down', 'mid-down', 'glove-down', 'arm-out-down'], ['down-out'], []);
+                    makeOverlay('up-out',   'up out',   ['glove-up', 'mid-up', 'arm-up'],       ['up-out'],   []);
+                    makeOverlay('down-out', 'down out', ['glove-down', 'mid-down', 'arm-down'],  ['down-out'], []);
                     makeOverlay(armOutName,   isRHP ? 'arm out'   : 'glove out', [armOutName],   armCells,   []);
                     makeOverlay(gloveOutName, isRHP ? 'glove out' : 'arm out',  [gloveOutName], gloveCells, []);
                 }
@@ -500,8 +501,17 @@
             const maxRow  = Math.max(...Object.values(layout).map(p => (p.row || 1) + (p.rowSpan || 1) - 1));
             const maxCol  = Math.max(...Object.values(layout).map(p => (p.col || 1) + (p.colSpan || 1) - 1));
             let boxSize = window.innerWidth >= 992 ? 108 : window.innerWidth >= 576 ? 88 : 70;
-            if (maxRow <= 2) boxSize = Math.min(boxSize, 120);
-            grid.style.gridTemplateRows    = `repeat(${maxRow}, ${boxSize}px)`;
+            let boxH = boxSize;
+            if (maxRow === 1 && maxCol === 2) {
+                boxH = Math.round(boxSize * 1.6);
+            } else if (maxRow === 2 && maxCol === 1) {
+                boxSize = Math.round(boxSize * 1.8);
+                boxH    = Math.round(boxSize * 0.45);
+            } else if (maxRow <= 2) {
+                boxSize = Math.min(boxSize, 120);
+                boxH = boxSize;
+            }
+            grid.style.gridTemplateRows    = `repeat(${maxRow}, ${boxH}px)`;
             grid.style.gridTemplateColumns = `repeat(${maxCol}, ${boxSize}px)`;
             pitch.locations.forEach((loc, locIndex) => {
                 const pos = layout[loc.name]; if (!pos) return;
