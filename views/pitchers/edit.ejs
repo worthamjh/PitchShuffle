@@ -396,6 +396,7 @@
             const cells = [...grid.querySelectorAll('[data-is-strike="true"]')];
             if (!cells.length) return;
             const gr = grid.getBoundingClientRect();
+            const wr = wrapper.getBoundingClientRect();
             let t = Infinity, l = Infinity, b = -Infinity, r = -Infinity;
             cells.forEach(c => {
                 const cr = c.getBoundingClientRect();
@@ -404,11 +405,16 @@
             });
             const old = wrapper.querySelector('.strike-zone-outline');
             if (old) old.remove();
-            const labelEl = wrapper.querySelector('.pitchers-view-label');
-            const labelH  = labelEl ? labelEl.offsetHeight + 4 : 0;
+            const gridOffsetTop  = gr.top  - wr.top;
+            const gridOffsetLeft = gr.left - wr.left;
             const outline = document.createElement('div');
             outline.className = 'strike-zone-outline';
-            Object.assign(outline.style, { top: (t + labelH) + 'px', left: l + 'px', width: (r - l) + 'px', height: (b - t) + 'px' });
+            Object.assign(outline.style, {
+                top:    (t + gridOffsetTop  + 2) + 'px',
+                left:   (l + gridOffsetLeft + 2) + 'px',
+                width:  (r - l) + 'px',
+                height: (b - t) + 'px',
+            });
             wrapper.appendChild(outline);
         }
 
@@ -453,8 +459,8 @@
 
             if (isZoneD(pitch.locations)) {
                 if (isInsideAway) {
-                    makeOverlay('up-out',     'up out',   ['corner-top-glove','away-up','inside-up','corner-top-arm'],     ['up-out'],   ['up-out']);
-                    makeOverlay('down-out',   'down out', ['corner-bot-glove','away-down','inside-down','corner-bot-arm'], ['down-out'], ['down-out']);
+                    makeOverlay('up-out',   'up out',   ['glove-out-up', 'arm-up', 'mid-up', 'glove-up', 'arm-out-up'],          ['up-out'],   []);
+                    makeOverlay('down-out', 'down out', ['glove-out-down', 'arm-down', 'mid-down', 'glove-down', 'arm-out-down'], ['down-out'], []);
                     makeOverlay('away-out',   'away out',   ['away-out'],  ['away-up','away-down'],     []);
                     makeOverlay('inside-out', 'inside out', ['inside-out'],['inside-up','inside-down'], []);
                 } else {
@@ -465,8 +471,8 @@
                 }
             } else {
                 if (isInsideAway) {
-                    makeOverlay('up-out',         'up out',     ['inside-up', 'mid-up', 'away-up'],         ['up-out'],   []);
-                    makeOverlay('down-out',       'down out',   ['inside-down', 'mid-down', 'away-down'],    ['down-out'], []);
+                    makeOverlay('up-out',   'up out',   ['away-out-up', 'inside-up', 'mid-up', 'away-up', 'inside-out-up'],       ['up-out'],   []);
+                    makeOverlay('down-out', 'down out', ['away-out-down', 'inside-down', 'mid-down', 'away-down', 'inside-out-down'], ['down-out'], []);
                     makeOverlay('inside-out-mid', 'inside out', ['inside-out-mid'], ['inside-up', 'inside-mid', 'inside-down'], []);
                     makeOverlay('away-out-mid',   'away out',   ['away-out-mid'],   ['away-up', 'away-mid', 'away-down'],       []);
                 } else {
@@ -474,8 +480,8 @@
                     const gloveOutName = isRHP ? 'glove-out-mid' : 'arm-out-mid';
                     const armCells     = isRHP ? ['arm-up','arm-mid','arm-down']       : ['glove-up','glove-mid','glove-down'];
                     const gloveCells   = isRHP ? ['glove-up','glove-mid','glove-down'] : ['arm-up','arm-mid','arm-down'];
-                    makeOverlay('up-out',      'up out',   ['arm-up','mid-up','glove-up'],       ['up-out'],   []);
-                    makeOverlay('down-out',    'down out', ['arm-down','mid-down','glove-down'],  ['down-out'], []);
+                    makeOverlay('up-out',   'up out',   ['glove-out-up', 'arm-up', 'mid-up', 'glove-up', 'arm-out-up'],       ['up-out'],   []);
+                    makeOverlay('down-out', 'down out', ['glove-out-down', 'arm-down', 'mid-down', 'glove-down', 'arm-out-down'], ['down-out'], []);
                     makeOverlay(armOutName,   isRHP ? 'arm out'   : 'glove out', [armOutName],   armCells,   []);
                     makeOverlay(gloveOutName, isRHP ? 'glove out' : 'arm out',  [gloveOutName], gloveCells, []);
                 }

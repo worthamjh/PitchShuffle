@@ -375,6 +375,7 @@
     };
 
     let _boxSize = 70;
+    let _boxH    = 70;
 
     function buildGrid() {
     const grid    = document.getElementById('zoneGrid');
@@ -401,10 +402,24 @@
     const _boxW   = Math.floor(_availW / maxCol);
     _boxSize = Math.min(_boxSize, _boxW);
     _boxSize = Math.max(_boxSize, 44);
-    if (maxRow <= 2) _boxSize = Math.min(_boxSize, 120);
 
-        grid.style.gridTemplateRows    = `repeat(${maxRow}, ${_boxSize}px)`;
-        grid.style.gridTemplateColumns = `repeat(${maxCol}, ${_boxSize}px)`;
+    // For Zone A (1 row, 2 cols) and Zone B (2 rows, 1 col): use rectangular cells
+    let _boxH = _boxSize;
+    if (maxRow === 1 && maxCol === 2) {
+        // Zone A: wide landscape — cap width, make height taller (like a real strike zone)
+        _boxSize = Math.min(_boxW, 160);
+        _boxH    = Math.min(Math.floor(_availH * 0.6), 220);
+    } else if (maxRow === 2 && maxCol === 1) {
+        // Zone B: tall portrait — make each cell wider than tall
+        _boxSize = Math.min(Math.floor(_availW * 0.55), 200);
+        _boxH    = Math.min(Math.floor(_availH / 2), 130);
+    } else if (maxRow <= 2) {
+        _boxSize = Math.min(_boxSize, 120);
+        _boxH    = _boxSize;
+    }
+
+    grid.style.gridTemplateRows    = `repeat(${maxRow}, ${_boxH}px)`;
+    grid.style.gridTemplateColumns = `repeat(${maxCol}, ${_boxSize}px)`;
 
         // Add corner fillers for Zone D BEFORE the location cells
         if (isZoneD(zoneLocations)) {
@@ -450,12 +465,11 @@
     }
 
     function cellBounds(pos) {
-        return {
-            top:    (pos.row - 1) * _boxSize,
-            left:   (pos.col - 1) * _boxSize,
-            bottom: ((pos.row - 1) + (pos.rowSpan || 1)) * _boxSize,
-            right:  ((pos.col - 1) + (pos.colSpan || 1)) * _boxSize,
-        };
+        const top    = (pos.row - 1) * _boxH;
+        const left   = (pos.col - 1) * _boxSize;
+        const height = (pos.rowSpan || 1) * _boxH;
+        const width  = (pos.colSpan || 1) * _boxSize;
+        return { top, left, bottom: top + height, right: left + width, width, height };
     }
 
     function drawOutline(layout) {
@@ -536,15 +550,15 @@
             }
         } else {
             if (isInsideAway) {
-                makeOverlay('up-out',         'up out',     ['away-up', 'mid-up', 'inside-up'],      ['up-out']);
-                makeOverlay('down-out',       'down out',   ['away-down', 'mid-down', 'inside-down'], ['down-out']);
+               makeOverlay('up-out',   'up out',   ['away-out-up', 'away-up', 'mid-up', 'inside-up', 'inside-out-up'],       ['up-out']);
+                makeOverlay('down-out', 'down out', ['away-out-down', 'away-down', 'mid-down', 'inside-down', 'inside-out-down'], ['down-out']);
                 makeOverlay('inside-out-mid', 'inside out', ['inside-out-mid'], ['inside-up', 'inside-mid', 'inside-down']);
                 makeOverlay('away-out-mid',   'away out',   ['away-out-mid'],   ['away-up', 'away-mid', 'away-down']);
             } else {
                 const armOutName   = isRHP ? 'arm-out-mid'   : 'glove-out-mid';
                 const gloveOutName = isRHP ? 'glove-out-mid' : 'arm-out-mid';
-                makeOverlay('up-out',      'up out',    ['glove-up', 'mid-up', 'arm-up'],       ['up-out']);
-                makeOverlay('down-out',    'down out',  ['glove-down', 'mid-down', 'arm-down'],  ['down-out']);
+                makeOverlay('up-out',   'up out',   ['glove-out-up', 'glove-up', 'mid-up', 'arm-up', 'arm-out-up'],       ['up-out']);
+                makeOverlay('down-out', 'down out', ['glove-out-down', 'glove-down', 'mid-down', 'arm-down', 'arm-out-down'], ['down-out']);
                 makeOverlay(armOutName,   isRHP ? 'arm out'   : 'glove out',
                     [armOutName],   isRHP ? ['arm-up','arm-mid','arm-down']     : ['glove-up','glove-mid','glove-down']);
                 makeOverlay(gloveOutName, isRHP ? 'glove out' : 'arm out',
