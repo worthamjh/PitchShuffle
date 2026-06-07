@@ -61,7 +61,8 @@
 
 <div class="card">
     <div class="card-body p-4">
-        <form action="/teams/<%= team._id %>/pitchers" method="POST">
+        <form action="/teams/<%= team._id %>/pitchers" method="POST" id="newPitcherForm">
+            <div id="pitchDupeError" class="alert alert-danger py-2 px-3 mb-3 small" style="display:none;"></div>
 
             <h5 class="fw-bold mb-3">Basic Info</h5>
             <div class="row mb-3">
@@ -71,7 +72,7 @@
                 </div>
                 <div class="col-md-3 mb-3 mb-md-0">
                     <label for="lastName" class="form-label fw-bold">Last Name</label>
-                    <input type="text" class="form-control form-control-lg" id="lastName" name="pitcher[lastName]" required>
+                    <input type="text" class="form-control form-control-lg" id="lastName" name="pitcher[lastName]">
                 </div>
                 <div class="col-md-3 mb-3 mb-md-0">
                     <label for="number" class="form-label fw-bold">Jersey #</label>
@@ -100,7 +101,7 @@
                             const _zoneImg      = _zoneImageMap[_zoneLetter] || null;
                         %>
                         <div class="col">
-                            <input type="radio" class="btn-check" name="pitcher[zone]" id="zone-<%= zone._id %>" value="<%= zone._id %>" required>
+                            <input type="radio" class="btn-check" name="pitcher[zone]" id="zone-<%= zone._id %>" value="<%= zone._id %>">
                             <label class="zone-image-card" for="zone-<%= zone._id %>">
                                 <% if (_zoneImg) { %><img src="/images/<%= _zoneImg %>" alt="<%= zone.name %>" style="width:80px;height:80px;object-fit:contain;"><% } %>
                                 <div class="zone-card-label"><%= zone.name %><small><%= zone.availableLocations.length %> locations</small></div>
@@ -123,7 +124,10 @@
                         </div>
                     </div>
                     <div class="visual-view">
-                        <div class="zone-container">
+                        <div id="no-zone-prompt" class="text-center text-muted py-3" style="font-size:0.85rem;">
+                            <i class="bi bi-arrow-up-circle me-1"></i> Select a Strike Zone above to configure pitch locations
+                        </div>
+                        <div class="zone-container" id="zone-container-0" style="display:none;">
                             <div class="zone-grid-wrapper" id="wrapper-0">
                                 <div class="pitchers-view-label">Pitcher's View</div>
                                 <div class="zone-grid" id="grid-0"></div>
@@ -137,7 +141,6 @@
 
             <% if (redirect) { %><input type="hidden" name="redirect" value="<%= redirect %>"><% } %>
             <% if (locals.onboarding) { %><input type="hidden" name="onboarding" value="1"><% } %>
-            <div id="pitchDupeError" class="alert alert-danger py-2 px-3 mb-3 small" style="display:none;"></div>
             <div class="d-flex gap-2">
                 <button type="submit" class="btn btn-primary btn-lg"><i class="bi bi-check-circle"></i> Save Pitcher</button>
                 <a href="<%= redirect || '/teams/' + team._id %>" class="btn btn-outline-secondary btn-lg"><i class="bi bi-x-circle"></i> Cancel</a>
@@ -221,6 +224,9 @@
         radio.addEventListener('change', () => {
             const selected = allZoneData.find(z => z.id === radio.value);
             zoneLocations = selected ? selected.locations : [];
+            // Show zone grids, hide the prompt
+            document.getElementById('no-zone-prompt')?.remove();
+            document.querySelectorAll('[id^="zone-container-"]').forEach(el => el.style.display = '');
             pitchData.forEach((p, i) => { p.locations = zoneLocations.map(loc => ({ ...loc, enabled: true })); updateLocInputs(i); buildGrid(i); });
         });
     });
@@ -446,7 +452,7 @@
                 </div>
                 <button type="button" class="btn btn-outline-danger btn-sm remove-pitch"><i class="bi bi-trash"></i></button>
             </div>
-            <div class="visual-view"><div class="zone-container"><div class="zone-grid-wrapper" id="wrapper-${pitchCount}"><div class="pitchers-view-label">Pitcher's View</div><div class="zone-grid" id="grid-${pitchCount}"></div></div></div></div>
+            <div class="visual-view"><div class="zone-container" id="zone-container-${pitchCount}"><div class="zone-grid-wrapper" id="wrapper-${pitchCount}"><div class="pitchers-view-label">Pitcher's View</div><div class="zone-grid" id="grid-${pitchCount}"></div></div></div></div>
             ${locInputs}`;
         container.appendChild(div);
         const syntheticPitch = { locations: zoneLocations.map(loc => ({ ...loc, enabled: true })) };
@@ -462,21 +468,32 @@
             if (rows.length < 8) { const btn = document.getElementById('addPitch'); btn.disabled=false; btn.innerHTML='<i class="bi bi-plus-circle"></i> Add Another Pitch'; }
         }
     });
-    // ── Duplicate pitch name validation ──────────────────────────
-    document.querySelector('form').addEventListener('submit', function(e) {
+document.getElementById('newPitcherForm').addEventListener('submit', function(e) {
+        const errEl = document.getElementById('pitchDupeError');
+        errEl.style.display = 'none';
+
+        function showError(msg) {
+            e.preventDefault();
+            errEl.textContent = msg;
+            errEl.style.display = '';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        const lastName = document.getElementById('lastName').value.trim();
+        if (!lastName) { showError('Last name is required.'); return; }
+
+        const zoneSelected = document.querySelector('input[name="pitcher[zone]"]:checked');
+        if (!zoneSelected) { showError('Please select a Strike Zone before saving.'); return; }
+
         const names = [...document.querySelectorAll('.pitch-name')]
             .map(el => el.value.trim().toLowerCase())
             .filter(Boolean);
+        if (names.length === 0) { showError('At least one pitch type with a name is required.'); return; }
+
         const dupes = names.filter((n, i) => names.indexOf(n) !== i);
-        const errEl = document.getElementById('pitchDupeError');
         if (dupes.length) {
-            e.preventDefault();
             const unique = [...new Set(dupes)].map(n => `"${n}"`).join(', ');
-            errEl.textContent = `Duplicate pitch name: ${unique}. Each pitch type must have a unique name.`;
-            errEl.style.display = '';
-            errEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        } else {
-            errEl.style.display = 'none';
+            showError(`Duplicate pitch name: ${unique}. Each pitch type must have a unique name.`);
         }
     });
 </script>

@@ -142,7 +142,7 @@
     <div class="card">
         <div class="card-body px-3 pt-3">
             <form action="/teams/<%= team._id %>/pitchers/<%= pitcher._id %>?_method=PUT" method="POST" id="pitcherForm">
-
+                <div id="pitchDupeError" class="alert alert-danger py-2 px-3 mb-3 small" style="display:none;"></div>
                 <h5 class="fw-bold mb-3">Basic Info</h5>
                 <div class="row mb-3">
                     <div class="col-md-3 mb-3 mb-md-0">
@@ -151,7 +151,7 @@
                     </div>
                     <div class="col-md-3 mb-3 mb-md-0">
                         <label for="lastName" class="form-label fw-bold">Last Name</label>
-                        <input type="text" class="form-control form-control-lg" id="lastName" name="pitcher[lastName]" value="<%= pitcher.lastName || pitcher.name || '' %>" required>
+                        <input type="text" class="form-control form-control-lg" id="lastName" name="pitcher[lastName]" value="<%= pitcher.lastName || pitcher.name || '' %>">
                     </div>
                     <div class="col-md-3 mb-3 mb-md-0">
                         <label for="number" class="form-label fw-bold">Jersey #</label>
@@ -302,7 +302,6 @@
 
                 <button type="button" class="btn btn-outline-secondary mb-4" id="addPitch"><i class="bi bi-plus-circle"></i> Add Another Pitch</button>
 
-                <div id="pitchDupeError" class="alert alert-danger py-2 px-3 mb-3 small" style="display:none;"></div>
                 <div class="d-flex gap-2 flex-shrink-0">
                     <button type="submit" class="btn btn-primary btn-lg"><i class="bi bi-check-circle"></i> Save Changes</button>
                     <a href="/teams/<%= team._id %>/pitchers/<%= pitcher._id %>" class="btn btn-outline-secondary btn-lg"><i class="bi bi-x-circle"></i> Cancel</a>
@@ -707,7 +706,8 @@
             div.querySelector('.list-view').style.display   = isListMode ? 'block' : 'none';
             const syntheticPitch = { locations: zoneLocations.map(loc => ({ ...loc, enabled: true })) };
             pitchData.push(syntheticPitch);
-            buildGrid(pitchCount);
+            const newIndex = document.querySelectorAll('.pitch-type-row').length - 1;
+            setTimeout(() => buildGrid(newIndex), 50);
             pitchCount++;
         });
 
@@ -739,21 +739,30 @@
                 document.body.appendChild(form); form.submit();
             });
         }
-        // ── Duplicate pitch name validation ──────────────────────────
+        // ── Form validation ──────────────────────────────────────────
         document.getElementById('pitcherForm').addEventListener('submit', function(e) {
+            const errEl = document.getElementById('pitchDupeError');
+            errEl.style.display = 'none';
+
+            function showError(msg) {
+                e.preventDefault();
+                errEl.textContent = msg;
+                errEl.style.display = '';
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+
+            const lastName = document.getElementById('lastName').value.trim();
+            if (!lastName) { showError('Last name is required.'); return; }
+
             const names = [...document.querySelectorAll('.pitch-name')]
                 .map(el => el.value.trim().toLowerCase())
                 .filter(Boolean);
+            if (names.length === 0) { showError('At least one pitch type with a name is required.'); return; }
+
             const dupes = names.filter((n, i) => names.indexOf(n) !== i);
-            const errEl = document.getElementById('pitchDupeError');
             if (dupes.length) {
-                e.preventDefault();
                 const unique = [...new Set(dupes)].map(n => `"${n}"`).join(', ');
-                errEl.textContent = `Duplicate pitch name: ${unique}. Each pitch type must have a unique name.`;
-                errEl.style.display = '';
-                errEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            } else {
-                errEl.style.display = 'none';
+                showError(`Duplicate pitch name: ${unique}. Each pitch type must have a unique name.`);
             }
         });
     </script>

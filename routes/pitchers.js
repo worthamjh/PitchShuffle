@@ -105,6 +105,14 @@ router.post('/', isLoggedIn, isOwner, async (req, res, next) => {
         pitcherBody.name = [pitcherBody.firstName, pitcherBody.lastName].filter(Boolean).join(' ');
         const pitcher = new Pitcher(pitcherBody);
         pitcher.pitchTypes = (pitcher.pitchTypes || []).filter(pt => pt.name && pt.name.trim());
+        pitcher.pitchTypes = (pitcher.pitchTypes || []).filter(pt => pt.name && pt.name.trim());
+        if (pitcher.pitchTypes.length === 0) {
+            req.flash('error', 'At least one pitch type with a name is required.');
+            const zones = await StrikeZone.find({});
+            const redirect = req.body.redirect || null;
+            setTeamLocals(res, team);
+            return res.render('pitchers/new', { team, zones, redirect, onboarding: false, user: req.user });
+        }
         for (let i = 0; i < pitcher.pitchTypes.length; i++) {
             const submittedLocs = pitchTypes[i]?.locations || [];
             pitcher.pitchTypes[i].locations = zone.availableLocations.map((loc, j) => {
@@ -181,6 +189,11 @@ router.put('/:pitcherId', isLoggedIn, isOwner, isPitcherInTeam, async (req, res,
         pitcher.throws     = req.body.pitcher.throws;
         pitcher.zone       = newZoneId;
         pitcher.pitchTypes = pitchTypes.filter(pt => pt.name && pt.name.trim());
+        pitcher.pitchTypes = pitchTypes.filter(pt => pt.name && pt.name.trim());
+        if (pitcher.pitchTypes.length === 0) {
+            req.flash('error', 'At least one pitch type with a name is required.');
+            return res.redirect(`/teams/${req.params.teamId}/pitchers/${req.params.pitcherId}/edit`);
+        }
 
         // Populate locations for any pitch types that have none
         const currentZone = await StrikeZone.findById(newZoneId || pitcher.zone);
