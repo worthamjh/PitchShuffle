@@ -451,7 +451,7 @@
             const box = document.createElement('div');
             const cls = pos.anchor ? 'anchor' : (loc.type === 'chase' ? 'chase' : 'strike');
             box.className        = `loc-box ${cls}`;
-            box.textContent      = pos.anchor ? '' : loc.name.replace(/-/g, ' ');
+            box.textContent      = pos.anchor ? '' :loc.name.replace(/-/g, ' ').replace(' side', '');
             box.dataset.locName  = loc.name;
             box.dataset.isStrike = pos.strike ? 'true' : 'false';
             box.style.gridRow    = pos.rowSpan ? `${pos.row} / span ${pos.rowSpan}` : String(pos.row);
