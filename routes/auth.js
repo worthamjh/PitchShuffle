@@ -173,4 +173,8 @@ router.get('/onboarding/complete', isLoggedIn, (req, res) => {
     if (!teamId || !pitcherId) return res.redirect('/');
     res.render('onboarding/complete', { teamId, pitcherId });
 });
+// ── Legal ─────────────────────────────────────────────────────
+router.get('/terms',   (req, res) => res.render('legal/terms'));
+router.get('/privacy', (req, res) => res.render('legal/privacy'));
+
 module.exports = router;
