@@ -317,6 +317,54 @@
         <a href="/terms" class="text-muted small me-3">Terms of Service</a>
         <a href="/privacy" class="text-muted small">Privacy Policy</a>
     </footer>
+<script>
+(function() {
+    const RATING_KEY   = 'ps_rating_prompted';
+    const FIRST_KEY    = 'ps_first_visit';
+    const DELAY_MS     = 1000 * 60 * 60 * 24 * 3; // 3 days
+    if (localStorage.getItem(RATING_KEY)) return;
+    if (!localStorage.getItem(FIRST_KEY)) {
+        localStorage.setItem(FIRST_KEY, Date.now());
+        return;
+    }
+    const elapsed = Date.now() - parseInt(localStorage.getItem(FIRST_KEY), 10);
+    if (elapsed < DELAY_MS) return;
+
+    // Show prompt
+    const modal = document.createElement('div');
+    modal.innerHTML = `
+        <div id="psRatingBackdrop" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9000;display:flex;align-items:center;justify-content:center;padding:1rem;">
+            <div style="background:var(--ps-card-bg,#fff);border-radius:16px;padding:1.5rem;max-width:320px;width:100%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.25);">
+                <div style="font-size:2rem;margin-bottom:0.5rem;">⚾</div>
+                <h5 style="font-weight:700;margin-bottom:0.5rem;">Enjoying PitchShuffle?</h5>
+                <p style="color:#6c757d;font-size:0.9rem;margin-bottom:1.25rem;">If it's been helpful in the dugout, a quick rating goes a long way for a solo-built app.</p>
+                <div style="display:flex;flex-direction:column;gap:0.5rem;">
+                    <a id="psRatingYes" href="https://apps.apple.com/app/idYOUR_APP_ID" target="_blank" rel="noopener"
+                       style="background:var(--ps-navy,#1a2e4a);color:#fff;border:none;border-radius:10px;padding:0.65rem;font-weight:700;font-size:0.95rem;text-decoration:none;">
+                        ⭐ Rate PitchShuffle
+                    </a>
+                    <button id="psRatingLater" style="background:transparent;border:none;color:#6c757d;font-size:0.85rem;padding:0.4rem;cursor:pointer;">
+                        Maybe later
+                    </button>
+                    <button id="psRatingNo" style="background:transparent;border:none;color:#adb5bd;font-size:0.8rem;padding:0.2rem;cursor:pointer;">
+                        No thanks
+                    </button>
+                </div>
+            </div>
+        </div>`;
+    document.body.appendChild(modal);
+
+    function dismiss(permanent) {
+        document.getElementById('psRatingBackdrop').remove();
+        if (permanent) localStorage.setItem(RATING_KEY, '1');
+        else localStorage.setItem(FIRST_KEY, Date.now()); // reset timer for "later"
+    }
+
+    document.getElementById('psRatingYes').addEventListener('click', () => dismiss(true));
+    document.getElementById('psRatingNo').addEventListener('click',  () => dismiss(true));
+    document.getElementById('psRatingLater').addEventListener('click', () => dismiss(false));
+})();
+</script>
 </body>
 
 </html>

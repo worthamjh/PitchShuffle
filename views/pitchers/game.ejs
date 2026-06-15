@@ -158,12 +158,12 @@
 
 <div class="game-page">
     <div class="game-header">
-        <a href="/teams/<%= team._id %>" class="btn btn-sm btn-outline-light"><i class="bi bi-arrow-left"></i></a>
+        <a href="/teams/<%= team._id %>" class="btn btn-sm btn-outline-light" aria-label="Back to team"><i class="bi bi-arrow-left"></i></a>
         <div class="pitcher-info">
             <div class="pitcher-name">#<%= pitcher.number %> <%= pitcher.name %></div>
             <div class="pitcher-meta"><%= pitcher.throws === 'R' ? 'RHP' : 'LHP' %> &middot; <%= pitcher.zone ? pitcher.zone.name : 'No Zone' %></div>
         </div>
-        <a href="/teams/<%= team._id %>/pitchers/game?from=<%= pitcher._id %>" class="btn btn-sm btn-outline-light">
+        <a href="/teams/<%= team._id %>/pitchers/game?from=<%= pitcher._id %>" class="btn btn-sm btn-outline-light" aria-label="Change pitcher">
             <i class="bi bi-person-fill"></i> Change Pitcher
         </a>
     </div>
@@ -177,7 +177,7 @@
     %>
     <% if (_gTermMismatch) { %>
     <div class="alert alert-warning d-flex align-items-center gap-2 mx-2 mt-2 mb-0" role="alert">
-        <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
+        <i class="bi bi-exclamation-triangle-fill flex-shrink-0" aria-hidden="true"></i>
         <div class="small">
             <strong>Zone terminology mismatch:</strong> This pitcher's locations are saved as <strong><%= _gPitcherTermLabel %></strong> zones, but your preference is <strong><%= _gUserTermLabel %></strong>.
             <a href="/teams/<%= team._id %>/pitchers/<%= pitcher._id %>/edit" class="alert-link fw-bold">Edit this pitcher</a> and re-select a strike zone to reset.
@@ -185,54 +185,54 @@
     </div>
     <% } %>
 
-    <div class="pitch-row" id="pitchRow">
+    <div class="pitch-row" id="pitchRow" role="toolbar" aria-label="Pitch type selection">
         <% pitcher.pitchTypes.forEach(function(pt, i) { %>
-            <button class="pitch-btn" data-pitch-index="<%= i %>"><%= pt.abbreviation || pt.name %></button>
+            <button class="pitch-btn" data-pitch-index="<%= i %>" aria-label="Select pitch: <%= pt.name %>"><%= pt.abbreviation || pt.name %></button>
         <% }); %>
     </div>
 
     <div class="zone-area">
         <div class="zone-col">
             <div class="zone-grid-wrapper" id="zoneWrapper">
-                <div class="pitchers-view-label">Pitcher's View</div>
-                <div class="zone-grid" id="zoneGrid"></div>
+                <div class="pitchers-view-label" aria-hidden="true">Pitcher's View</div>
+                <div class="zone-grid" id="zoneGrid" role="grid" aria-label="Strike zone pitch location selector"></div>
             </div>
         </div>
     </div>
 
     <% if (team.sport !== 'softball') { %>
-    <div class="pickoff-overlay" id="pickoffOverlay" style="display:none;">
+    <div class="pickoff-overlay" id="pickoffOverlay" style="display:none;" role="dialog" aria-modal="true" aria-label="Select pickoff base">
         <div class="pickoff-diamond">
-            <div class="base-2nd"><button class="base-btn" data-base="2nd">2nd Base</button></div>
-            <button class="base-btn" data-base="3rd">3rd Base</button>
-            <button class="base-btn" data-base="1st">1st Base</button>
-            <button class="btn-cancel-pickoff" id="btnCancelPickoff"><i class="bi bi-x-circle"></i> Cancel</button>
+            <div class="base-2nd"><button class="base-btn" data-base="2nd" aria-label="Pickoff to second base">2nd Base</button></div>
+            <button class="base-btn" data-base="3rd" aria-label="Pickoff to third base">3rd Base</button>
+            <button class="base-btn" data-base="1st" aria-label="Pickoff to first base">1st Base</button>
+            <button class="btn-cancel-pickoff" id="btnCancelPickoff"><i class="bi bi-x-circle" aria-hidden="true"></i> Cancel</button>
         </div>
     </div>
     <% } %>
 
     <div class="special-row">
         <% if (team.sport !== 'softball') { %>
-        <button class="btn-pickoff" id="btnPickoff"><i class="bi bi-person-fill-slash"></i> Pickoff</button>
+        <button class="btn-pickoff" id="btnPickoff" aria-label="Call a pickoff throw"><i class="bi bi-person-fill-slash" aria-hidden="true"></i> Pickoff</button>
         <% } %>
-        <button class="btn-pitchout" id="btnPitchout"><i class="bi bi-slash-circle"></i> Pitchout</button>
+        <button class="btn-pitchout" id="btnPitchout" aria-label="Call a pitchout"><i class="bi bi-slash-circle" aria-hidden="true"></i> Pitchout</button>
     </div>
 
     <div class="action-row" id="actionRow">
-        <button class="action-btn btn-random" id="btnRandom"><i class="bi bi-shuffle"></i> Shuffle</button>
-        <button class="action-btn btn-clear"  id="btnClear"><i class="bi bi-x-circle"></i> Clear</button>
-        <button class="action-btn btn-repeat disabled-btn" id="btnRepeat"><i class="bi bi-arrow-repeat"></i> Repeat</button>
+        <button class="action-btn btn-random" id="btnRandom" aria-label="Shuffle: pick a random pitch and location"><i class="bi bi-shuffle" aria-hidden="true"></i> Shuffle</button>
+        <button class="action-btn btn-clear"  id="btnClear"  aria-label="Clear current selection"><i class="bi bi-x-circle" aria-hidden="true"></i> Clear</button>
+        <button class="action-btn btn-repeat disabled-btn" id="btnRepeat" aria-label="Repeat last pitch call" aria-disabled="true"><i class="bi bi-arrow-repeat" aria-hidden="true"></i> Repeat</button>
     </div>
 
     <div class="call-bar" id="callBar">
-        <div class="call-info">
+        <div class="call-info" aria-live="polite" aria-atomic="true">
             <div class="call-label">SELECT PITCH &amp; LOCATION</div>
             <div class="call-text" id="callText" style="display:none;"></div>
         </div>
-        <button class="btn-call disabled-btn" id="btnCall"><i class="bi bi-megaphone"></i> Call Pitch</button>
+        <button class="btn-call disabled-btn" id="btnCall" aria-label="Call pitch" aria-disabled="true"><i class="bi bi-megaphone" aria-hidden="true"></i> Call Pitch</button>
     </div>
 
-    <div class="ps-tour-overlay" id="psTourOverlay">
+    <div class="ps-tour-overlay" id="psTourOverlay" role="dialog" aria-modal="true" aria-label="PitchShuffle tour">
         <div class="ps-tour-backdrop"></div>
         <div class="ps-tour-highlight" id="psTourHighlight"></div>
         <div class="ps-tour-card" id="psTourCard">
@@ -240,7 +240,7 @@
             <h4 id="psTourTitle"></h4>
             <p id="psTourBody"></p>
             <div class="ps-tour-footer">
-                <div class="ps-tour-dots" id="psTourDots"></div>
+                <div class="ps-tour-dots" id="psTourDots" aria-hidden="true"></div>
                 <button class="ps-tour-next" id="psTourNext">Next</button>
             </div>
         </div>
@@ -296,7 +296,6 @@
         'down-out':       { row: 5, col: 2 },
         'arm-out-down':   { row: 5, col: isRHP ? 5 : 1 },
     };
-    // Zone D: chase cells are invisible anchors, strike cells are solid 2x2
     const LAYOUTS_D = {
         'up-out':     { row: 1, col: 2, colSpan: 2, anchor: true },
         'glove-out':  { row: 2, col: isRHP ? 1 : 4, rowSpan: 2, anchor: true },
@@ -403,14 +402,11 @@
     _boxSize = Math.min(_boxSize, _boxW);
     _boxSize = Math.max(_boxSize, 44);
 
-    // For Zone A (1 row, 2 cols) and Zone B (2 rows, 1 col): use rectangular cells
     _boxH = _boxSize;
     if (maxRow === 1 && maxCol === 2) {
-        // Zone A: wide landscape — cap width, make height taller (like a real strike zone)
         _boxSize = Math.min(_boxW, 160);
         _boxH    = Math.min(Math.floor(_availH * 0.6), 220);
     } else if (maxRow === 2 && maxCol === 1) {
-        // Zone B: tall portrait — make each cell wider than tall
         _boxSize = Math.min(Math.floor(_availW * 0.55), 200);
         _boxH    = Math.min(Math.floor(_availH / 2), 130);
     } else if (maxRow <= 2) {
@@ -421,7 +417,6 @@
     grid.style.gridTemplateRows    = `repeat(${maxRow}, ${_boxH}px)`;
     grid.style.gridTemplateColumns = `repeat(${maxCol}, ${_boxSize}px)`;
 
-        // Add corner fillers for Zone D BEFORE the location cells
         if (isZoneD(zoneLocations)) {
             const upOut   = zoneLocations.find(l => l.name === 'up-out');
             const downOut = zoneLocations.find(l => l.name === 'down-out');
@@ -452,7 +447,11 @@
             const cls = pos.anchor ? 'anchor' : (loc.type === 'chase' ? 'chase' : 'strike');
             box.className        = `loc-box ${cls}`;
             box.textContent      = pos.anchor ? '' : loc.name.replace(/-/g, ' ').replace(' side', '');
-            if (!pos.anchor) box.setAttribute('aria-label', locLabel(loc.name));
+            if (!pos.anchor) {
+                box.setAttribute('aria-label', locLabel(loc.name));
+                box.setAttribute('role', 'gridcell');
+                box.setAttribute('tabindex', '0');
+            }
             box.dataset.locName  = loc.name;
             box.dataset.isStrike = pos.strike ? 'true' : 'false';
             box.style.gridRow    = pos.rowSpan ? `${pos.row} / span ${pos.rowSpan}` : String(pos.row);
@@ -479,7 +478,6 @@
         const labelH       = labelEl ? labelEl.offsetHeight + 2 : 0;
         const strikePosArr = Object.values(layout).filter(p => p.strike);
         if (!strikePosArr.length) return;
-        // Zone A and B: all cells are strike zone, grid border is sufficient — skip outline
         if (strikePosArr.length <= 2 && !Object.values(layout).some(p => !p.strike)) return;
         let t = Infinity, l = Infinity, b = -Infinity, r = -Infinity;
         strikePosArr.forEach(pos => {
@@ -489,6 +487,7 @@
         });
         const outline = document.createElement('div');
         outline.className = 'strike-zone-outline';
+        outline.setAttribute('aria-hidden', 'true');
         Object.assign(outline.style, { top: (t + 2 + labelH) + 'px', left: (l + 2) + 'px', width: (r - l) + 'px', height: (b - t) + 'px' });
         wrapper.appendChild(outline);
     }
@@ -518,7 +517,6 @@
             const hb = spanBounds(hCellNames);
             const vb = spanBounds(vCellNames);
             if (!isFinite(hb.l) || !isFinite(vb.t)) return;
-            // Mark the anchor cell as covered so it doesn't interfere with clicks
             const cell = [...grid.querySelectorAll('.loc-box')].find(el => el.dataset.locName === locName);
             if (cell) cell.classList.add('covered');
             const el = document.createElement('div');
@@ -526,6 +524,8 @@
             el.textContent     = label;
             el.dataset.locName = locName;
             el.setAttribute('aria-label', locLabel(locName));
+            el.setAttribute('role', 'gridcell');
+            el.setAttribute('tabindex', '0');
             Object.assign(el.style, {
                 top:    (vb.t + 2 + labelH) + 'px',
                 left:   (hb.l + 2) + 'px',
@@ -573,7 +573,10 @@
 
     function selectPitch(index) {
         selectedPitchIndex = index;
-        document.querySelectorAll('.pitch-btn').forEach((btn, i) => btn.classList.toggle('active', i === index));
+        document.querySelectorAll('.pitch-btn').forEach((btn, i) => {
+            btn.classList.toggle('active', i === index);
+            btn.setAttribute('aria-pressed', i === index ? 'true' : 'false');
+        });
         if (window._cancelSpecialCall) window._cancelSpecialCall();
         updateCallBar(); updateButtons();
     }
@@ -584,12 +587,20 @@
         updateCallBar(); updateButtons();
     }
     function highlightLocation(locName) {
-        document.querySelectorAll('.loc-box, .chase-overlay').forEach(el =>
-            el.classList.toggle('selected-loc', el.dataset.locName === locName));
+        document.querySelectorAll('.loc-box, .chase-overlay').forEach(el => {
+            const isSelected = el.dataset.locName === locName;
+            el.classList.toggle('selected-loc', isSelected);
+            if (el.getAttribute('role') === 'gridcell') {
+                el.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+            }
+        });
     }
     function clearSelection() {
         selectedPitchIndex = null; selectedLocation = null;
-        document.querySelectorAll('.pitch-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.pitch-btn').forEach(btn => {
+            btn.classList.remove('active');
+            btn.setAttribute('aria-pressed', 'false');
+        });
         highlightLocation(null); updateCallBar(); updateButtons();
     }
 
@@ -629,7 +640,9 @@
     function updateButtons() {
         const ready = selectedPitchIndex !== null && selectedLocation !== null;
         document.getElementById('btnCall').classList.toggle('disabled-btn', !ready);
+        document.getElementById('btnCall').setAttribute('aria-disabled', !ready);
         document.getElementById('btnRepeat').classList.toggle('disabled-btn', !lastCall);
+        document.getElementById('btnRepeat').setAttribute('aria-disabled', !lastCall);
     }
 
     document.getElementById('pitchRow').addEventListener('click', e => {
@@ -640,18 +653,23 @@
         const el = e.target.closest('.loc-box:not(.covered):not(.anchor):not(.empty), .chase-overlay');
         if (el) selectLocation(el.dataset.locName);
     });
+    // Keyboard support for zone cells
+    document.getElementById('zoneWrapper').addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            const el = e.target.closest('.loc-box:not(.covered):not(.anchor):not(.empty), .chase-overlay');
+            if (el) { e.preventDefault(); selectLocation(el.dataset.locName); }
+        }
+    });
     document.getElementById('btnRandom').addEventListener('click', () => {
         const eligible = pitchTypes.filter(pt => pt.locations?.some(l => l.enabled));
         if (!eligible.length) return;
 
-        // ── Weighted pitch type selection ──────────────────────
         const shuffleSettings = pitcherData.shuffleSettings || {};
         const pitchWeights    = shuffleSettings.pitchWeights || {};
         const strikeChancePct = shuffleSettings.strikeChancePct != null
             ? shuffleSettings.strikeChancePct
             : (<%= currentUser && currentUser.preferences && currentUser.preferences.strikeChancePct != null ? currentUser.preferences.strikeChancePct : 70 %>);
 
-        // Build weight array for eligible pitches
         const weights = eligible.map(pt => {
             const w = pitchWeights[pt.name];
             return (w != null && !isNaN(w)) ? parseInt(w) : 1;
@@ -665,25 +683,20 @@
         }
         const pitchIndex = pitchTypes.indexOf(pt);
 
-        // ── Weighted strike/chase location selection ───────────
         const strikeLocs = pt.locations.filter(l => l.enabled && l.type === 'strike');
         const chaseLocs  = pt.locations.filter(l => l.enabled && l.type === 'chase');
         let locPool;
         if (strikeLocs.length && chaseLocs.length) {
-            // Both types available — use the weighted split
             locPool = Math.random() * 100 < strikeChancePct ? strikeLocs : chaseLocs;
         } else if (strikeLocs.length) {
-            // Only strike locations available — always pick strike regardless of slider
             locPool = strikeLocs;
         } else if (chaseLocs.length) {
-            // Only chase locations available — always pick chase regardless of slider
             locPool = chaseLocs;
         } else {
-            return; // No enabled locations at all
+            return;
         }
         const loc = locPool[Math.floor(Math.random() * locPool.length)];
         selectPitch(pitchIndex);
-        // Flash the cell if it's the same location as before
         if (loc.name === selectedLocation) {
             document.querySelectorAll(`[data-loc-name="${loc.name}"]`).forEach(el => {
                 el.classList.remove('selected-loc');
@@ -705,7 +718,8 @@
             const savedURI = window.PS_VOICE_URI || '';
             if (savedURI) { const voices = window.speechSynthesis.getVoices(); const match = voices.find(v => v.voiceURI === savedURI); if (match) utter.voice = match; }
             const bar = document.getElementById('callBar');
-            const dot = Object.assign(document.createElement('span'), { className: 'speaking-dot' });
+            const dot = Object.assign(document.createElement('span'), { className: 'speaking-dot', setAttribute: function(){} });
+            dot.setAttribute = Element.prototype.setAttribute.bind(dot);
             utter.onstart = () => bar.appendChild(dot);
             utter.onend = utter.onerror = () => dot.parentNode?.removeChild(dot);
             window.speechSynthesis.speak(utter);
@@ -782,7 +796,6 @@
             }
             btnCall.removeEventListener('click', normalCallHandler);
             btnCall.addEventListener('click', handlePickoffCall);
-            // Store cleanup so selecting a pitch/location restores normal handler
             window._cancelSpecialCall = () => {
                 btnCall.removeEventListener('click', handlePickoffCall);
                 btnCall.addEventListener('click', normalCallHandler);
@@ -799,7 +812,6 @@
         function handlePitchoutCall() { speak('Pitchout',''); btnCall.removeEventListener('click',handlePitchoutCall); btnCall.addEventListener('click',normalCallHandler); }
         btnCall.removeEventListener('click', normalCallHandler);
         btnCall.addEventListener('click', handlePitchoutCall);
-        // Store cleanup so selecting a pitch/location restores normal handler
         window._cancelSpecialCall = () => {
             btnCall.removeEventListener('click', handlePitchoutCall);
             btnCall.addEventListener('click', normalCallHandler);
