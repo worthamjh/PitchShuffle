@@ -11,6 +11,9 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@capacitor/cli": "^8.4.0",
+    "@capacitor/core": "^8.4.0",
+    "@capacitor/ios": "^8.4.0",
     "@resvg/resvg-js": "^2.6.2",
     "apple-signin-auth": "^2.0.0",
     "bcrypt": "^6.0.0",

@@ -1,0 +1,9 @@
+{
+  "appId": "com.pitchshuffle.app",
+  "appName": "PitchShuffle",
+  "webDir": "www",
+  "server": {
+    "url": "https://www.pitchshuffle.com",
+    "cleartext": false
+  }
+}
