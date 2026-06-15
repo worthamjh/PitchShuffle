@@ -4,6 +4,7 @@ const passport = require('passport');
 const User = require('../models/user');
 const Team = require('../models/team');
 const { isLoggedIn } = require('../middleware');
+const appleSignin = require('apple-signin-auth');
 
 function setTeamLocals(res, team) {
     res.locals.teamColor          = team.primaryColor   || '#1a2e4a';
@@ -167,6 +168,81 @@ router.get('/auth/google/callback',
         res.redirect('/');
     }
 );
+// ── Apple Sign In ─────────────────────────────────────────────
+router.get('/auth/apple', (req, res) => {
+    const params = new URLSearchParams({
+        client_id:     process.env.APPLE_CLIENT_ID,
+        redirect_uri:  process.env.APPLE_CALLBACK_URL,
+        response_type: 'code id_token',
+        response_mode: 'form_post',
+        scope:         'name email',
+        state:         'state',
+    });
+    res.redirect(`https://appleid.apple.com/auth/authorize?${params}`);
+});
+
+router.post('/auth/apple/callback', async (req, res) => {
+    try {
+        const { id_token, user: userJson } = req.body;
+
+        const clientSecret = appleSignin.getClientSecret({
+            clientID:   process.env.APPLE_CLIENT_ID,
+            teamID:     process.env.APPLE_TEAM_ID,
+            privateKey: process.env.APPLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+            keyIdentifier: process.env.APPLE_KEY_ID,
+        });
+
+        const { sub: appleId, email } = await appleSignin.verifyIdToken(id_token, {
+            audience:  process.env.APPLE_CLIENT_ID,
+            ignoreExpiration: false,
+        });
+
+        // Apple only sends name on first login — grab it if present
+        let firstName = '', lastName = '';
+        if (userJson) {
+            try {
+                const parsed = typeof userJson === 'string' ? JSON.parse(userJson) : userJson;
+                firstName = parsed?.name?.firstName || '';
+                lastName  = parsed?.name?.lastName  || '';
+            } catch (_) {}
+        }
+
+        let user = await User.findOne({ appleId });
+
+        if (!user && email) {
+            user = await User.findOne({ email });
+            if (user) {
+                user.appleId = appleId;
+                await user.save();
+            }
+        }
+
+        if (!user) {
+            const base     = (firstName || email || 'user').toLowerCase().replace(/\s+/g, '');
+            const username = base + Math.floor(Math.random() * 1000);
+            user = new User({ appleId, email: email || '', username, avatar: '' });
+            await user.save();
+        }
+
+        req.login(user, async err => {
+            if (err) {
+                req.flash('error', 'Login failed. Please try again.');
+                return res.redirect('/login');
+            }
+            req.flash('success', `Welcome, ${user.username}!`);
+            try {
+                const teams = await Team.find({ owner: user._id });
+                if (teams.length === 0) return res.redirect('/teams/new?onboarding=1');
+            } catch (_) {}
+            res.redirect('/');
+        });
+    } catch (e) {
+        console.error('Apple Sign In error:', e);
+        req.flash('error', 'Apple Sign In failed. Please try again.');
+        res.redirect('/login');
+    }
+});
+
 // ── Onboarding complete ───────────────────────────────────────
 router.get('/onboarding/complete', isLoggedIn, (req, res) => {
     const { teamId, pitcherId } = req.query;

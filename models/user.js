@@ -4,6 +4,7 @@ const passportLocalMongoose = require('passport-local-mongoose').default;
 const UserSchema = new mongoose.Schema({
     email: { type: String, required: false, unique: true, sparse: true },
     googleId: { type: String, default: null },   // ← top level, not inside subscription
+    appleId:  { type: String, default: null },
     teams: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Team' }],
     subscription: {
         status: {
