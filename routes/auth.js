@@ -239,7 +239,41 @@ router.post('/auth/apple/callback', async (req, res) => {
         res.redirect('/login');
     }
 });
+// ── Apple Choose Username ─────────────────────────────────────
+router.get('/auth/choose-username', (req, res) => {
+    if (!req.session.appleSignup) return res.redirect('/login');
+    const { firstName, lastName } = req.session.appleSignup;
+    const suggested = (firstName || '').toLowerCase().replace(/\s+/g, '') || '';
+    res.render('auth/choose-username', { suggested });
+});
 
+router.post('/auth/choose-username', async (req, res, next) => {
+    try {
+        if (!req.session.appleSignup) return res.redirect('/login');
+        const { appleId, email } = req.session.appleSignup;
+        const username = (req.body.username || '').trim();
+        if (!username || username.length < 3) {
+            req.flash('error', 'Username must be at least 3 characters.');
+            return res.redirect('/auth/choose-username');
+        }
+        const existing = await User.findOne({ username });
+        if (existing) {
+            req.flash('error', 'That username is taken. Please choose another.');
+            return res.redirect('/auth/choose-username');
+        }
+        const user = new User({ appleId, email, username, avatar: '' });
+        await user.save();
+        delete req.session.appleSignup;
+        req.login(user, async err => {
+            if (err) return next(err);
+            req.flash('success', `Welcome to PitchShuffle, ${user.username}!`);
+            res.redirect('/teams/new?onboarding=1');
+        });
+    } catch (e) {
+        req.flash('error', e.message || 'Something went wrong. Please try again.');
+        res.redirect('/auth/choose-username');
+    }
+});
 // ── Onboarding complete ───────────────────────────────────────
 router.get('/onboarding/complete', isLoggedIn, (req, res) => {
     const { teamId, pitcherId } = req.query;
