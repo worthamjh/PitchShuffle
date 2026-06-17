@@ -184,11 +184,12 @@ router.get('/auth/apple', (req, res) => {
 router.post('/auth/apple/callback', async (req, res) => {
     try {
         const { id_token, user: userJson } = req.body;
-        console.log('KEY START:', JSON.stringify(process.env.APPLE_PRIVATE_KEY.substring(0, 50)));
+        console.log('KEY LENGTH:', process.env.APPLE_PRIVATE_KEY.length);
+        console.log('KEY NEWLINES:', (process.env.APPLE_PRIVATE_KEY.match(/\n/g) || []).length);
         const clientSecret = appleSignin.getClientSecret({
             clientID:   process.env.APPLE_CLIENT_ID,
             teamID:     process.env.APPLE_TEAM_ID,
-            privateKey: process.env.APPLE_PRIVATE_KEY.replace(/\\n/g, '\n').trim(),
+            privateKey: Buffer.from(process.env.APPLE_PRIVATE_KEY, 'base64').toString('utf8'),
             keyIdentifier: process.env.APPLE_KEY_ID,
         });
 
