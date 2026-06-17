@@ -184,8 +184,6 @@ router.get('/auth/apple', (req, res) => {
 router.post('/auth/apple/callback', async (req, res) => {
     try {
         const { id_token, user: userJson } = req.body;
-        console.log('KEY LENGTH:', process.env.APPLE_PRIVATE_KEY.length);
-        console.log('KEY NEWLINES:', (process.env.APPLE_PRIVATE_KEY.match(/\n/g) || []).length);
         const clientSecret = appleSignin.getClientSecret({
             clientID:   process.env.APPLE_CLIENT_ID,
             teamID:     process.env.APPLE_TEAM_ID,
@@ -219,7 +217,7 @@ router.post('/auth/apple/callback', async (req, res) => {
         }
 
         if (!user) {
-            const base     = (firstName || email || 'user').toLowerCase().replace(/\s+/g, '');
+            const base = (firstName || (email ? email.split('@')[0] : 'user')).toLowerCase().replace(/\s+/g, '');
             const username = base + Math.floor(Math.random() * 1000);
             user = new User({ appleId, email: email || '', username, avatar: '' });
             await user.save();
