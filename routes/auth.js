@@ -217,11 +217,8 @@ router.post('/auth/apple/callback', async (req, res) => {
         }
 
         if (!user) {
-            const emailBase = email && !email.includes('privaterelay.appleid.com') ? email.split('@')[0] : null;
-            const base = (firstName || emailBase || 'user').toLowerCase().replace(/\s+/g, '');
-            const username = base + Math.floor(Math.random() * 1000);
-            user = new User({ appleId, email: email || '', username, avatar: '' });
-            await user.save();
+            req.session.appleSignup = { appleId, email: email || '', firstName, lastName };
+            return res.redirect('/auth/choose-username');
         }
 
         req.login(user, async err => {
