@@ -188,7 +188,7 @@ router.post('/auth/apple/callback', async (req, res) => {
         const clientSecret = appleSignin.getClientSecret({
             clientID:   process.env.APPLE_CLIENT_ID,
             teamID:     process.env.APPLE_TEAM_ID,
-            privateKey: process.env.APPLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+            privateKey: process.env.APPLE_PRIVATE_KEY.replace(/\\n/g, '\n').trim(),
             keyIdentifier: process.env.APPLE_KEY_ID,
         });
 
