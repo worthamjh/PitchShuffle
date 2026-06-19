@@ -98,11 +98,11 @@
                 </div>
                 <p class="text-muted small mb-3">Includes 7-day free trial. Cancel anytime.</p>
                 <% if (!isActive || status === 'cancelled' || status === 'past_due') { %>
-                <form action="/subscription/checkout" method="POST">
+                <form action="/subscription/checkout" method="POST" class="js-stripe-form">
                     <input type="hidden" name="plan" value="monthly">
                     <button type="submit" class="btn btn-primary w-100 fw-bold">
                         <i class="bi bi-play-fill me-1"></i>
-                        <%= status === 'none' ? 'Start Free Trial' : 'Subscribe Monthly' %>
+                        <span class="btn-label"><%= status === 'none' ? 'Start Free Trial' : 'Subscribe Monthly' %></span>
                     </button>
                 </form>
                 <% } else { %>
@@ -125,10 +125,10 @@
                 </div>
                 <p class="text-muted small mb-3">One-time payment. Perfect for a single season.</p>
                 <% if (!isActive || status === 'cancelled' || status === 'past_due') { %>
-                <form action="/subscription/checkout" method="POST">
+                <form action="/subscription/checkout" method="POST" class="js-stripe-form">
                     <input type="hidden" name="plan" value="season">
                     <button type="submit" class="btn btn-outline-primary w-100 fw-bold">
-                        <i class="bi bi-calendar-check me-1"></i> Get Season Pass
+                        <i class="bi bi-calendar-check me-1"></i> <span class="btn-label">Get Season Pass</span>
                     </button>
                 </form>
                 <% } else { %>
@@ -151,11 +151,11 @@
                 </div>
                 <p class="text-muted small mb-3">Includes 7-day free trial. Only $4.17/month.</p>
                 <% if (!isActive || status === 'cancelled' || status === 'past_due') { %>
-                <form action="/subscription/checkout" method="POST">
+                <form action="/subscription/checkout" method="POST" class="js-stripe-form">
                     <input type="hidden" name="plan" value="annual">
                     <button type="submit" class="btn btn-primary w-100 fw-bold">
                         <i class="bi bi-play-fill me-1"></i>
-                        <%= status === 'none' ? 'Start Free Trial' : 'Subscribe Annually' %>
+                        <span class="btn-label"><%= status === 'none' ? 'Start Free Trial' : 'Subscribe Annually' %></span>
                     </button>
                 </form>
                 <% } else { %>
@@ -171,31 +171,31 @@
             <div class="card-body p-4">
                 <h5 class="fw-bold mb-1">Add Payment Method</h5>
                 <p class="text-muted small mb-3">Add a card now so your access continues after your trial ends.</p>
-                <form action="/subscription/checkout" method="POST">
+                <form action="/subscription/checkout" method="POST" class="js-stripe-form">
                     <input type="hidden" name="plan" value="monthly">
                     <button type="submit" class="btn btn-primary w-100 fw-bold">
-                        <i class="bi bi-credit-card me-1"></i> Add Payment Method
+                        <i class="bi bi-credit-card me-1"></i> <span class="btn-label">Add Payment Method</span>
                     </button>
                 </form>
             </div>
         </div>
-        <form action="/subscription/portal" method="POST">
+        <form action="/subscription/portal" method="POST" class="js-stripe-form">
             <button type="submit" class="btn btn-outline-secondary w-100 py-2 fw-bold mb-4">
-                <i class="bi bi-gear me-1"></i> Manage Subscription
+                <i class="bi bi-gear me-1"></i> <span class="btn-label">Manage Subscription</span>
             </button>
         </form>
 
     <% } else if (status === 'active') { %>
-        <form action="/subscription/portal" method="POST">
+        <form action="/subscription/portal" method="POST" class="js-stripe-form">
             <button type="submit" class="btn btn-outline-secondary w-100 py-2 fw-bold mb-4">
-                <i class="bi bi-gear me-1"></i> Manage Subscription
+                <i class="bi bi-gear me-1"></i> <span class="btn-label">Manage Subscription</span>
             </button>
         </form>
 
     <% } else if (status === 'past_due') { %>
-        <form action="/subscription/portal" method="POST">
+        <form action="/subscription/portal" method="POST" class="js-stripe-form">
             <button type="submit" class="btn btn-danger w-100 py-2 fw-bold mb-4">
-                <i class="bi bi-credit-card me-1"></i> Update Payment Method
+                <i class="bi bi-credit-card me-1"></i> <span class="btn-label">Update Payment Method</span>
             </button>
         </form>
     <% } %>
@@ -205,3 +205,66 @@
     </p>
 
 </div>
+
+<script>
+    // Capacitor automatically injects a global `Capacitor` object on native
+    // platforms (iOS/Android) — no import or bundler needed. On the regular
+    // website this object simply won't exist, and we fall back to normal
+    // navigation. Capacitor.Plugins.Browser requires @capacitor/browser to
+    // be installed (npm install @capacitor/browser) and synced into the iOS
+    // project (npx cap sync ios) before this will work natively.
+    var isNative         = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+    var CapacitorBrowser = (isNative && window.Capacitor.Plugins && window.Capacitor.Plugins.Browser) ? window.Capacitor.Plugins.Browser : null;
+
+    document.querySelectorAll('.js-stripe-form').forEach(function (form) {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const btn      = form.querySelector('button[type="submit"]');
+            const labelEl   = btn.querySelector('.btn-label');
+            const originalLabel = labelEl ? labelEl.textContent : null;
+
+            btn.disabled = true;
+            if (labelEl) labelEl.textContent = 'Loading…';
+
+            try {
+                const formData = new FormData(form);
+                const body = new URLSearchParams();
+                for (const [key, value] of formData.entries()) body.append(key, value);
+
+                const res = await fetch(form.action, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: body.toString()
+                });
+
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    alert(err.error || 'Something went wrong. Please try again.');
+                    btn.disabled = false;
+                    if (labelEl && originalLabel) labelEl.textContent = originalLabel;
+                    return;
+                }
+
+                const data = await res.json();
+                if (!data.url) throw new Error('No checkout URL returned.');
+
+                if (isNative && CapacitorBrowser) {
+                    await CapacitorBrowser.open({ url: data.url });
+                    // Re-enable the button once the in-app browser closes,
+                    // in case the user comes back without completing checkout.
+                    btn.disabled = false;
+                    if (labelEl && originalLabel) labelEl.textContent = originalLabel;
+                } else {
+                    // Regular website (or Capacitor plugin unavailable) — normal navigation.
+                    window.location.href = data.url;
+                }
+            } catch (err) {
+                console.error('Stripe checkout error:', err);
+                alert('Something went wrong. Please try again.');
+                btn.disabled = false;
+                if (labelEl && originalLabel) labelEl.textContent = originalLabel;
+            }
+        });
+    });
+</script>

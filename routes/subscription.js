@@ -22,6 +22,9 @@ async function getOrCreateCustomer(user) {
 
 // ── Create Stripe Checkout session ────────────────────────────
 // plan = 'monthly' | 'annual' | 'season'
+// Returns JSON { url } instead of redirecting server-side, so the
+// client can decide how to open it (normal nav on web, system
+// browser via Capacitor on the native iOS app).
 router.post('/checkout', isLoggedIn, async (req, res, next) => {
     try {
         const { plan = 'monthly' } = req.body;
@@ -37,8 +40,7 @@ router.post('/checkout', isLoggedIn, async (req, res, next) => {
 
         const priceId = PRICES[plan];
         if (!priceId) {
-            req.flash('error', 'Invalid plan selected.');
-            return res.redirect('/subscription');
+            return res.status(400).json({ error: 'Invalid plan selected.' });
         }
 
         const isSeason = plan === 'season';
@@ -58,7 +60,7 @@ router.post('/checkout', isLoggedIn, async (req, res, next) => {
         }
 
         const session = await stripe.checkout.sessions.create(sessionParams);
-        res.redirect(303, session.url);
+        res.json({ url: session.url });
     } catch (e) {
         next(e);
     }
@@ -87,19 +89,19 @@ router.get('/success', isLoggedIn, async (req, res, next) => {
 });
 
 // ── Customer portal (manage/cancel subscription) ──────────────
+// Also returns JSON { url } now, for the same reason as /checkout.
 router.post('/portal', isLoggedIn, async (req, res, next) => {
     try {
         const customerId = req.user.subscription?.stripeCustomerId;
         if (!customerId) {
-            req.flash('error', 'No subscription found.');
-            return res.redirect('/subscription');
+            return res.status(400).json({ error: 'No subscription found.' });
         }
         const baseUrl = `${req.protocol}://${req.get('host')}`;
         const session = await stripe.billingPortal.sessions.create({
             customer:   customerId,
             return_url: `${baseUrl}/profile`,
         });
-        res.redirect(303, session.url);
+        res.json({ url: session.url });
     } catch (e) {
         next(e);
     }
