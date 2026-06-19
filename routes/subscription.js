@@ -54,7 +54,7 @@ router.post('/checkout', isLoggedIn, async (req, res, next) => {
 
         // Add trial only for monthly/annual, not season pass
         if (!isSeason) {
-            sessionParams.subscription_data = { trial_period_days: 30 };
+            sessionParams.subscription_data = { trial_period_days: 7 };
         }
 
         const session = await stripe.checkout.sessions.create(sessionParams);

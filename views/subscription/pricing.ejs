@@ -96,7 +96,7 @@
                     <h5 class="fw-bold mb-0">Monthly</h5>
                     <span class="fs-4 fw-bold">$7.99<span class="text-muted fs-6 fw-normal">/mo</span></span>
                 </div>
-                <p class="text-muted small mb-3">Includes 30-day free trial. Cancel anytime.</p>
+                <p class="text-muted small mb-3">Includes 7-day free trial. Cancel anytime.</p>
                 <% if (!isActive || status === 'cancelled' || status === 'past_due') { %>
                 <form action="/subscription/checkout" method="POST">
                     <input type="hidden" name="plan" value="monthly">
@@ -149,7 +149,7 @@
                     <h5 class="fw-bold mb-0">Annual</h5>
                     <span class="fs-4 fw-bold">$49.99<span class="text-muted fs-6 fw-normal">/yr</span></span>
                 </div>
-                <p class="text-muted small mb-3">Includes 30-day free trial. Only $4.17/month.</p>
+                <p class="text-muted small mb-3">Includes 7-day free trial. Only $4.17/month.</p>
                 <% if (!isActive || status === 'cancelled' || status === 'past_due') { %>
                 <form action="/subscription/checkout" method="POST">
                     <input type="hidden" name="plan" value="annual">
