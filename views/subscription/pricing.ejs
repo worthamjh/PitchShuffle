@@ -86,6 +86,16 @@
         </div>
     </div>
 
+    <!-- ===================================================================
+         WEB-ONLY PRICING / CHECKOUT BLOCK
+         Hidden entirely on iOS (Capacitor native) per Apple Guideline 3.1.1.
+         No pricing, plan names, or purchase CTAs may appear in the native
+         app. Subscriptions can only be started on the website. The portal
+         / "Manage Subscription" buttons further down stay visible on iOS
+         since they don't initiate a new purchase.
+         =================================================================== -->
+    <div id="ps-web-only-pricing">
+
     <!-- Pricing tiers -->
     <% if (true) { %>
 
@@ -179,6 +189,24 @@
                 </form>
             </div>
         </div>
+    <% } %>
+
+    </div>
+    <!-- ============== END WEB-ONLY PRICING / CHECKOUT BLOCK ============== -->
+
+    <!-- iOS fallback message shown in place of the pricing block above -->
+    <div class="d-none text-center mb-4" id="ps-ios-no-pricing-message">
+        <p class="text-muted">
+            Subscriptions are managed on the web. Visit
+            <a href="https://www.pitchshuffle.com/subscription" target="_blank" rel="noopener">pitchshuffle.com</a>
+            from a browser to start or change your plan.
+        </p>
+    </div>
+
+    <!-- Manage / Portal actions — these don't start a new purchase, so they
+         stay visible on iOS for users who already have an active or trialing
+         subscription. -->
+    <% if (status === 'trialing' && isActive) { %>
         <form action="/subscription/portal" method="POST" class="js-stripe-form">
             <button type="submit" class="btn btn-outline-secondary w-100 py-2 fw-bold mb-4">
                 <i class="bi bi-gear me-1"></i> <span class="btn-label">Manage Subscription</span>
@@ -200,7 +228,7 @@
         </form>
     <% } %>
 
-    <p class="text-center text-muted small">
+    <p class="text-center text-muted small" id="ps-secured-by-stripe">
         <i class="bi bi-lock-fill me-1"></i> Secured by <strong>Stripe</strong>. We never store your card details.
     </p>
 
@@ -215,6 +243,20 @@
     // project (npx cap sync ios) before this will work natively.
     var isNative         = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
     var CapacitorBrowser = (isNative && window.Capacitor.Plugins && window.Capacitor.Plugins.Browser) ? window.Capacitor.Plugins.Browser : null;
+
+    // Apple Guideline 3.1.1: no pricing, plan info, or purchase CTAs may
+    // appear in the native iOS app. Hide the entire pricing/checkout block
+    // and the "Secured by Stripe" footer, and show a short message pointing
+    // users to the website instead. Portal/manage buttons are left alone.
+    if (isNative) {
+        var pricingBlock = document.getElementById('ps-web-only-pricing');
+        var iosMessage    = document.getElementById('ps-ios-no-pricing-message');
+        var stripeFooter  = document.getElementById('ps-secured-by-stripe');
+
+        if (pricingBlock) pricingBlock.remove();
+        if (stripeFooter) stripeFooter.remove();
+        if (iosMessage) iosMessage.classList.remove('d-none');
+    }
 
     document.querySelectorAll('.js-stripe-form').forEach(function (form) {
         form.addEventListener('submit', async (e) => {
