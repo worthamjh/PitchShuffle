@@ -15,7 +15,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="PitchShuffle">
     <meta name="theme-color" content="#1a2e4a">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
     <title>PitchShuffle</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -77,6 +77,14 @@
         const chaseHover   = shift(chaseHex,  0.12);
     %>
     <style>
+        /* ── iOS safe area insets (notch / Dynamic Island) ── */
+        .navbar {
+            padding-top: max(0.5rem, env(safe-area-inset-top));
+        }
+        body {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
         :root {
             --ps-navy:        <%= navyHex %>;
             --ps-navy-dark:   <%= shift(navyHex, 0.20) %>;
