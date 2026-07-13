@@ -5,6 +5,7 @@ const User = require('../models/user');
 const Team = require('../models/team');
 const { isLoggedIn } = require('../middleware');
 const appleSignin = require('apple-signin-auth');
+const { sendWelcomeEmail } = require('../utilities/email');
 
 function setTeamLocals(res, team) {
     res.locals.teamColor          = team.primaryColor   || '#1a2e4a';
@@ -118,6 +119,9 @@ router.post('/register', async (req, res, next) => {
             preferences: { zoneTerminology: safeTerminology }
         });
         const registeredUser = await User.register(user, password);
+        sendWelcomeEmail(registeredUser.email, registeredUser.username).catch(err =>
+            console.error('Welcome email failed:', err)
+        );
         req.login(registeredUser, err => {
             if (err) return next(err);
             req.flash('success', `Welcome to PitchShuffle, ${registeredUser.username}!`);
@@ -168,6 +172,7 @@ router.get('/auth/google/callback',
         res.redirect('/');
     }
 );
+
 // ── Apple Sign In ─────────────────────────────────────────────
 router.get('/auth/apple', (req, res) => {
     const params = new URLSearchParams({
@@ -196,7 +201,6 @@ router.post('/auth/apple/callback', async (req, res) => {
             ignoreExpiration: false,
         });
 
-        // Apple only sends name on first login — grab it if present
         let firstName = '', lastName = '';
         if (userJson) {
             try {
@@ -239,6 +243,7 @@ router.post('/auth/apple/callback', async (req, res) => {
         res.redirect('/login');
     }
 });
+
 // ── Apple Choose Username ─────────────────────────────────────
 router.get('/auth/choose-username', (req, res) => {
     if (!req.session.appleSignup) return res.redirect('/login');
@@ -263,6 +268,9 @@ router.post('/auth/choose-username', async (req, res, next) => {
         }
         const user = new User({ appleId, email, username, avatar: '' });
         await user.save();
+        sendWelcomeEmail(user.email, user.username).catch(err =>
+            console.error('Welcome email failed:', err)
+        );
         delete req.session.appleSignup;
         req.login(user, async err => {
             if (err) return next(err);
@@ -274,12 +282,14 @@ router.post('/auth/choose-username', async (req, res, next) => {
         res.redirect('/auth/choose-username');
     }
 });
+
 // ── Onboarding complete ───────────────────────────────────────
 router.get('/onboarding/complete', isLoggedIn, (req, res) => {
     const { teamId, pitcherId } = req.query;
     if (!teamId || !pitcherId) return res.redirect('/');
     res.render('onboarding/complete', { teamId, pitcherId });
 });
+
 // ── Legal ─────────────────────────────────────────────────────
 router.get('/terms',   (req, res) => res.render('legal/terms'));
 router.get('/privacy', (req, res) => res.render('legal/privacy'));

@@ -20,6 +20,7 @@ const pitcherRoutes      = require('./routes/pitchers');
 const profileRoutes      = require('./routes/profile');
 const subscriptionRoutes = require('./routes/subscription');
 const webhookRoutes      = require('./routes/webhook');
+const { sendWelcomeEmail } = require('./utilities/email');
 
 mongoose.connect(process.env.MONGODB_URI);
 const db = mongoose.connection;
@@ -96,6 +97,9 @@ passport.use(new GoogleStrategy({
             avatar:   profile.photos?.[0]?.value || '',
         });
         await newUser.save();
+        sendWelcomeEmail(email, newUser.username).catch(err =>
+            console.error('Welcome email failed:', err)
+        );
         return done(null, newUser);
     } catch (e) {
         console.error('Google strategy error:', e);
