@@ -6,6 +6,7 @@ WORKSPACE=/Volumes/workspace/repository
 brew install node
 cd $WORKSPACE
 npm install
+npx cap sync ios
 
 cd $WORKSPACE/ios/App/CapApp-SPM
 swift package resolve
