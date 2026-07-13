@@ -77,7 +77,7 @@
 </div>
 
 <!-- ── Subscription ───────────────────────────────────────── -->
-<div class="card mb-4">
+<div class="card mb-4" id="ps-subscription-card">
     <div class="card-header fw-bold"><i class="bi bi-credit-card"></i> Subscription</div>
     <div class="card-body d-flex align-items-center justify-content-between gap-3 flex-wrap">
         <div>
@@ -267,11 +267,13 @@
     var isNative = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
     if (!isNative) return;
 
+    var subCard     = document.getElementById('ps-subscription-card');  // ← ADD THIS
     var webActions  = document.getElementById('ps-subscription-actions');
     var iosActions  = document.getElementById('ps-subscription-actions-ios');
     var trialMsg    = document.getElementById('ps-start-trial-msg');
     var resubMsg    = document.getElementById('ps-resubscribe-msg');
 
+    if (subCard)    subCard.style.display = 'none';                     // ← ADD THIS
     if (webActions) webActions.classList.add('d-none');
     if (iosActions) iosActions.classList.remove('d-none');
     if (trialMsg) trialMsg.textContent = 'Visit pitchshuffle.com to subscribe.';
