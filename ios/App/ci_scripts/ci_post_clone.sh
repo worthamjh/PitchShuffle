@@ -1,15 +1,14 @@
-﻿#!/bin/sh
+#!/bin/sh
 set -ex
 
-# Install node and npm dependencies
+WORKSPACE=/Volumes/workspace/repository
+
 brew install node
-cd "$CI_WORKSPACE"
+cd $WORKSPACE
 npm install
 
-# Resolve Swift packages from CapApp-SPM directory
-cd "$CI_WORKSPACE/ios/App/CapApp-SPM"
+cd $WORKSPACE/ios/App/CapApp-SPM
 swift package resolve
 
-# Copy resolved file to where Xcode expects it
-mkdir -p "$CI_WORKSPACE/ios/App/App.xcodeproj/project.xcworkspace/xcshareddata/swiftpm"
-cp Package.resolved "$CI_WORKSPACE/ios/App/App.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved"
+mkdir -p $WORKSPACE/ios/App/App.xcodeproj/project.xcworkspace/xcshareddata/swiftpm
+cp Package.resolved $WORKSPACE/ios/App/App.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
