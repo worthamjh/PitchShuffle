@@ -184,6 +184,7 @@
         window.PS_GAME_URLS = <%- JSON.stringify(gameUrls) %>;
     </script>
     <% } %>
+    <script src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.12/dist/turbo.es2017.umd.js"></script>
 </head>
 
 <body>
@@ -192,12 +193,31 @@
     📵 You're offline — using saved data
 </div>
 <script>
-    function updateOnlineStatus() {
-        document.getElementById('offlineBanner').classList.toggle('d-none', navigator.onLine);
+    // Guard: only register window-level listeners once — they survive Turbo body swaps
+    if (!window.__psGlobalListenersReady) {
+        window.__psGlobalListenersReady = true;
+ 
+        window.__psUpdateOnlineStatus = function () {
+            var b = document.getElementById('offlineBanner');
+            if (b) b.classList.toggle('d-none', navigator.onLine);
+        };
+        window.addEventListener('online',  window.__psUpdateOnlineStatus);
+        window.addEventListener('offline', window.__psUpdateOnlineStatus);
+ 
+        // Image size validation — document persists across Turbo swaps, so guard here too
+        document.addEventListener('change', function (e) {
+            var input = e.target;
+            if (input.type !== 'file' || !input.accept || !input.accept.includes('image')) return;
+            var file = input.files[0];
+            if (!file) return;
+            if (file.size > 5 * 1024 * 1024) {
+                alert('Image must be under 5MB. Please choose a smaller file.');
+                input.value = '';
+            }
+        });
     }
-    window.addEventListener('online', updateOnlineStatus);
-    window.addEventListener('offline', updateOnlineStatus);
-    updateOnlineStatus();
+    // Run on every Turbo navigation (banner element is re-rendered each time)
+    window.__psUpdateOnlineStatus();
 </script>
     <nav class="navbar navbar-expand-md navbar-dark">
         <div class="container-fluid">
@@ -248,7 +268,7 @@
                                 <i class="bi bi-box-arrow-in-right"></i> Login
                             </a>
                         </li>
-                        <li class="nav-item">
+                        <li class="nav-item" id="ps-nav-register">
                             <a class="nav-link" href="/register">
                                 <i class="bi bi-person-plus"></i> Register
                             </a>
@@ -257,8 +277,17 @@
                 </ul>
             </div>
         </div>
-    </nav>
-
+     </nav>
+    <script>
+    (function () {
+        var isNative = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+        if (isNative) {
+            var el = document.getElementById('ps-nav-register');
+            if (el) el.style.display = 'none';
+        }
+    })();
+    </script>
+ 
     <div class="container mt-3">
         <% if (success && success.length) { %>
             <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -307,19 +336,6 @@
                     .catch(err => console.warn('SW registration failed:', err));
             });
         }
-    </script>
-    <script>
-        // Client-side image size validation — mirrors the 5MB server limit
-        document.addEventListener('change', e => {
-            const input = e.target;
-            if (input.type !== 'file' || !input.accept?.includes('image')) return;
-            const file = input.files[0];
-            if (!file) return;
-            if (file.size > 5 * 1024 * 1024) {
-                alert('Image must be under 5MB. Please choose a smaller file.');
-                input.value = '';
-            }
-        });
     </script>
     <footer class="text-center py-3 mt-4">
         <a href="/terms" class="text-muted small me-3">Terms of Service</a>

@@ -772,8 +772,22 @@
     }
 
     let resizeTimer;
-    requestAnimationFrame(buildGrid);
-    window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(buildGrid, 100); });
+        requestAnimationFrame(buildGrid);
+
+        if (window.__psGameResizeHandler) {
+            window.removeEventListener('resize', window.__psGameResizeHandler);
+        }
+        window.__psGameResizeHandler = function () {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(buildGrid, 100);
+        };
+        window.addEventListener('resize', window.__psGameResizeHandler);
+
+        document.addEventListener('turbo:before-cache', function psGameCleanup() {
+            window.removeEventListener('resize', window.__psGameResizeHandler);
+            window.__psGameResizeHandler = null;
+            document.removeEventListener('turbo:before-cache', psGameCleanup);
+        });
 
     const pickoffOverlay = document.getElementById('pickoffOverlay');
     const btnPickoff = document.getElementById('btnPickoff');
