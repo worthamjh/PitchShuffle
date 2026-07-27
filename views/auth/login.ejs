@@ -61,8 +61,17 @@
             </script>
 
             <hr>
-            <p class="text-center text-muted mb-0">
+            <p class="text-center text-muted mb-0" id="ps-login-register-link">
                 Don't have an account? <a href="/register">Register here</a>
             </p>
+            <script>
+            (function () {
+                var isNative = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+                if (isNative) {
+                    var el = document.getElementById('ps-login-register-link');
+                    if (el) el.style.display = 'none';
+                }
+            })();
+            </script>
         </div>
     </div>
