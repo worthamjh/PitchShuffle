@@ -21,6 +21,7 @@ const profileRoutes      = require('./routes/profile');
 const subscriptionRoutes = require('./routes/subscription');
 const webhookRoutes      = require('./routes/webhook');
 const { sendWelcomeEmail } = require('./utilities/email');
+const apiRoutes = require('./routes/api');
 
 mongoose.connect(process.env.MONGODB_URI);
 const db = mongoose.connection;
@@ -137,6 +138,7 @@ app.use('/teams',                  teamRoutes);
 app.use('/teams/:teamId/pitchers', pitcherRoutes);
 app.use('/profile',                profileRoutes);
 app.use('/subscription',           subscriptionRoutes);
+app.use('/api', apiRoutes);
 
 // ── 404 handler ───────────────────────────────────────────────
 app.use((req, res) => {

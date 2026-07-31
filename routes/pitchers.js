@@ -23,6 +23,9 @@ router.get('/game', isLoggedIn, isOwner, async (req, res, next) => {
         const team = await Team.findById(req.params.teamId).populate('pitchers');
         setTeamLocals(res, team);
         const currentPitcherId = req.query.from || null;
+        res.locals.gameUrls = team.pitchers.map(p =>
+            `/teams/${team._id}/pitchers/game/${p._id}`
+        );
         res.render('pitchers/game-select', { team, currentPitcherId });
     } catch (e) {
         next(e);
@@ -31,13 +34,13 @@ router.get('/game', isLoggedIn, isOwner, async (req, res, next) => {
 
 router.get('/game/:pitcherId', isLoggedIn, isOwner, isPitcherInTeam, async (req, res, next) => {
     try {
-        const team    = await Team.findById(req.params.teamId);
+        const team    = await Team.findById(req.params.teamId).populate('pitchers', '_id');
         const pitcher = await Pitcher.findById(req.params.pitcherId).populate('zone');
-        if (!pitcher) {
-            req.flash('error', 'Pitcher not found.');
-            return res.redirect(`/teams/${req.params.teamId}/pitchers/game`);
-        }
+        if (!pitcher) { ... }
         setTeamLocals(res, team);
+        res.locals.gameUrls = team.pitchers.map(p =>
+            `/teams/${team._id}/pitchers/game/${p._id}`
+        );
         res.render('pitchers/game', { team, pitcher });
     } catch (e) {
         next(e);

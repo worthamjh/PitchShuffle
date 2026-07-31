@@ -337,6 +337,18 @@
             });
         }
     </script>
+    <% if (currentUser) { %>
+    <script>
+        // Silently sync all pitcher/team data to localStorage for offline game mode.
+        // Fires in the background on every page load while online — no user action needed.
+        if (navigator.onLine) {
+            fetch('/api/my-data', { credentials: 'include' })
+                .then(r => r.ok ? r.json() : null)
+                .then(data => { if (data) localStorage.setItem('ps_offline_data', JSON.stringify(data)); })
+                .catch(() => {});
+        }
+    </script>
+    <% } %>
     <footer class="text-center py-3 mt-4">
         <a href="/terms" class="text-muted small me-3">Terms of Service</a>
         <a href="/privacy" class="text-muted small">Privacy Policy</a>
