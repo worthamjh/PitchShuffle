@@ -25,33 +25,41 @@
         }
         .ps-navbar .navbar-brand { color: var(--accent-text, #fff) !important; font-weight: 700; }
 
-        /* ── Team selector screen ── */
-        .team-card {
-            display: flex; align-items: center; gap: 1rem;
-            padding: 1rem 1.25rem;
-            background: var(--ps-card-bg, #fff); border: 2px solid #dee2e6;
-            border-radius: 12px; cursor: pointer; text-decoration: none; color: inherit;
-            transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
-            user-select: none; margin-bottom: 0.75rem; width: 100%;
-            text-align: left;
+        /* ── Team selector screen — matches online game/select-team ── */
+        .new-game-subheader {
+            background: var(--ps-navy, #1a2e4a); color: var(--accent-text, #fff);
+            padding: 0.6rem 1rem;
+            display: flex; align-items: center; justify-content: space-between;
         }
-        .team-card:hover { border-color: #8fa8c8; box-shadow: 0 0 0 3px rgba(26,46,74,0.08); background: #f8fafc; }
-        .team-icon {
-            width: 52px; height: 52px; border-radius: 10px;
-            background: #f0f0f0; color: #8fa8c8; font-size: 1.3rem;
+        .new-game-subheader-title { font-size: 1rem; font-weight: 700; }
+
+        .select-card {
+            display: flex; align-items: center; gap: 1rem;
+            padding: 0.85rem 1rem;
+            background: var(--ps-card-bg, #fff); border: 2px solid #dee2e6;
+            border-radius: 12px; cursor: pointer;
+            transition: border-color 0.15s, box-shadow 0.15s;
+            user-select: none; width: 100%; text-align: left;
+        }
+        .select-card:hover { border-color: #8fa8c8; box-shadow: 0 0 0 3px rgba(26,46,74,0.08); }
+        .select-card-icon {
+            width: 48px; height: 48px; border-radius: 10px;
+            font-size: 1.6rem; color: #fff; line-height: 1;
             display: flex; align-items: center; justify-content: center;
             flex-shrink: 0; overflow: hidden;
         }
-        .team-icon img { width: 52px; height: 52px; object-fit: contain; }
-        .team-info { flex: 1; min-width: 0; }
-        .team-name { font-size: 1.05rem; font-weight: 700; color: var(--ps-navy, #1a2e4a); margin-bottom: 2px; }
-        .team-meta { font-size: 0.82rem; color: #6c757d; }
-        .team-chevron { color: #adb5bd; font-size: 1.1rem; flex-shrink: 0; }
+        .select-card-icon img { width: 48px; height: 48px; object-fit: contain; }
+        .select-card-info { flex: 1; min-width: 0; }
+        .select-card-name { font-weight: 700; font-size: 1.05rem; color: #1a2e4a; }
+        .select-card-meta { font-size: 0.82rem; color: #6c757d; }
 
-        [data-theme='dark'] .team-card { background: #1a2535; border-color: #2a3f5a; }
-        [data-theme='dark'] .team-card:hover { background: #1e3050; border-color: #4a7fa5; }
-        [data-theme='dark'] .team-name { color: #e8edf2; }
-        [data-theme='dark'] .team-meta { color: #8fa8c8; }
+        .team-grid { display: grid; grid-template-columns: 1fr; gap: 0.75rem; }
+        @media (min-width: 580px) { .team-grid { grid-template-columns: 1fr 1fr; } }
+
+        [data-theme='dark'] .select-card { background: #1a2535; border-color: #2a3f5a; }
+        [data-theme='dark'] .select-card:hover { background: #1e3050; border-color: #4a7fa5; }
+        [data-theme='dark'] .select-card-name { color: #e8edf2; }
+        [data-theme='dark'] .select-card-meta { color: #8fa8c8; }
 
         /* ── Pitcher selector screen ── */
         .pitcher-select-btn {
@@ -287,9 +295,16 @@
         </div>
     </nav>
 
+    <!-- "New Game" sub-header — matches .page-header on online /game page -->
+    <div class="new-game-subheader">
+        <span class="new-game-subheader-title">
+            <i class="bi bi-play-fill me-1"></i> New Game
+        </span>
+    </div>
+
     <div class="container mt-3">
-        <h5 class="fw-bold mb-3"><i class="bi bi-people-fill me-2"></i>My Teams</h5>
-        <div id="teamList"></div>
+        <p class="text-muted mb-3"><strong>Step 1 of 2</strong> — Select a team</p>
+        <div id="teamList" class="team-grid"></div>
     </div>
 
     <div id="noData" class="text-center mt-5 px-4" style="display:none;">
@@ -493,28 +508,28 @@ function renderTeams() {
         const sportLabel = team.sport === 'softball' ? 'Softball' : 'Baseball';
         const count      = team.pitchers.length;
 
+        // Icon: logo image if available, otherwise sport emoji on team color background
         const iconHtml = team.logo
             ? `<img src="${escapeHtml(team.logo)}" alt="${escapeHtml(team.name)}">`
-            : `<i class="bi bi-shield-fill"></i>`;
+            : `<span style="font-size:1.6rem;line-height:1;">${sportEmoji}</span>`;
 
-        const iconStyle = team.logo
-            ? ''
-            : `background:${navy};color:${accentText};`;
+        // Always show team primary color as background (logo PNGs usually have transparent bg)
+        const iconStyle = `background:${navy};`;
 
         const card = document.createElement('button');
-        card.className = 'team-card';
+        card.className = 'select-card';
         card.innerHTML = `
-            <div class="team-icon" style="${iconStyle}">${iconHtml}</div>
-            <div class="team-info">
-                <div class="team-name">${escapeHtml(team.name)}</div>
-                <div class="team-meta">
+            <div class="select-card-icon" style="${iconStyle}">${iconHtml}</div>
+            <div class="select-card-info">
+                <div class="select-card-name">${escapeHtml(team.name)}</div>
+                <div class="select-card-meta">
                     ${sportEmoji} ${sportLabel}
                     &middot;
                     <i class="bi bi-person-fill"></i>
                     ${count} pitcher${count !== 1 ? 's' : ''}
                 </div>
             </div>
-            <i class="bi bi-chevron-right team-chevron"></i>`;
+            <i class="bi bi-chevron-right" style="color:#adb5bd;flex-shrink:0;"></i>`;
         card.addEventListener('click', () => selectTeam(team, prefs));
         list.appendChild(card);
     });
