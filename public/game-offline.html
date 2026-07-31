@@ -641,7 +641,7 @@ function buildCurrentPitcherCard(pitcher, prefs, container) {
 
     container.innerHTML = `
         <div class="d-flex align-items-center gap-3 mb-3">
-            <div class="pitcher-number">#${escapeHtml(String(pitcher.number || '?'))}</div>
+            <div class="pitcher-badge">#${escapeHtml(String(pitcher.number || '?'))}</div>
             <div>
                 <div class="fw-bold">${escapeHtml(pitcher.name)}</div>
                 <div class="text-muted" style="font-size:0.78rem;">
@@ -795,7 +795,7 @@ function renderPitcherScreen(team, currentPitcher, prefs) {
     const backLabelEl = document.getElementById('backBtnLabel');
     if (_changingFromGame) {
         titleEl.innerHTML     = '<i class="bi bi-arrow-left-right me-1"></i> Change Pitcher';
-        if (backLabelEl) backLabelEl.textContent = 'Cancel';
+        if (backLabelEl) backLabelEl.textContent = 'Back to Game';
     } else {
         titleEl.innerHTML     = '<i class="bi bi-play-fill me-1"></i> New Game';
         if (backLabelEl) backLabelEl.textContent = 'Teams';
@@ -1416,6 +1416,8 @@ document.getElementById('btnBackToTeams').addEventListener('click', () => {
             const prefs = (offlineData && offlineData.preferences) || {};
             applyTeamColors(_selectedTeam, prefs);
         }
+        // Rebuild grid — dimensions were measured when screen was hidden (offsetHeight = 0)
+        requestAnimationFrame(buildGrid);
     } else {
         resetTeamColors();
         document.getElementById('teamScreen').style.display = '';
