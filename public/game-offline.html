@@ -25,13 +25,35 @@
         }
         .ps-navbar .navbar-brand { color: var(--accent-text, #fff) !important; font-weight: 700; }
 
-        /* ── Pitcher selector screen ── */
-        #selectScreen { padding-bottom: env(safe-area-inset-bottom); }
-        .team-card { margin-bottom: 1.25rem; }
-        .team-card .team-heading {
-            font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em;
-            text-transform: uppercase; color: #6c757d; margin-bottom: 0.5rem;
+        /* ── Team selector screen ── */
+        .team-card {
+            display: flex; align-items: center; gap: 1rem;
+            padding: 1rem 1.25rem;
+            background: var(--ps-card-bg, #fff); border: 2px solid #dee2e6;
+            border-radius: 12px; cursor: pointer; text-decoration: none; color: inherit;
+            transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+            user-select: none; margin-bottom: 0.75rem; width: 100%;
+            text-align: left;
         }
+        .team-card:hover { border-color: #8fa8c8; box-shadow: 0 0 0 3px rgba(26,46,74,0.08); background: #f8fafc; }
+        .team-icon {
+            width: 52px; height: 52px; border-radius: 10px;
+            background: #f0f0f0; color: #8fa8c8; font-size: 1.3rem;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; overflow: hidden;
+        }
+        .team-icon img { width: 52px; height: 52px; object-fit: contain; }
+        .team-info { flex: 1; min-width: 0; }
+        .team-name { font-size: 1.05rem; font-weight: 700; color: var(--ps-navy, #1a2e4a); margin-bottom: 2px; }
+        .team-meta { font-size: 0.82rem; color: #6c757d; }
+        .team-chevron { color: #adb5bd; font-size: 1.1rem; flex-shrink: 0; }
+
+        [data-theme='dark'] .team-card { background: #1a2535; border-color: #2a3f5a; }
+        [data-theme='dark'] .team-card:hover { background: #1e3050; border-color: #4a7fa5; }
+        [data-theme='dark'] .team-name { color: #e8edf2; }
+        [data-theme='dark'] .team-meta { color: #8fa8c8; }
+
+        /* ── Pitcher selector screen ── */
         .pitcher-select-btn {
             display: flex; align-items: center; gap: 0.75rem;
             width: 100%; padding: 0.75rem 1rem;
@@ -266,7 +288,7 @@
     </nav>
 
     <div class="container mt-3">
-        <p class="text-muted mb-3" style="font-size:0.85rem;">Select a team to start a game.</p>
+        <h5 class="fw-bold mb-3"><i class="bi bi-people-fill me-2"></i>My Teams</h5>
         <div id="teamList"></div>
     </div>
 
@@ -326,7 +348,7 @@
                 <div class="pitcher-meta" id="pitcherMetaEl"></div>
             </div>
             <button id="btnChangePitcher" class="btn btn-sm btn-outline-light" aria-label="Change pitcher" style="font-size:0.72rem;white-space:nowrap;">
-                <i class="bi bi-person-fill-gear"></i> Change
+                <i class="bi bi-person-fill-gear"></i> Change Pitcher
             </button>
         </div>
 
@@ -458,21 +480,43 @@ function renderTeams() {
 
     const list = document.getElementById('teamList');
     list.innerHTML = '';
-    offlineData.teams.forEach(team => {
-        if (!team.pitchers || !team.pitchers.length) return;
-        const btn = document.createElement('button');
-        btn.className = 'pitcher-select-btn';
-        btn.innerHTML = `
-            <div class="pitcher-number" style="width:42px;height:42px;border-radius:8px;font-size:0.7rem;">
-                ${escapeHtml(team.sport === 'softball' ? 'SB' : 'BB')}
+
+    // Sort A–Z (mirrors the online default when users set it; sensible offline default)
+    const sorted = [...offlineData.teams]
+        .filter(t => t.pitchers && t.pitchers.length)
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+    sorted.forEach(team => {
+        const navy       = team.primaryColor || '#1a2e4a';
+        const accentText = contrastText(navy);
+        const sportEmoji = team.sport === 'softball' ? '🥎' : '⚾';
+        const sportLabel = team.sport === 'softball' ? 'Softball' : 'Baseball';
+        const count      = team.pitchers.length;
+
+        const iconHtml = team.logo
+            ? `<img src="${escapeHtml(team.logo)}" alt="${escapeHtml(team.name)}">`
+            : `<i class="bi bi-shield-fill"></i>`;
+
+        const iconStyle = team.logo
+            ? ''
+            : `background:${navy};color:${accentText};`;
+
+        const card = document.createElement('button');
+        card.className = 'team-card';
+        card.innerHTML = `
+            <div class="team-icon" style="${iconStyle}">${iconHtml}</div>
+            <div class="team-info">
+                <div class="team-name">${escapeHtml(team.name)}</div>
+                <div class="team-meta">
+                    ${sportEmoji} ${sportLabel}
+                    &middot;
+                    <i class="bi bi-person-fill"></i>
+                    ${count} pitcher${count !== 1 ? 's' : ''}
+                </div>
             </div>
-            <div>
-                <div class="pitcher-select-name">${escapeHtml(team.name)}</div>
-                <div class="pitcher-select-meta">${team.pitchers.length} pitcher${team.pitchers.length !== 1 ? 's' : ''}</div>
-            </div>
-            <i class="bi bi-chevron-right ms-auto text-muted"></i>`;
-        btn.addEventListener('click', () => selectTeam(team, prefs));
-        list.appendChild(btn);
+            <i class="bi bi-chevron-right team-chevron"></i>`;
+        card.addEventListener('click', () => selectTeam(team, prefs));
+        list.appendChild(card);
     });
 }
 

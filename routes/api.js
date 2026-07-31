@@ -22,6 +22,7 @@ router.get('/my-data', isLoggedIn, async (req, res, next) => {
                 _id:            t._id,
                 name:           t.name,
                 sport:          t.sport,
+                logo:           t.logo || null,
                 primaryColor:   t.primaryColor,
                 secondaryColor: t.secondaryColor,
                 strikeColor:    t.strikeColor,
