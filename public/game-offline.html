@@ -1,20 +1,1003 @@
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PitchShuffle — Offline</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>PitchShuffle</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="/stylesheets/style.css">
     <style>
-        body { background: #1a2e4a; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        /* ── Offline banner ── */
+        .offline-banner {
+            background: #c0392b; color: #fff;
+            text-align: center; padding: 0.4rem 1rem;
+            font-size: 0.82rem; font-weight: 600;
+            position: sticky; top: 0; z-index: 1100;
+        }
+
+        /* ── Navbar ── */
+        .ps-navbar {
+            padding: max(0.5rem, env(safe-area-inset-top)) 1rem 0.5rem;
+            background: var(--ps-navy, #1a2e4a);
+        }
+        .ps-navbar .navbar-brand { color: var(--accent-text, #fff) !important; font-weight: 700; }
+
+        /* ── Pitcher selector screen ── */
+        #selectScreen { padding-bottom: env(safe-area-inset-bottom); }
+        .team-card { margin-bottom: 1.25rem; }
+        .team-card .team-heading {
+            font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em;
+            text-transform: uppercase; color: #6c757d; margin-bottom: 0.5rem;
+        }
+        .pitcher-select-btn {
+            display: flex; align-items: center; gap: 0.75rem;
+            width: 100%; padding: 0.75rem 1rem;
+            background: var(--ps-card-bg, #fff); border: 1px solid #dee2e6;
+            border-radius: 10px; margin-bottom: 0.5rem;
+            cursor: pointer; text-align: left;
+            transition: background 0.15s, border-color 0.15s;
+        }
+        .pitcher-select-btn:hover { background: #f0f4f8; border-color: #adb5bd; }
+        .pitcher-number {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: var(--ps-navy, #1a2e4a); color: var(--accent-text, #fff);
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 0.85rem; flex-shrink: 0;
+        }
+        .pitcher-select-name { font-weight: 700; font-size: 0.95rem; }
+        .pitcher-select-meta { font-size: 0.78rem; color: #6c757d; }
+        [data-theme='dark'] .pitcher-select-btn { background: #1a2535; border-color: #2a3f5a; }
+        [data-theme='dark'] .pitcher-select-btn:hover { background: #243350; }
+        [data-theme='dark'] .pitcher-select-meta { color: #8fa8c8; }
+
+        /* ── Game screen ── */
+        html, body { height: 100%; overflow: hidden; }
+        body { background: #2a2a2a; }
+        #gameScreen { display: none; height: calc(100% - 28px); /* minus banner */ }
+
+        .game-page {
+            display: flex; flex-direction: column;
+            height: 100%; width: 100%; max-width: 430px;
+            margin: 0 auto; background: var(--ps-card-bg, #fff);
+            overflow: hidden; box-shadow: 0 0 40px rgba(0,0,0,0.4);
+        }
+        @media (min-width: 600px) { .game-page { max-width: 100%; box-shadow: none; } }
+
+        /* Game header */
+        .game-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0.5rem 0.75rem;
+            background: var(--ps-navy, #1a2e4a); color: var(--accent-text, #fff);
+            flex-shrink: 0; gap: 0.5rem;
+        }
+        .pitcher-info { flex: 1; min-width: 0; text-align: center; }
+        .pitcher-name { font-weight: 700; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .pitcher-meta { font-size: 0.75rem; opacity: 0.8; }
+
+        /* Speaking dot */
+        .speaking-dot {
+            display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+            background: #2ecc71; margin-left: 4px; vertical-align: middle;
+            animation: pulse 0.8s infinite alternate;
+        }
+        @keyframes pulse { from { opacity: 0.3; transform: scale(0.8); } to { opacity: 1; transform: scale(1.2); } }
+
+        /* Pitch row */
+        .pitch-row {
+            display: flex; flex-direction: row; flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.4rem; padding: 0.3rem 0.75rem;
+            background: #f8f9fa; border-bottom: 1px solid #dee2e6;
+            flex-shrink: 0; max-height: 96px; overflow-y: auto; scrollbar-width: none;
+        }
+        .pitch-row::-webkit-scrollbar { display: none; }
+        .pitch-btn { flex: 1 1 auto; }
+        .pitch-btn:hover  { background: #dce6f0; }
+        .pitch-btn.active { background: var(--ps-navy); border-color: var(--ps-navy); color: var(--accent-text, #fff); }
+
+        /* Zone area */
+        .zone-area {
+            flex: 1; display: flex; align-items: center;
+            justify-content: center; overflow: hidden; padding: 0.25rem;
+        }
+        .zone-col { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
+        .zone-grid-wrapper { display: inline-block; position: relative; }
+        .zone-grid { display: grid; gap: 0; border: 2px solid #adb5bd; }
+        .pitchers-view-label {
+            font-size: 0.6rem; font-weight: 600; color: #6c757d;
+            text-align: center; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 2px;
+        }
+
+        /* Zone cells */
+        .zone-col .loc-box {
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.55rem; font-weight: 600; text-align: center; cursor: pointer;
+            border: 1px solid #dee2e6; user-select: none;
+            transition: background 0.12s, border-color 0.12s;
+            box-sizing: border-box; line-height: 1.1; padding: 2px;
+        }
+        @media (min-width: 400px) { .zone-col .loc-box, .zone-col .chase-overlay { font-size: 0.6rem; } }
+        @media (min-width: 600px) { .zone-col .loc-box, .zone-col .chase-overlay { font-size: 0.7rem; } }
+
+        .loc-box.strike       { background: var(--strike-bg); border-color: var(--strike-border); color: var(--strike-text); }
+        .loc-box.chase        { background: var(--chase-bg);  border-color: var(--chase-border);  color: var(--chase-text); }
+        .loc-box.anchor       { background: transparent; border-color: transparent; pointer-events: none; cursor: default; }
+        .loc-box.covered      { visibility: hidden; pointer-events: none; }
+        .loc-box.selected-loc { outline: 3px solid var(--ps-navy); outline-offset: -2px; z-index: 2; filter: brightness(0.82); }
+        .chase-overlay.selected-loc { outline: 3px solid var(--ps-navy); outline-offset: -2px; z-index: 4; filter: brightness(0.82); }
+
+        .chase-overlay {
+            position: absolute; display: flex; align-items: center; justify-content: center;
+            font-size: 0.55rem; font-weight: 600; text-align: center; cursor: pointer;
+            background: var(--chase-bg); border: 1px solid var(--chase-border); color: var(--chase-text);
+            box-sizing: border-box; z-index: 3; user-select: none; transition: background 0.12s;
+        }
+        .strike-zone-outline { position: absolute; border: 3px solid var(--ps-navy); pointer-events: none; z-index: 4; box-sizing: border-box; }
+
+        /* Special row */
+        .special-row { display: flex; gap: 0.4rem; padding: 0.3rem 0.75rem; background: var(--ps-card-bg, #fff); border-top: 1px solid #dee2e6; flex-shrink: 0; }
+        .btn-pickoff  { background: #e8f4fd; border: 2px solid #4a9edd; color: #1a5f8a; flex: 1; border-radius: var(--btn-radius, 8px); padding: 0.35rem 0.5rem; font-size: 0.95rem; font-weight: 700; cursor: pointer; }
+        .btn-pitchout { background: #fff3e0; border: 2px solid #e67e22; color: #7d4000; flex: 1; border-radius: var(--btn-radius, 8px); padding: 0.35rem 0.5rem; font-size: 0.95rem; font-weight: 700; cursor: pointer; }
+        .btn-pickoff:hover  { background: #4a9edd; color: #fff; }
+        .btn-pitchout:hover { background: #e67e22; color: #fff; }
+
+        /* Action row */
+        .action-row {
+            display: flex; flex-direction: row; gap: 0.4rem;
+            padding: 0.3rem 0.75rem; background: #f8f9fa;
+            border-top: 1px solid #dee2e6; flex-shrink: 0;
+        }
+        .action-btn {
+            flex: 1; padding: 0.4rem 0.3rem; border-radius: var(--btn-radius, 8px);
+            font-size: 0.78rem; font-weight: 700; text-align: center; cursor: pointer;
+            border: 2px solid transparent; user-select: none;
+            transition: background 0.15s, border-color 0.15s, color 0.15s;
+        }
+        .btn-random { background: #e8f4fd; border-color: #4a9edd; color: #1a5f8a; }
+        .btn-random:hover { background: #4a9edd; color: #fff; }
+        .btn-clear  { background: #fde8e8; border-color: #dd4a4a; color: #8a1a1a; }
+        .btn-clear:hover  { background: #dd4a4a; color: #fff; }
+        .btn-repeat { background: #f0e8fd; border-color: #9a4add; color: #5a1a8a; }
+        .btn-repeat:hover { background: #9a4add; color: #fff; }
+        .btn-repeat.disabled-btn { opacity: 0.45; pointer-events: none; }
+
+        /* Call bar */
+        .call-bar {
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 0.5rem; padding: 0.6rem 0.75rem calc(0.6rem + env(safe-area-inset-bottom));
+            background: var(--ps-navy, #1a2e4a); color: var(--accent-text, #fff);
+            flex-shrink: 0;
+        }
+        .call-info { flex: 1; min-width: 0; }
+        .call-label { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em; opacity: 0.8; }
+        .call-text  { font-size: 0.95rem; font-weight: 700; line-height: 1.3; }
+        .btn-call {
+            background: #fff; color: var(--ps-navy, #1a2e4a); border: none;
+            border-radius: var(--btn-radius, 8px); padding: 0.75rem 1.25rem;
+            font-size: 1rem; font-weight: 700; cursor: pointer; flex-shrink: 0;
+            transition: background 0.15s, opacity 0.15s;
+        }
+        .btn-call:hover { background: #e0ecf8; }
+        .btn-call.disabled-btn { opacity: 0.45; pointer-events: none; }
+
+        /* Pickoff overlay */
+        .pickoff-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 200; display: flex; align-items: center; justify-content: center; }
+        .pickoff-diamond { background: var(--ps-card-bg, #fff); border-radius: 16px; padding: 2rem 1.5rem 1.5rem; width: 280px; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto auto; gap: 0.75rem; text-align: center; }
+        .pickoff-diamond .base-2nd { grid-column: 1 / span 2; justify-self: center; width: 50%; }
+        .pickoff-diamond .base-btn { padding: 0.75rem 0.5rem; border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer; border: 2px solid #4a9edd; background: #e8f4fd; color: #1a5f8a; }
+        .pickoff-diamond .base-btn:hover { background: #4a9edd; color: #fff; }
+        .pickoff-diamond .btn-cancel-pickoff { padding: 0.75rem 0.5rem; border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer; border: 2px solid #adb5bd; background: #f8f9fa; color: #495057; }
+        .pickoff-diamond .btn-cancel-pickoff:hover { background: #dee2e6; }
+
+        /* Dark mode */
+        [data-theme='dark'] body { color-scheme: dark; }
+        [data-theme='dark'] .pitch-row, [data-theme='dark'] .action-row { background: #1a2535; border-color: #2a3f5a; }
+        [data-theme='dark'] .pitch-btn  { background: #243350; border-color: #2a3f5a; color: #8fa8c8; }
+        [data-theme='dark'] .pitch-btn.active { background: var(--ps-navy); color: var(--accent-text, #fff); }
+        [data-theme='dark'] .special-row { background: #1a2535; border-color: #2a3f5a; }
+        [data-theme='dark'] .pickoff-diamond { background: #1a2535; }
+        [data-theme='dark'] .loc-box.strike { background: var(--strike-bg); border-color: var(--strike-border); color: var(--strike-text); filter: brightness(0.6) saturate(0.9); }
+        [data-theme='dark'] .loc-box.strike:hover { filter: brightness(0.8) saturate(1); }
+        [data-theme='dark'] .loc-box.chase  { background: var(--chase-bg); border-color: var(--chase-border); color: var(--chase-text); filter: brightness(0.6) saturate(0.9); }
+        [data-theme='dark'] .loc-box.chase:hover { filter: brightness(0.8) saturate(1); }
+        [data-theme='dark'] .chase-overlay  { background: var(--chase-bg); border-color: var(--chase-border); color: var(--chase-text); filter: brightness(0.6) saturate(0.9); }
+        [data-theme='dark'] .chase-overlay:hover { filter: brightness(0.8) saturate(1); }
+        [data-theme='dark'] .loc-box.selected-loc, [data-theme='dark'] .chase-overlay.selected-loc { filter: brightness(0.95) saturate(1.1); }
     </style>
 </head>
 <body>
-    <div class="text-center text-white px-4">
-        <img src="/images/pitchshuffle-logo-192.png" width="80" class="mb-4 opacity-75">
-        <h4 class="mb-2">You're offline</h4>
-        <p class="text-white-50 mb-4">If you visited a game page recently, go back and it should still load.</p>
-        <a href="/" class="btn btn-outline-light">Try again</a>
+
+<!-- ── Offline banner (always visible on this page) ── -->
+<div class="offline-banner">📵 You're offline — using saved data</div>
+
+<!-- ════════════════════════════════════════════════
+     SCREEN 1: Pitcher Selector
+     ════════════════════════════════════════════════ -->
+<div id="selectScreen">
+    <nav class="navbar ps-navbar">
+        <div class="container-fluid">
+            <span class="navbar-brand">
+                <img src="/images/pitchshuffle-logo.svg" alt="PitchShuffle" style="height:28px;width:auto;vertical-align:middle;margin-right:6px;">
+                PitchShuffle
+            </span>
+        </div>
+    </nav>
+
+    <div class="container mt-3" id="teamList"></div>
+
+    <div id="noData" class="text-center mt-5 px-4" style="display:none;">
+        <img src="/images/pitchshuffle-logo-192.png" width="64" class="mb-3 opacity-50">
+        <h5>No offline data available</h5>
+        <p class="text-muted">Open PitchShuffle while connected to the internet, then come back here.</p>
     </div>
+</div>
+
+<!-- ════════════════════════════════════════════════
+     SCREEN 2: Game UI
+     ════════════════════════════════════════════════ -->
+<div id="gameScreen">
+    <div class="game-page">
+        <div class="game-header">
+            <button id="btnBack" class="btn btn-sm btn-outline-light" aria-label="Back to pitcher select">
+                <i class="bi bi-arrow-left"></i>
+            </button>
+            <div class="pitcher-info">
+                <div class="pitcher-name" id="pitcherNameEl"></div>
+                <div class="pitcher-meta" id="pitcherMetaEl"></div>
+            </div>
+            <!-- spacer to keep name centered -->
+            <div style="width:58px;"></div>
+        </div>
+
+        <div class="pitch-row" id="pitchRow" role="toolbar" aria-label="Pitch type selection"></div>
+
+        <div class="zone-area">
+            <div class="zone-col">
+                <div class="zone-grid-wrapper" id="zoneWrapper">
+                    <div class="pitchers-view-label" aria-hidden="true">Pitcher's View</div>
+                    <div class="zone-grid" id="zoneGrid" role="grid" aria-label="Strike zone pitch location selector"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="pickoff-overlay" id="pickoffOverlay" style="display:none;" role="dialog" aria-modal="true" aria-label="Select pickoff base">
+            <div class="pickoff-diamond">
+                <div class="base-2nd"><button class="base-btn" data-base="2nd" aria-label="Pickoff to second base">2nd Base</button></div>
+                <button class="base-btn" data-base="3rd" aria-label="Pickoff to third base">3rd Base</button>
+                <button class="base-btn" data-base="1st" aria-label="Pickoff to first base">1st Base</button>
+                <button class="btn-cancel-pickoff" id="btnCancelPickoff"><i class="bi bi-x-circle"></i> Cancel</button>
+            </div>
+        </div>
+
+        <div class="special-row" id="specialRow">
+            <button class="btn-pickoff" id="btnPickoff" aria-label="Call a pickoff throw"><i class="bi bi-person-fill-slash"></i> Pickoff</button>
+            <button class="btn-pitchout" id="btnPitchout" aria-label="Call a pitchout"><i class="bi bi-slash-circle"></i> Pitchout</button>
+        </div>
+
+        <div class="action-row" id="actionRow">
+            <button class="action-btn btn-random" id="btnRandom" aria-label="Shuffle: pick a random pitch and location"><i class="bi bi-shuffle"></i> Shuffle</button>
+            <button class="action-btn btn-clear"  id="btnClear"  aria-label="Clear current selection"><i class="bi bi-x-circle"></i> Clear</button>
+            <button class="action-btn btn-repeat disabled-btn" id="btnRepeat" aria-label="Repeat last pitch call" aria-disabled="true"><i class="bi bi-arrow-repeat"></i> Repeat</button>
+        </div>
+
+        <div class="call-bar" id="callBar">
+            <div class="call-info" aria-live="polite" aria-atomic="true">
+                <div class="call-label" id="callLabel">SELECT PITCH &amp; LOCATION</div>
+                <div class="call-text"  id="callText" style="display:none;"></div>
+            </div>
+            <button class="btn-call disabled-btn" id="btnCall" aria-label="Call pitch" aria-disabled="true">
+                <i class="bi bi-megaphone"></i> Call Pitch
+            </button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// ══════════════════════════════════════════════════════════════════════════════
+// COLOR UTILITIES  (ported from boilerplate.ejs EJS helpers)
+// ══════════════════════════════════════════════════════════════════════════════
+function luminance(hex) {
+    const h = hex.replace('#', '');
+    const toLinear = c => {
+        const v = parseInt(h.substring(c, c + 2), 16) / 255;
+        return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    };
+    return 0.2126 * toLinear(0) + 0.7152 * toLinear(2) + 0.0722 * toLinear(4);
+}
+function contrastText(hex) {
+    const L = luminance(hex);
+    return (1.05 / (L + 0.05)) >= ((L + 0.05) / 0.05) ? '#ffffff' : '#000000';
+}
+function shift(hex, amount) {
+    const h = hex.replace('#', '');
+    const lighten = luminance(hex) < 0.18;
+    const channels = [0, 2, 4].map(i => {
+        const v = parseInt(h.substring(i, i + 2), 16);
+        return lighten
+            ? Math.min(255, Math.round(v + (255 - v) * amount))
+            : Math.max(0,   Math.round(v * (1 - amount)));
+    });
+    return '#' + channels.map(v => v.toString(16).padStart(2, '0')).join('');
+}
+
+function applyTeamColors(team, prefs) {
+    const navy      = team.primaryColor   || '#1a2e4a';
+    const secondary = team.secondaryColor || navy;
+    const strike    = team.strikeColor    || (prefs.strikeColor || '#c8ecd4');
+    const chase     = team.chaseColor     || (prefs.chaseColor  || '#fef3cd');
+    const root = document.documentElement;
+    root.style.setProperty('--ps-navy',        navy);
+    root.style.setProperty('--ps-navy-dark',   shift(navy, 0.20));
+    root.style.setProperty('--ps-navy-hover',  shift(navy, 0.10));
+    root.style.setProperty('--ps-navy-muted',  shift(navy, 0.35));
+    root.style.setProperty('--accent-text',    contrastText(navy));
+    root.style.setProperty('--ps-secondary',      secondary);
+    root.style.setProperty('--ps-secondary-text', contrastText(secondary));
+    root.style.setProperty('--strike-bg',      strike);
+    root.style.setProperty('--strike-border',  shift(strike, 0.30));
+    root.style.setProperty('--strike-text',    contrastText(strike));
+    root.style.setProperty('--strike-hover',   shift(strike, 0.12));
+    root.style.setProperty('--chase-bg',       chase);
+    root.style.setProperty('--chase-border',   shift(chase, 0.30));
+    root.style.setProperty('--chase-text',     contrastText(chase));
+    root.style.setProperty('--chase-hover',    shift(chase, 0.12));
+    root.style.setProperty('--chase-hover-border', shift(chase, 0.4));
+    const fontSizeMap = { sm: '0.65rem', md: '0.75rem', lg: '0.88rem' };
+    root.style.setProperty('--game-font-size', fontSizeMap[prefs.gameFontSize] || '0.75rem');
+
+    const theme = prefs.theme || 'light';
+    document.documentElement.setAttribute('data-theme', theme);
+    document.querySelector('.ps-navbar').style.background = navy;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// LOAD OFFLINE DATA
+// ══════════════════════════════════════════════════════════════════════════════
+const offlineData = (function () {
+    try { return JSON.parse(localStorage.getItem('ps_offline_data') || 'null'); }
+    catch (e) { return null; }
+})();
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PITCHER SELECTOR
+// ══════════════════════════════════════════════════════════════════════════════
+function renderSelector() {
+    if (!offlineData || !offlineData.teams || !offlineData.teams.length) {
+        document.getElementById('noData').style.display = '';
+        return;
+    }
+    const prefs = offlineData.preferences || {};
+    const theme = prefs.theme || 'light';
+    document.documentElement.setAttribute('data-theme', theme);
+
+    const list = document.getElementById('teamList');
+    list.innerHTML = '';
+
+    offlineData.teams.forEach(team => {
+        if (!team.pitchers || !team.pitchers.length) return;
+        const card = document.createElement('div');
+        card.className = 'team-card';
+        card.innerHTML = `<div class="team-heading">${escapeHtml(team.name)}</div>`;
+
+        team.pitchers.forEach(pitcher => {
+            const btn = document.createElement('button');
+            btn.className = 'pitcher-select-btn';
+            btn.innerHTML = `
+                <div class="pitcher-number">${escapeHtml(String(pitcher.number || '?'))}</div>
+                <div>
+                    <div class="pitcher-select-name">${escapeHtml(pitcher.name)}</div>
+                    <div class="pitcher-select-meta">${pitcher.throws === 'R' ? 'RHP' : 'LHP'} · ${pitcher.zone ? escapeHtml(pitcher.zone.name) : 'No Zone'}</div>
+                </div>
+                <i class="bi bi-chevron-right ms-auto text-muted"></i>`;
+            btn.addEventListener('click', () => startGame(team, pitcher, prefs));
+            card.appendChild(btn);
+        });
+        list.appendChild(card);
+    });
+}
+
+function escapeHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// GAME STATE  (set fresh each time a pitcher is selected)
+// ══════════════════════════════════════════════════════════════════════════════
+let _pitcherData, _isRHP, _pitchTypes, _zoneLocations, _currentTeam, _currentPrefs;
+let selectedPitchIndex = null;
+let selectedLocation   = null;
+let lastCall           = null;
+let _boxSize = 70, _boxH = 70;
+
+// ── Zone layout tables (identical to game.ejs) ─────────────────────────────
+function getLayouts(isRHP) {
+    return {
+        C: {
+            'glove-out-up':   { row: 1, col: isRHP ? 1 : 5 },
+            'up-out':         { row: 1, col: 2 },
+            'arm-out-up':     { row: 1, col: isRHP ? 5 : 1 },
+            'glove-out-mid':  { row: 2, col: isRHP ? 1 : 5, rowSpan: 3 },
+            'glove-up':       { row: 2, col: isRHP ? 2 : 4, strike: true },
+            'mid-up':         { row: 2, col: 3,              strike: true },
+            'arm-up':         { row: 2, col: isRHP ? 4 : 2, strike: true },
+            'arm-out-mid':    { row: 2, col: isRHP ? 5 : 1, rowSpan: 3 },
+            'glove-mid':      { row: 3, col: isRHP ? 2 : 4, strike: true },
+            'mid-mid':        { row: 3, col: 3,              strike: true },
+            'arm-mid':        { row: 3, col: isRHP ? 4 : 2, strike: true },
+            'glove-down':     { row: 4, col: isRHP ? 2 : 4, strike: true },
+            'mid-down':       { row: 4, col: 3,              strike: true },
+            'arm-down':       { row: 4, col: isRHP ? 4 : 2, strike: true },
+            'glove-out-down': { row: 5, col: isRHP ? 1 : 5 },
+            'down-out':       { row: 5, col: 2 },
+            'arm-out-down':   { row: 5, col: isRHP ? 5 : 1 },
+        },
+        D: {
+            'up-out':     { row: 1, col: 2, colSpan: 2, anchor: true },
+            'glove-out':  { row: 2, col: isRHP ? 1 : 4, rowSpan: 2, anchor: true },
+            'glove-up':   { row: 2, col: isRHP ? 2 : 3, strike: true },
+            'arm-up':     { row: 2, col: isRHP ? 3 : 2, strike: true },
+            'arm-out':    { row: 2, col: isRHP ? 4 : 1, rowSpan: 2, anchor: true },
+            'glove-down': { row: 3, col: isRHP ? 2 : 3, strike: true },
+            'arm-down':   { row: 3, col: isRHP ? 3 : 2, strike: true },
+            'down-out':   { row: 4, col: 2, colSpan: 2, anchor: true },
+            'corner-top-glove': { row: 1, col: isRHP ? 1 : 4 },
+            'corner-top-arm':   { row: 1, col: isRHP ? 4 : 1 },
+            'corner-bot-glove': { row: 4, col: isRHP ? 1 : 4 },
+            'corner-bot-arm':   { row: 4, col: isRHP ? 4 : 1 },
+        },
+        A: {
+            'arm-side':   { row: 1, col: isRHP ? 2 : 1, strike: true },
+            'glove-side': { row: 1, col: isRHP ? 1 : 2, strike: true },
+        },
+        B: {
+            'up':   { row: 1, col: 1, strike: true },
+            'down': { row: 2, col: 1, strike: true },
+        },
+        A_IA: {
+            'away-side':   { row: 1, col: 1, strike: true },
+            'inside-side': { row: 1, col: 2, strike: true },
+        },
+        C_IA: {
+            'away-out-up':     { row: 1, col: 1 },
+            'up-out':          { row: 1, col: 2 },
+            'inside-out-up':   { row: 1, col: 5 },
+            'away-out-mid':    { row: 2, col: 1, rowSpan: 3 },
+            'away-up':         { row: 2, col: 2, strike: true },
+            'mid-up':          { row: 2, col: 3, strike: true },
+            'inside-up':       { row: 2, col: 4, strike: true },
+            'inside-out-mid':  { row: 2, col: 5, rowSpan: 3 },
+            'away-mid':        { row: 3, col: 2, strike: true },
+            'mid-mid':         { row: 3, col: 3, strike: true },
+            'inside-mid':      { row: 3, col: 4, strike: true },
+            'away-down':       { row: 4, col: 2, strike: true },
+            'mid-down':        { row: 4, col: 3, strike: true },
+            'inside-down':     { row: 4, col: 4, strike: true },
+            'away-out-down':   { row: 5, col: 1 },
+            'down-out':        { row: 5, col: 2 },
+            'inside-out-down': { row: 5, col: 5 },
+        },
+        D_IA: {
+            'up-out':      { row: 1, col: 2, colSpan: 2, anchor: true },
+            'away-out':    { row: 2, col: 1, rowSpan: 2, anchor: true },
+            'away-up':     { row: 2, col: 2, strike: true },
+            'inside-up':   { row: 2, col: 3, strike: true },
+            'inside-out':  { row: 2, col: 4, rowSpan: 2, anchor: true },
+            'away-down':   { row: 3, col: 2, strike: true },
+            'inside-down': { row: 3, col: 3, strike: true },
+            'down-out':    { row: 4, col: 2, colSpan: 2, anchor: true },
+        },
+    };
+}
+
+function getLayout(locs, isRHP) {
+    const L = getLayouts(isRHP);
+    const n = new Set(locs.map(l => l.name));
+    if (n.has('mid-up') && n.has('glove-up'))  return L.C;
+    if (n.has('mid-up') && n.has('inside-up')) return L.C_IA;
+    if (n.has('glove-up') && n.has('arm-up'))  return L.D;
+    if (n.has('away-up') && n.has('inside-up'))return L.D_IA;
+    if (n.has('arm-side'))    return L.A;
+    if (n.has('inside-side')) return L.A_IA;
+    if (n.has('up'))          return L.B;
+    return L.C;
+}
+function usesOverlays(locs) {
+    const n = new Set(locs.map(l => l.name));
+    return n.has('glove-up') || n.has('inside-up') || n.has('away-up');
+}
+function isZoneD(locs) {
+    const n = new Set(locs.map(l => l.name));
+    return (n.has('glove-up') || n.has('away-up')) && !n.has('mid-up');
+}
+
+function cellBounds(pos) {
+    return {
+        top:    (pos.row - 1) * _boxH,
+        left:   (pos.col - 1) * _boxSize,
+        bottom: ((pos.row - 1) + (pos.rowSpan || 1)) * _boxH,
+        right:  ((pos.col - 1) + (pos.colSpan || 1)) * _boxSize,
+        width:  (pos.colSpan || 1) * _boxSize,
+        height: (pos.rowSpan || 1) * _boxH,
+    };
+}
+
+function buildGrid() {
+    const layout  = getLayout(_zoneLocations, _isRHP);
+    const grid    = document.getElementById('zoneGrid');
+    const wrapper = document.getElementById('zoneWrapper');
+    grid.innerHTML = '';
+    wrapper.querySelectorAll('.chase-overlay, .strike-zone-outline').forEach(el => el.remove());
+    if (!_zoneLocations.length) return;
+
+    const maxRow = Math.max(...Object.values(layout).map(p => (p.row || 1) + (p.rowSpan || 1) - 1));
+    const maxCol = Math.max(...Object.values(layout).map(p => (p.col || 1) + (p.colSpan || 1) - 1));
+
+    const labelEl  = wrapper.querySelector('.pitchers-view-label');
+    const labelH   = labelEl ? labelEl.offsetHeight + 2 : 0;
+    const zoneArea = document.querySelector('.zone-area');
+    const _availH  = ((zoneArea && zoneArea.offsetHeight > 0)
+        ? zoneArea.offsetHeight
+        : window.innerHeight - 56 - 44 - 44 - 48) - labelH;
+
+    _boxSize = Math.floor(_availH / maxRow);
+    const gamePanel = document.querySelector('.game-page');
+    const _availW = (gamePanel ? gamePanel.offsetWidth : window.innerWidth) - 4;
+    _boxSize = Math.min(_boxSize, Math.floor(_availW / maxCol));
+    _boxSize = Math.max(_boxSize, 44);
+    _boxH = _boxSize;
+
+    if (maxRow === 1 && maxCol === 2) {
+        _boxSize = Math.min(Math.floor(_availW / maxCol), 160);
+        _boxH    = Math.min(Math.floor(_availH * 0.6), 220);
+    } else if (maxRow === 2 && maxCol === 1) {
+        _boxSize = Math.min(Math.floor(_availW * 0.55), 200);
+        _boxH    = Math.min(Math.floor(_availH / 2), 130);
+    } else if (maxRow <= 2) {
+        _boxSize = Math.min(_boxSize, 120);
+        _boxH    = _boxSize;
+    }
+
+    grid.style.gridTemplateRows    = `repeat(${maxRow}, ${_boxH}px)`;
+    grid.style.gridTemplateColumns = `repeat(${maxCol}, ${_boxSize}px)`;
+
+    if (isZoneD(_zoneLocations)) {
+        const upOut   = _zoneLocations.find(l => l.name === 'up-out');
+        const downOut = _zoneLocations.find(l => l.name === 'down-out');
+        const upCls   = (upOut   && upOut.enabled   === false) ? 'loc-box chase disabled' : 'loc-box chase';
+        const downCls = (downOut && downOut.enabled === false) ? 'loc-box chase disabled' : 'loc-box chase';
+        [
+            { row: 1, col: _isRHP ? 1 : 4, cls: upCls,   name: 'corner-top-glove' },
+            { row: 1, col: _isRHP ? 4 : 1, cls: upCls,   name: 'corner-top-arm'   },
+            { row: 4, col: _isRHP ? 1 : 4, cls: downCls, name: 'corner-bot-glove' },
+            { row: 4, col: _isRHP ? 4 : 1, cls: downCls, name: 'corner-bot-arm'   },
+        ].forEach(pos => {
+            const filler = document.createElement('div');
+            filler.className = pos.cls;
+            filler.dataset.locName = pos.name;
+            filler.style.gridRow = String(pos.row);
+            filler.style.gridColumn = String(pos.col);
+            filler.style.pointerEvents = 'none';
+            grid.appendChild(filler);
+        });
+    }
+
+    _zoneLocations.forEach(loc => {
+        const pos = layout[loc.name];
+        if (!pos) return;
+        const box = document.createElement('div');
+        const cls = pos.anchor ? 'anchor' : (loc.type === 'chase' ? 'chase' : 'strike');
+        box.className   = `loc-box ${cls}`;
+        box.textContent = pos.anchor ? '' : loc.name.replace(/-/g, ' ').replace(' side', '');
+        if (!pos.anchor) {
+            box.setAttribute('aria-label', locLabel(loc.name));
+            box.setAttribute('role', 'gridcell');
+            box.setAttribute('tabindex', '0');
+        }
+        box.dataset.locName  = loc.name;
+        box.dataset.isStrike = pos.strike ? 'true' : 'false';
+        box.style.gridRow    = pos.rowSpan ? `${pos.row} / span ${pos.rowSpan}` : String(pos.row);
+        box.style.gridColumn = pos.colSpan ? `${pos.col} / span ${pos.colSpan}` : String(pos.col);
+        grid.appendChild(box);
+    });
+
+    drawOutline(layout);
+    if (usesOverlays(_zoneLocations)) drawOverlays(layout);
+    if (selectedLocation) highlightLocation(selectedLocation);
+}
+
+function drawOutline(layout) {
+    const wrapper      = document.getElementById('zoneWrapper');
+    const labelEl      = wrapper.querySelector('.pitchers-view-label');
+    const labelH       = labelEl ? labelEl.offsetHeight + 2 : 0;
+    const strikePosArr = Object.values(layout).filter(p => p.strike);
+    if (!strikePosArr.length) return;
+    if (strikePosArr.length <= 2 && !Object.values(layout).some(p => !p.strike)) return;
+    let t = Infinity, l = Infinity, b = -Infinity, r = -Infinity;
+    strikePosArr.forEach(pos => {
+        const bnd = cellBounds(pos);
+        t = Math.min(t, bnd.top);    l = Math.min(l, bnd.left);
+        b = Math.max(b, bnd.bottom); r = Math.max(r, bnd.right);
+    });
+    const outline = document.createElement('div');
+    outline.className = 'strike-zone-outline';
+    outline.setAttribute('aria-hidden', 'true');
+    Object.assign(outline.style, { top: (t + 2 + labelH) + 'px', left: (l + 2) + 'px', width: (r - l) + 'px', height: (b - t) + 'px' });
+    wrapper.appendChild(outline);
+}
+
+function drawOverlays(layout) {
+    const wrapper = document.getElementById('zoneWrapper');
+    const grid    = document.getElementById('zoneGrid');
+    const labelEl = wrapper.querySelector('.pitchers-view-label');
+    const labelH  = labelEl ? labelEl.offsetHeight + 2 : 0;
+    wrapper.querySelectorAll('.chase-overlay').forEach(el => el.remove());
+
+    function spanBounds(names) {
+        let t = Infinity, l = Infinity, b = -Infinity, r = -Infinity;
+        names.forEach(name => {
+            const pos = layout[name]; if (!pos) return;
+            const bnd = cellBounds(pos);
+            t = Math.min(t, bnd.top);    l = Math.min(l, bnd.left);
+            b = Math.max(b, bnd.bottom); r = Math.max(r, bnd.right);
+        });
+        return { t, l, b, r };
+    }
+
+    function makeOverlay(locName, label, hCellNames, vCellNames) {
+        const loc = _zoneLocations.find(z => z.name === locName); if (!loc) return;
+        const hb = spanBounds(hCellNames), vb = spanBounds(vCellNames);
+        if (!isFinite(hb.l) || !isFinite(vb.t)) return;
+        const cell = [...grid.querySelectorAll('.loc-box')].find(el => el.dataset.locName === locName);
+        if (cell) cell.classList.add('covered');
+        const el = document.createElement('div');
+        el.className       = 'chase-overlay' + (loc.enabled === false ? ' disabled' : '');
+        el.textContent     = label;
+        el.dataset.locName = locName;
+        el.setAttribute('aria-label', locLabel(locName));
+        el.setAttribute('role', 'gridcell');
+        el.setAttribute('tabindex', '0');
+        Object.assign(el.style, { top: (vb.t + 2 + labelH) + 'px', left: (hb.l + 2) + 'px', width: (hb.r - hb.l) + 'px', height: (vb.b - vb.t) + 'px' });
+        wrapper.appendChild(el);
+    }
+
+    const locNames     = new Set(_zoneLocations.map(l => l.name));
+    const isInsideAway = locNames.has('inside-up') || locNames.has('inside-down');
+
+    if (isZoneD(_zoneLocations)) {
+        if (isInsideAway) {
+            makeOverlay('up-out',     'up out',     ['corner-top-glove','away-up','inside-up','corner-top-arm'],     ['up-out']);
+            makeOverlay('down-out',   'down out',   ['corner-bot-glove','away-down','inside-down','corner-bot-arm'], ['down-out']);
+            makeOverlay('away-out',   'away out',   ['away-out'],   ['away-up','away-down']);
+            makeOverlay('inside-out', 'inside out', ['inside-out'], ['inside-up','inside-down']);
+        } else {
+            makeOverlay('up-out',    'up out',   ['corner-top-glove','glove-up','arm-up','corner-top-arm'],   ['up-out']);
+            makeOverlay('down-out',  'down out', ['corner-bot-glove','glove-down','arm-down','corner-bot-arm'],['down-out']);
+            makeOverlay('glove-out', _isRHP ? 'glove out' : 'arm out', ['glove-out'], ['glove-up','glove-down']);
+            makeOverlay('arm-out',   _isRHP ? 'arm out' : 'glove out', ['arm-out'],   ['arm-up','arm-down']);
+        }
+    } else {
+        if (isInsideAway) {
+            makeOverlay('up-out',         'up out',     ['away-out-up','away-up','mid-up','inside-up','inside-out-up'],       ['up-out']);
+            makeOverlay('down-out',       'down out',   ['away-out-down','away-down','mid-down','inside-down','inside-out-down'],['down-out']);
+            makeOverlay('inside-out-mid', 'inside out', ['inside-out-mid'], ['inside-up','inside-mid','inside-down']);
+            makeOverlay('away-out-mid',   'away out',   ['away-out-mid'],   ['away-up','away-mid','away-down']);
+        } else {
+            const armOut   = _isRHP ? 'arm-out-mid'   : 'glove-out-mid';
+            const gloveOut = _isRHP ? 'glove-out-mid' : 'arm-out-mid';
+            makeOverlay('up-out',   'up out',   ['glove-out-up','glove-up','mid-up','arm-up','arm-out-up'],       ['up-out']);
+            makeOverlay('down-out', 'down out', ['glove-out-down','glove-down','mid-down','arm-down','arm-out-down'],['down-out']);
+            makeOverlay(armOut,   _isRHP ? 'arm out'   : 'glove out', [armOut],   _isRHP ? ['arm-up','arm-mid','arm-down']     : ['glove-up','glove-mid','glove-down']);
+            makeOverlay(gloveOut, _isRHP ? 'glove out' : 'arm out',   [gloveOut], _isRHP ? ['glove-up','glove-mid','glove-down'] : ['arm-up','arm-mid','arm-down']);
+        }
+    }
+}
+
+const LOC_LABELS = {
+    'glove-up':'glove side up','glove-mid':'glove side middle','glove-down':'glove side down',
+    'arm-up':'arm side up','arm-mid':'arm side middle','arm-down':'arm side down',
+    'mid-up':'middle up','mid-mid':'middle middle','mid-down':'middle down',
+    'glove-out-up':'glove side up and out','glove-out-mid':'glove side out','glove-out-down':'glove side down and out',
+    'arm-out-up':'arm side up and out','arm-out-mid':'arm side out','arm-out-down':'arm side down and out',
+    'up-out':'up and out','down-out':'down and out',
+    'glove-side':'glove side','arm-side':'arm side','up':'up','down':'down',
+    'away-up':'away up','away-mid':'away middle','away-down':'away down',
+    'inside-up':'inside up','inside-mid':'inside middle','inside-down':'inside down',
+    'away-out-up':'away up and out','away-out-mid':'away out','away-out-down':'away down and out',
+    'inside-out-up':'inside up and out','inside-out-mid':'inside out','inside-out-down':'inside down and out',
+    'away-side':'away','inside-side':'inside',
+    'glove-out':'glove side out','arm-out':'arm side out',
+    'away-out':'away out','inside-out':'inside out',
+};
+function locLabel(locName) { return LOC_LABELS[locName] || locName.replace(/-/g, ' '); }
+
+function selectPitch(index) {
+    selectedPitchIndex = index;
+    document.querySelectorAll('.pitch-btn').forEach((btn, i) => {
+        btn.classList.toggle('active', i === index);
+        btn.setAttribute('aria-pressed', i === index ? 'true' : 'false');
+    });
+    if (window._cancelSpecialCall) window._cancelSpecialCall();
+    updateCallBar(); updateButtons();
+}
+function selectLocation(locName) {
+    selectedLocation = locName;
+    highlightLocation(locName);
+    if (window._cancelSpecialCall) window._cancelSpecialCall();
+    updateCallBar(); updateButtons();
+}
+function highlightLocation(locName) {
+    document.querySelectorAll('.loc-box, .chase-overlay').forEach(el => {
+        const sel = el.dataset.locName === locName;
+        el.classList.toggle('selected-loc', sel);
+        if (el.getAttribute('role') === 'gridcell') el.setAttribute('aria-selected', sel ? 'true' : 'false');
+    });
+}
+function clearSelection() {
+    selectedPitchIndex = null; selectedLocation = null;
+    document.querySelectorAll('.pitch-btn').forEach(btn => {
+        btn.classList.remove('active'); btn.setAttribute('aria-pressed', 'false');
+    });
+    highlightLocation(null); updateCallBar(); updateButtons();
+}
+function updateCallBar() {
+    const label = document.getElementById('callLabel');
+    const text  = document.getElementById('callText');
+    if (selectedPitchIndex !== null && selectedLocation) {
+        label.textContent = 'CALL:';
+        text.textContent  = `${_pitchTypes[selectedPitchIndex].name} — ${locLabel(selectedLocation)}`;
+        text.style.display = '';
+    } else if (selectedPitchIndex !== null) {
+        label.textContent = 'SELECT LOCATION'; text.style.display = 'none';
+    } else if (selectedLocation) {
+        label.textContent = 'SELECT PITCH TYPE'; text.style.display = 'none';
+    } else {
+        label.textContent = 'SELECT PITCH & LOCATION'; text.style.display = 'none';
+    }
+}
+function updateButtons() {
+    const ready = selectedPitchIndex !== null && selectedLocation !== null;
+    document.getElementById('btnCall').classList.toggle('disabled-btn', !ready);
+    document.getElementById('btnCall').setAttribute('aria-disabled', !ready);
+    document.getElementById('btnRepeat').classList.toggle('disabled-btn', !lastCall);
+    document.getElementById('btnRepeat').setAttribute('aria-disabled', !lastCall);
+}
+
+function speak(pitchName, locName) {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(locName ? `${pitchName}, ${locLabel(locName)}` : pitchName);
+    utter.rate = 0.95;
+    const savedURI = window.PS_VOICE_URI || '';
+    if (savedURI) {
+        const voices = window.speechSynthesis.getVoices();
+        const match  = voices.find(v => v.voiceURI === savedURI);
+        if (match) utter.voice = match;
+    }
+    const bar = document.getElementById('callBar');
+    const dot = document.createElement('span');
+    dot.className = 'speaking-dot';
+    utter.onstart = () => bar.appendChild(dot);
+    utter.onend = utter.onerror = () => dot.parentNode?.removeChild(dot);
+    window.speechSynthesis.speak(utter);
+}
+
+function normalCallHandler() {
+    if (selectedPitchIndex === null || !selectedLocation) return;
+    const pitchName = _pitchTypes[selectedPitchIndex].name;
+    lastCall = { pitchName, locName: selectedLocation };
+    speak(pitchName, selectedLocation); updateButtons();
+}
+
+// ── Pitch button layout ────────────────────────────────────────────────────
+function layoutPitchButtons() {
+    requestAnimationFrame(() => {
+        const count = _pitchTypes.length;
+        const row   = document.getElementById('pitchRow');
+        if (!row || !count) return;
+        let perRow;
+        if      (count <= 4) perRow = count;
+        else if (count <= 6) perRow = 3;
+        else                 perRow = 4;
+        const pct = `calc(${100 / perRow}% - 0.4rem)`;
+        row.querySelectorAll('.pitch-btn').forEach(btn => {
+            btn.style.flexBasis = pct; btn.style.maxWidth = pct;
+        });
+    });
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// START GAME  — called when a pitcher is tapped in the selector
+// ══════════════════════════════════════════════════════════════════════════════
+function startGame(team, pitcher, prefs) {
+    // Stash globals
+    _pitcherData   = pitcher;
+    _isRHP         = pitcher.throws === 'R';
+    _pitchTypes    = pitcher.pitchTypes || [];
+    _zoneLocations = pitcher.zone ? pitcher.zone.availableLocations : [];
+    _currentTeam   = team;
+    _currentPrefs  = prefs;
+
+    // Reset state
+    selectedPitchIndex = null; selectedLocation = null; lastCall = null;
+    window._cancelSpecialCall = null;
+    window.PS_VOICE_URI = prefs.voiceURI || '';
+
+    // Apply colors
+    applyTeamColors(team, prefs);
+
+    // Header
+    document.getElementById('pitcherNameEl').textContent = `#${pitcher.number} ${pitcher.name}`;
+    document.getElementById('pitcherMetaEl').textContent =
+        `${_isRHP ? 'RHP' : 'LHP'} · ${pitcher.zone ? pitcher.zone.name : 'No Zone'}`;
+
+    // Pitch buttons
+    const pitchRow = document.getElementById('pitchRow');
+    pitchRow.innerHTML = '';
+    _pitchTypes.forEach((pt, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'pitch-btn';
+        btn.dataset.pitchIndex = i;
+        btn.textContent = pt.abbreviation || pt.name;
+        btn.setAttribute('aria-label', `Select pitch: ${pt.name}`);
+        btn.setAttribute('aria-pressed', 'false');
+        pitchRow.appendChild(btn);
+    });
+    layoutPitchButtons();
+
+    // Show/hide pickoff for softball
+    const btnPickoff = document.getElementById('btnPickoff');
+    if (btnPickoff) btnPickoff.style.display = team.sport === 'softball' ? 'none' : '';
+
+    // Reset call bar & buttons
+    updateCallBar(); updateButtons();
+
+    // Re-attach call button listener (clear old ones by cloning)
+    const oldCall = document.getElementById('btnCall');
+    const newCall = oldCall.cloneNode(true);
+    oldCall.parentNode.replaceChild(newCall, oldCall);
+    newCall.addEventListener('click', normalCallHandler);
+
+    // Switch screens
+    document.getElementById('selectScreen').style.display = 'none';
+    document.getElementById('gameScreen').style.display   = '';
+    document.body.style.overflow = 'hidden';
+
+    requestAnimationFrame(buildGrid);
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// EVENT LISTENERS
+// ══════════════════════════════════════════════════════════════════════════════
+
+// Back button
+document.getElementById('btnBack').addEventListener('click', () => {
+    window.speechSynthesis && window.speechSynthesis.cancel();
+    document.getElementById('gameScreen').style.display   = 'none';
+    document.getElementById('selectScreen').style.display = '';
+    document.body.style.overflow = '';
+});
+
+// Pitch row
+document.getElementById('pitchRow').addEventListener('click', e => {
+    const btn = e.target.closest('.pitch-btn');
+    if (btn) selectPitch(Number(btn.dataset.pitchIndex));
+});
+
+// Zone wrapper
+document.getElementById('zoneWrapper').addEventListener('click', e => {
+    const el = e.target.closest('.loc-box:not(.covered):not(.anchor):not(.empty), .chase-overlay');
+    if (el) selectLocation(el.dataset.locName);
+});
+document.getElementById('zoneWrapper').addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') {
+        const el = e.target.closest('.loc-box:not(.covered):not(.anchor):not(.empty), .chase-overlay');
+        if (el) { e.preventDefault(); selectLocation(el.dataset.locName); }
+    }
+});
+
+// Shuffle
+document.getElementById('btnRandom').addEventListener('click', () => {
+    const eligible = _pitchTypes.filter(pt => pt.locations?.some(l => l.enabled));
+    if (!eligible.length) return;
+    const ss = _pitcherData.shuffleSettings || {};
+    const pitchWeights    = ss.pitchWeights || {};
+    const strikeChancePct = ss.strikeChancePct != null
+        ? ss.strikeChancePct
+        : ((_currentPrefs && _currentPrefs.strikeChancePct != null) ? _currentPrefs.strikeChancePct : 70);
+
+    const weights    = eligible.map(pt => { const w = pitchWeights[pt.name]; return (w != null && !isNaN(w)) ? parseInt(w) : 1; });
+    const totalWeight = weights.reduce((a, b) => a + b, 0);
+    let roll = Math.random() * totalWeight;
+    let pt = eligible[eligible.length - 1];
+    for (let i = 0; i < eligible.length; i++) { roll -= weights[i]; if (roll <= 0) { pt = eligible[i]; break; } }
+    const pitchIndex = _pitchTypes.indexOf(pt);
+
+    const strikeLocs = pt.locations.filter(l => l.enabled && l.type === 'strike');
+    const chaseLocs  = pt.locations.filter(l => l.enabled && l.type === 'chase');
+    let locPool;
+    if (strikeLocs.length && chaseLocs.length) {
+        locPool = Math.random() * 100 < strikeChancePct ? strikeLocs : chaseLocs;
+    } else {
+        locPool = strikeLocs.length ? strikeLocs : chaseLocs;
+    }
+    if (!locPool.length) return;
+    const loc = locPool[Math.floor(Math.random() * locPool.length)];
+    selectPitch(pitchIndex);
+    if (loc.name === selectedLocation) {
+        document.querySelectorAll(`[data-loc-name="${loc.name}"]`).forEach(el => el.classList.remove('selected-loc'));
+        setTimeout(() => selectLocation(loc.name), 150);
+    } else {
+        selectLocation(loc.name);
+    }
+});
+
+// Clear
+document.getElementById('btnClear').addEventListener('click', clearSelection);
+
+// Repeat
+document.getElementById('btnRepeat').addEventListener('click', () => {
+    if (lastCall) speak(lastCall.pitchName, lastCall.locName);
+});
+
+// Pickoff
+const pickoffOverlay = document.getElementById('pickoffOverlay');
+const btnPickoff     = document.getElementById('btnPickoff');
+btnPickoff.addEventListener('click', () => { pickoffOverlay.style.display = 'flex'; });
+document.getElementById('btnCancelPickoff').addEventListener('click', () => { pickoffOverlay.style.display = 'none'; });
+pickoffOverlay.querySelectorAll('.base-btn[data-base]').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const base = btn.dataset.base; if (!base) return;
+        pickoffOverlay.style.display = 'none';
+        const label = document.getElementById('callLabel'), text = document.getElementById('callText');
+        label.textContent = 'CALL:'; text.textContent = `Pickoff — ${base} Base`; text.style.display = '';
+        const btnCall = document.getElementById('btnCall');
+        btnCall.classList.remove('disabled-btn');
+        function handlePickoffCall() {
+            const baseLabel = base === '1st' ? 'first base' : base === '2nd' ? 'second base' : 'third base';
+            speak('Pickoff', baseLabel);
+            btnCall.removeEventListener('click', handlePickoffCall);
+            btnCall.addEventListener('click', normalCallHandler);
+            window._cancelSpecialCall = null;
+        }
+        btnCall.removeEventListener('click', normalCallHandler);
+        btnCall.addEventListener('click', handlePickoffCall);
+        window._cancelSpecialCall = () => {
+            btnCall.removeEventListener('click', handlePickoffCall);
+            btnCall.addEventListener('click', normalCallHandler);
+            window._cancelSpecialCall = null;
+        };
+    });
+});
+
+// Pitchout
+document.getElementById('btnPitchout').addEventListener('click', () => {
+    clearSelection();
+    const label = document.getElementById('callLabel'), text = document.getElementById('callText');
+    label.textContent = 'CALL:'; text.textContent = 'Pitchout'; text.style.display = '';
+    const btnCall = document.getElementById('btnCall');
+    btnCall.classList.remove('disabled-btn');
+    function handlePitchoutCall() { speak('Pitchout', ''); btnCall.removeEventListener('click', handlePitchoutCall); btnCall.addEventListener('click', normalCallHandler); }
+    btnCall.removeEventListener('click', normalCallHandler);
+    btnCall.addEventListener('click', handlePitchoutCall);
+    window._cancelSpecialCall = () => {
+        btnCall.removeEventListener('click', handlePitchoutCall);
+        btnCall.addEventListener('click', normalCallHandler);
+        window._cancelSpecialCall = null;
+    };
+});
+
+// Resize
+let resizeTimer;
+window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(buildGrid, 100); });
+
+// ══════════════════════════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════════════════════════
+renderSelector();
+</script>
 </body>
 </html>
