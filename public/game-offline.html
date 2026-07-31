@@ -56,7 +56,7 @@
         /* ── Game screen ── */
         html { height: 100%; }
         body { background: #2a2a2a; }
-        #gameScreen { display: none; height: calc(100dvh - 28px); }
+        #gameScreen { display: none; height: calc(100dvh - 28px); /* minus banner */ }
 
         .game-page {
             display: flex; flex-direction: column;
@@ -214,9 +214,9 @@
 <div class="offline-banner">📵 You're offline — using saved data</div>
 
 <!-- ════════════════════════════════════════════════
-     SCREEN 1: Pitcher Selector
+     SCREEN 1: Team Selector
      ════════════════════════════════════════════════ -->
-<div id="selectScreen">
+<div id="teamScreen">
     <nav class="navbar ps-navbar">
         <div class="container-fluid">
             <span class="navbar-brand">
@@ -226,7 +226,10 @@
         </div>
     </nav>
 
-    <div class="container mt-3" id="teamList"></div>
+    <div class="container mt-3">
+        <p class="text-muted mb-3" style="font-size:0.85rem;">Select a team to start a game.</p>
+        <div id="teamList"></div>
+    </div>
 
     <div id="noData" class="text-center mt-5 px-4" style="display:none;">
         <img src="/images/pitchshuffle-logo-192.png" width="64" class="mb-3 opacity-50">
@@ -236,20 +239,40 @@
 </div>
 
 <!-- ════════════════════════════════════════════════
+     SCREEN 2: Pitcher Selector
+     ════════════════════════════════════════════════ -->
+<div id="pitcherScreen" style="display:none;">
+    <nav class="navbar ps-navbar">
+        <div class="container-fluid d-flex align-items-center gap-2">
+            <button id="btnBackToTeams" class="btn btn-sm btn-outline-light" aria-label="Back to team select">
+                <i class="bi bi-arrow-left"></i>
+            </button>
+            <span class="navbar-brand mb-0" id="pitcherScreenTitle">Select Pitcher</span>
+        </div>
+    </nav>
+
+    <div class="container mt-3">
+        <p class="text-muted mb-3" style="font-size:0.85rem;">Select a pitcher to start the game.</p>
+        <div id="pitcherList"></div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════
      SCREEN 2: Game UI
      ════════════════════════════════════════════════ -->
 <div id="gameScreen">
     <div class="game-page">
         <div class="game-header">
-            <button id="btnBack" class="btn btn-sm btn-outline-light" aria-label="Back to pitcher select">
+            <button id="btnBack" class="btn btn-sm btn-outline-light" aria-label="Back to team select">
                 <i class="bi bi-arrow-left"></i>
             </button>
             <div class="pitcher-info">
                 <div class="pitcher-name" id="pitcherNameEl"></div>
                 <div class="pitcher-meta" id="pitcherMetaEl"></div>
             </div>
-            <!-- spacer to keep name centered -->
-            <div style="width:58px;"></div>
+            <button id="btnChangePitcher" class="btn btn-sm btn-outline-light" aria-label="Change pitcher" style="font-size:0.72rem;white-space:nowrap;">
+                <i class="bi bi-person-fill-gear"></i> Change
+            </button>
         </div>
 
         <div class="pitch-row" id="pitchRow" role="toolbar" aria-label="Pitch type selection"></div>
@@ -363,9 +386,11 @@ const offlineData = (function () {
 })();
 
 // ══════════════════════════════════════════════════════════════════════════════
-// PITCHER SELECTOR
+// TEAM SELECTOR
 // ══════════════════════════════════════════════════════════════════════════════
-function renderSelector() {
+let _selectedTeam = null;
+
+function renderTeams() {
     if (!offlineData || !offlineData.teams || !offlineData.teams.length) {
         document.getElementById('noData').style.display = '';
         return;
@@ -379,24 +404,48 @@ function renderSelector() {
 
     offlineData.teams.forEach(team => {
         if (!team.pitchers || !team.pitchers.length) return;
-        const card = document.createElement('div');
-        card.className = 'team-card';
-        card.innerHTML = `<div class="team-heading">${escapeHtml(team.name)}</div>`;
+        const btn = document.createElement('button');
+        btn.className = 'pitcher-select-btn';
+        btn.innerHTML = `
+            <div class="pitcher-number" style="width:42px;height:42px;border-radius:8px;font-size:0.7rem;">
+                ${escapeHtml(team.sport === 'softball' ? 'SB' : 'BB')}
+            </div>
+            <div>
+                <div class="pitcher-select-name">${escapeHtml(team.name)}</div>
+                <div class="pitcher-select-meta">${team.pitchers.length} pitcher${team.pitchers.length !== 1 ? 's' : ''}</div>
+            </div>
+            <i class="bi bi-chevron-right ms-auto text-muted"></i>`;
+        btn.addEventListener('click', () => selectTeam(team, prefs));
+        list.appendChild(btn);
+    });
+}
 
-        team.pitchers.forEach(pitcher => {
-            const btn = document.createElement('button');
-            btn.className = 'pitcher-select-btn';
-            btn.innerHTML = `
-                <div class="pitcher-number">${escapeHtml(String(pitcher.number || '?'))}</div>
-                <div>
-                    <div class="pitcher-select-name">${escapeHtml(pitcher.name)}</div>
-                    <div class="pitcher-select-meta">${pitcher.throws === 'R' ? 'RHP' : 'LHP'} · ${pitcher.zone ? escapeHtml(pitcher.zone.name) : 'No Zone'}</div>
-                </div>
-                <i class="bi bi-chevron-right ms-auto text-muted"></i>`;
-            btn.addEventListener('click', () => startGame(team, pitcher, prefs));
-            card.appendChild(btn);
-        });
-        list.appendChild(card);
+function selectTeam(team, prefs) {
+    _selectedTeam = team;
+    renderPitchers(team, prefs);
+    document.getElementById('teamScreen').style.display    = 'none';
+    document.getElementById('pitcherScreen').style.display = '';
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PITCHER SELECTOR
+// ══════════════════════════════════════════════════════════════════════════════
+function renderPitchers(team, prefs) {
+    document.getElementById('pitcherScreenTitle').textContent = team.name;
+    const list = document.getElementById('pitcherList');
+    list.innerHTML = '';
+    (team.pitchers || []).forEach(pitcher => {
+        const btn = document.createElement('button');
+        btn.className = 'pitcher-select-btn';
+        btn.innerHTML = `
+            <div class="pitcher-number">${escapeHtml(String(pitcher.number || '?'))}</div>
+            <div>
+                <div class="pitcher-select-name">${escapeHtml(pitcher.name)}</div>
+                <div class="pitcher-select-meta">${pitcher.throws === 'R' ? 'RHP' : 'LHP'} · ${pitcher.zone ? escapeHtml(pitcher.zone.name) : 'No Zone'}</div>
+            </div>
+            <i class="bi bi-chevron-right ms-auto text-muted"></i>`;
+        btn.addEventListener('click', () => startGame(team, pitcher, prefs));
+        list.appendChild(btn);
     });
 }
 
@@ -833,10 +882,6 @@ function startGame(team, pitcher, prefs) {
     document.getElementById('pitcherNameEl').textContent = `#${pitcher.number} ${pitcher.name}`;
     document.getElementById('pitcherMetaEl').textContent =
         `${_isRHP ? 'RHP' : 'LHP'} · ${pitcher.zone ? pitcher.zone.name : 'No Zone'}`;
-        document.body.style.height = '100%';
-        document.body.style.overflow = 'hidden';
-        document.body.style.height = '';
-        document.body.style.overflow = '';
 
     // Pitch buttons
     const pitchRow = document.getElementById('pitchRow');
@@ -866,8 +911,9 @@ function startGame(team, pitcher, prefs) {
     newCall.addEventListener('click', normalCallHandler);
 
     // Switch screens
-    document.getElementById('selectScreen').style.display = 'none';
-    document.getElementById('gameScreen').style.display = 'block';
+    document.getElementById('pitcherScreen').style.display = 'none';
+    document.getElementById('gameScreen').style.display    = 'block';
+    document.body.style.height   = '100%';
     document.body.style.overflow = 'hidden';
 
     requestAnimationFrame(buildGrid);
@@ -877,11 +923,29 @@ function startGame(team, pitcher, prefs) {
 // EVENT LISTENERS
 // ══════════════════════════════════════════════════════════════════════════════
 
-// Back button
+// Back to teams (from pitcher screen)
+document.getElementById('btnBackToTeams').addEventListener('click', () => {
+    document.getElementById('pitcherScreen').style.display = 'none';
+    document.getElementById('teamScreen').style.display    = '';
+});
+
+// Back to teams (from game header ← button)
 document.getElementById('btnBack').addEventListener('click', () => {
     window.speechSynthesis && window.speechSynthesis.cancel();
-    document.getElementById('gameScreen').style.display   = 'none';
-    document.getElementById('selectScreen').style.display = '';
+    document.getElementById('gameScreen').style.display = 'none';
+    document.getElementById('teamScreen').style.display = '';
+    document.body.style.height   = '';
+    document.body.style.overflow = '';
+});
+
+// Change Pitcher (from game header — goes to pitcher list for current team)
+document.getElementById('btnChangePitcher').addEventListener('click', () => {
+    window.speechSynthesis && window.speechSynthesis.cancel();
+    const prefs = (offlineData && offlineData.preferences) || {};
+    if (_selectedTeam) renderPitchers(_selectedTeam, prefs);
+    document.getElementById('gameScreen').style.display    = 'none';
+    document.getElementById('pitcherScreen').style.display = '';
+    document.body.style.height   = '';
     document.body.style.overflow = '';
 });
 
@@ -1001,7 +1065,7 @@ window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer
 // ══════════════════════════════════════════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════════════════════════════════════════
-renderSelector();
+renderTeams();
 </script>
 </body>
 </html>
