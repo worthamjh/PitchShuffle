@@ -36,7 +36,10 @@ router.get('/game/:pitcherId', isLoggedIn, isOwner, isPitcherInTeam, async (req,
     try {
         const team    = await Team.findById(req.params.teamId).populate('pitchers', '_id');
         const pitcher = await Pitcher.findById(req.params.pitcherId).populate('zone');
-        if (!pitcher) { ... }
+        if (!pitcher) {
+            req.flash('error', 'Pitcher not found.');
+            return res.redirect(`/teams/${req.params.teamId}/pitchers/game`);
+        }
         setTeamLocals(res, team);
         res.locals.gameUrls = team.pitchers.map(p =>
             `/teams/${team._id}/pitchers/game/${p._id}`
