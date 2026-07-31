@@ -77,6 +77,11 @@
         [data-theme='dark'] .select-card-meta { color: #8fa8c8; }
         [data-theme='dark'] #teamScreen, [data-theme='dark'] #pitcherScreen { background: #111827; min-height: 100dvh; }
 
+        /* ── Pitcher list — column-major (top→bottom) layout ── */
+        .pitcher-col-list { column-count: 1; column-gap: 0.75rem; }
+        @media (min-width: 540px) { .pitcher-col-list { column-count: 2; } }
+        .pitcher-col { break-inside: avoid; display: inline-block; width: 100%; margin-bottom: 0.75rem; }
+
         /* ── Pitcher selector screen ── */
 
         /* page-header inside pitcher screen uses the selected team's color */
@@ -392,7 +397,7 @@
             <button class="sort-btn" data-sort="number">Number</button>
         </div>
 
-        <div id="pitcherList" class="row row-cols-1 row-cols-md-2 g-3 mb-4"></div>
+        <div id="pitcherList" class="pitcher-col-list mb-4"></div>
     </div>
 
     <!-- Sticky confirm button -->
@@ -893,7 +898,7 @@ function renderPitcherScreen(team, currentPitcher, prefs) {
             const hand       = pitcher.throws === 'R' ? 'RHP' : 'LHP';
             const num        = pitcher.number != null ? `#${pitcher.number}` : '#?';
             const col        = document.createElement('div');
-            col.className    = 'col pitcher-col';
+            col.className    = 'pitcher-col';
             col.dataset.lastname  = (pitcher.name || '').trim().split(' ').pop() || '';
             col.dataset.firstname = (pitcher.name || '').trim().split(' ')[0]  || '';
             col.dataset.number    = pitcher.number || 0;
