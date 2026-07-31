@@ -54,9 +54,9 @@
         [data-theme='dark'] .pitcher-select-meta { color: #8fa8c8; }
 
         /* ── Game screen ── */
-        html, body { height: 100%; overflow: hidden; }
+        html { height: 100%; }
         body { background: #2a2a2a; }
-        #gameScreen { display: none; height: calc(100% - 28px); /* minus banner */ }
+        #gameScreen { display: none; height: calc(100dvh - 28px); }
 
         .game-page {
             display: flex; flex-direction: column;
@@ -833,6 +833,10 @@ function startGame(team, pitcher, prefs) {
     document.getElementById('pitcherNameEl').textContent = `#${pitcher.number} ${pitcher.name}`;
     document.getElementById('pitcherMetaEl').textContent =
         `${_isRHP ? 'RHP' : 'LHP'} · ${pitcher.zone ? pitcher.zone.name : 'No Zone'}`;
+        document.body.style.height = '100%';
+        document.body.style.overflow = 'hidden';
+        document.body.style.height = '';
+        document.body.style.overflow = '';
 
     // Pitch buttons
     const pitchRow = document.getElementById('pitchRow');
@@ -863,7 +867,7 @@ function startGame(team, pitcher, prefs) {
 
     // Switch screens
     document.getElementById('selectScreen').style.display = 'none';
-    document.getElementById('gameScreen').style.display   = '';
+    document.getElementById('gameScreen').style.display = 'block';
     document.body.style.overflow = 'hidden';
 
     requestAnimationFrame(buildGrid);
