@@ -35,12 +35,14 @@
         .ps-navbar .navbar-brand { color: var(--accent-text, #fff) !important; font-weight: 700; }
 
         /* ── Team selector screen — matches online game/select-team ── */
-        .new-game-subheader {
-            background: var(--ps-navy, #1a2e4a); color: var(--accent-text, #fff);
-            padding: 0.6rem 1rem;
-            display: flex; align-items: center; justify-content: space-between;
+        .page-header {
+            background: #1a2e4a; /* hardcoded — never inherits team color */
+            color: #fff;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
         }
-        .new-game-subheader-title { font-size: 1rem; font-weight: 700; }
+        .page-header h1 { font-size: 1.4rem; font-weight: 700; margin: 0; }
 
         .select-card {
             display: flex; align-items: center; gap: 1rem;
@@ -76,26 +78,38 @@
         [data-theme='dark'] #teamScreen, [data-theme='dark'] #pitcherScreen { background: #111827; min-height: 100dvh; }
 
         /* ── Pitcher selector screen ── */
-        .pitcher-select-btn {
-            display: flex; align-items: center; gap: 0.75rem;
-            width: 100%; padding: 0.75rem 1rem;
-            background: var(--ps-card-bg, #fff); border: 1px solid #dee2e6;
-            border-radius: 10px; margin-bottom: 0.5rem;
-            cursor: pointer; text-align: left;
-            transition: background 0.15s, border-color 0.15s;
-        }
-        .pitcher-select-btn:hover { background: #f0f4f8; border-color: #adb5bd; }
-        .pitcher-number {
-            width: 36px; height: 36px; border-radius: 50%;
-            background: var(--ps-navy, #1a2e4a); color: var(--accent-text, #fff);
+
+        /* page-header inside pitcher screen uses the selected team's color */
+        .pitcher-page-header { background: var(--ps-navy, #1a2e4a); }
+
+        /* Number badge — dark navy, matches online .pitcher-badge */
+        .pitcher-badge {
+            width: 48px; height: 48px; border-radius: 50%;
+            background: #1a2e4a; color: #fff;
+            font-weight: 700; font-size: 1rem;
             display: flex; align-items: center; justify-content: center;
-            font-weight: 700; font-size: 0.85rem; flex-shrink: 0;
+            flex-shrink: 0;
         }
-        .pitcher-select-name { font-weight: 700; font-size: 0.95rem; }
-        .pitcher-select-meta { font-size: 0.78rem; color: #6c757d; }
-        [data-theme='dark'] .pitcher-select-btn { background: #1a2535; border-color: #2a3f5a; }
-        [data-theme='dark'] .pitcher-select-btn:hover { background: #243350; }
-        [data-theme='dark'] .pitcher-select-meta { color: #8fa8c8; }
+
+        /* Pitcher card selection check */
+        .select-check { font-size: 1.2rem; color: #dee2e6; transition: color 0.15s; flex-shrink: 0; }
+        .select-card.selected .select-check { color: var(--ps-navy, #1a2e4a); }
+        .select-card.selected .select-check::before { content: "\f270"; }
+
+        /* Sort bar — matches online */
+        .sort-bar { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+        .sort-bar span { font-size: 0.8rem; color: #6c757d; font-weight: 600; }
+        .sort-btn {
+            font-size: 0.78rem; padding: 0.25rem 0.65rem;
+            border-radius: 20px; border: 1.5px solid #dee2e6;
+            background: #fff; color: #6c757d; cursor: pointer;
+            font-weight: 600; transition: all 0.15s;
+        }
+        .sort-btn:hover  { border-color: #8fa8c8; color: #1a2e4a; }
+        .sort-btn.active { background: var(--ps-navy, #1a2e4a); border-color: var(--ps-navy, #1a2e4a); color: #fff; }
+
+        [data-theme='dark'] .sort-btn { background: #1a2535; border-color: #2a3f5a; color: #8fa8c8; }
+        [data-theme='dark'] .sort-btn.active { background: var(--ps-navy); border-color: var(--ps-navy); color: #fff; }
 
         /* ── Game screen ── */
         html { height: 100%; }
@@ -236,22 +250,12 @@
         .pickoff-diamond .btn-cancel-pickoff { padding: 0.75rem 0.5rem; border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer; border: 2px solid #adb5bd; background: #f8f9fa; color: #495057; }
         .pickoff-diamond .btn-cancel-pickoff:hover { background: #dee2e6; }
 
-        /* ── Pitcher select screen — enhanced ── */
-        .pitcher-select-card {
-            display: flex; align-items: center; gap: 1rem;
-            padding: 0.85rem 1rem;
-            border: 2px solid #dee2e6; border-radius: 12px;
-            background: var(--ps-card-bg, #fff); cursor: pointer;
-            transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
-            user-select: none; margin-bottom: 0.6rem;
-        }
-        .pitcher-select-card:hover { border-color: #8fa8c8; }
-        .pitcher-select-card.selected {
+        /* ── Pitcher select screen — select-card selected state ── */
+        .select-card.selected {
             border-color: var(--ps-navy); background: #eef2f7;
             box-shadow: 0 0 0 3px rgba(26,46,74,0.12);
         }
-        .ps-select-check { font-size: 1.2rem; color: #dee2e6; transition: color 0.15s; margin-left: auto; flex-shrink: 0; }
-        .pitcher-select-card.selected .ps-select-check::before { content: "\f270"; color: var(--ps-navy); }
+        [data-theme='dark'] .select-card.selected { background: #1e3050; border-color: #4a7fa5; }
 
         .current-pitcher-card {
             border: 2px solid var(--ps-navy); border-radius: 12px;
@@ -270,8 +274,6 @@
         input.form-range::-webkit-slider-thumb { width: 28px; height: 28px; }
         input.form-range::-moz-range-thumb { width: 28px; height: 28px; }
 
-        [data-theme='dark'] .pitcher-select-card { background: #1a2535; border-color: #2a3f5a; }
-        [data-theme='dark'] .pitcher-select-card.selected { background: #1e3050; border-color: #4a7fa5; }
         [data-theme='dark'] .current-pitcher-card { background: #1a2535; border-color: #4a7fa5; }
         [data-theme='dark'] .sticky-pitcher-bar { background: #0f1923; border-color: #2a3f5a; }
 
@@ -288,7 +290,7 @@
         [data-theme='dark'] .text-muted   { color: #7a9bbf !important; }
         [data-theme='dark'] .form-label   { color: #b0c8e0; }
         [data-theme='dark'] strong        { color: #ddeeff; }
-        [data-theme='dark'] .pitcher-select-name  { color: #ddeeff; }
+        [data-theme='dark'] .fw-bold { color: #ddeeff; }
         [data-theme='dark'] .shuffle-row-label     { color: #c8d8e8; }
         [data-theme='dark'] .pitch-pct-label       { color: #7a9bbf; }
 
@@ -326,14 +328,11 @@
         </div>
     </nav>
 
-    <!-- "New Game" sub-header — matches .page-header on online /game page -->
-    <div class="new-game-subheader">
-        <span class="new-game-subheader-title">
-            <i class="bi bi-play-fill me-1"></i> New Game
-        </span>
-    </div>
-
     <div class="container mt-3">
+        <!-- "New Game" card — matches .page-header on online /game page -->
+        <div class="page-header mb-3">
+            <h1><i class="bi bi-play-fill me-1"></i> New Game</h1>
+        </div>
         <p class="text-muted mb-3"><strong>Step 1 of 2</strong> — Select a team</p>
         <div id="teamList" class="team-grid"></div>
     </div>
@@ -349,16 +348,28 @@
      SCREEN 2: Pitcher Selector
      ════════════════════════════════════════════════ -->
 <div id="pitcherScreen" style="display:none;">
+
+    <!-- Branding navbar — team-colored by applyTeamColors() -->
     <nav class="navbar ps-navbar">
-        <div class="container-fluid d-flex align-items-center gap-2">
-            <button id="btnBackToTeams" class="btn btn-sm btn-outline-light" aria-label="Back">
-                <i class="bi bi-arrow-left"></i>
-            </button>
-            <span class="navbar-brand mb-0" id="pitcherScreenTitle">Select Pitcher</span>
+        <div class="container-fluid">
+            <span class="navbar-brand">
+                <img src="/images/pitchshuffle-logo.svg" alt="PitchShuffle"
+                     style="height:28px;width:auto;vertical-align:middle;margin-right:6px;">
+                PitchShuffle
+            </span>
         </div>
     </nav>
 
     <div class="container mt-3 pb-5">
+
+        <!-- page-header card: "New Game" or "Change Pitcher" depending on context -->
+        <div class="page-header pitcher-page-header d-flex justify-content-between align-items-center mb-3">
+            <h1 id="pitcherPageTitle"><i class="bi bi-play-fill me-1"></i> New Game</h1>
+            <button id="btnBackToTeams" class="btn btn-outline-light btn-sm">
+                <i class="bi bi-arrow-left"></i> <span id="backBtnLabel">Teams</span>
+            </button>
+        </div>
+
         <!-- Current pitcher section — only visible when changing mid-game -->
         <div id="currentPitcherSection" style="display:none;">
             <div class="d-flex align-items-center gap-2 mb-2">
@@ -367,18 +378,30 @@
             <div class="current-pitcher-card" id="currentPitcherCard"></div>
         </div>
 
-        <p class="text-muted mb-3" id="pitcherSelectHint" style="font-size:0.85rem;"></p>
-        <div id="pitcherList"></div>
+        <!-- Step subtitle -->
+        <p class="text-muted mb-1" id="pitcherSelectHint"></p>
+
+        <!-- Team logo + name row -->
+        <p class="text-muted small mb-2 d-flex align-items-center gap-2" id="teamInfoRow"></p>
+
+        <!-- Sort bar -->
+        <div class="sort-bar mb-3" id="sortBar" style="display:none;">
+            <span>Sort:</span>
+            <button class="sort-btn" data-sort="lastName">Last Name</button>
+            <button class="sort-btn" data-sort="firstName">First Name</button>
+            <button class="sort-btn" data-sort="number">Number</button>
+        </div>
+
+        <div id="pitcherList" class="row row-cols-1 row-cols-md-2 g-3 mb-4"></div>
     </div>
 
     <!-- Sticky confirm button -->
     <div id="changePitcherBar" class="sticky-pitcher-bar">
-        <!-- "Save & Return" — only shown mid-game when sliders are adjusted without selecting a new pitcher -->
         <button id="btnSaveReturn" class="btn btn-success btn-lg w-100 mb-2" style="display:none;">
             <i class="bi bi-arrow-left"></i> Save &amp; Return to Game
         </button>
         <button id="btnConfirmChange" class="btn btn-primary btn-lg w-100 disabled" aria-disabled="true">
-            <i class="bi bi-arrow-repeat"></i> <span id="confirmBtnText">Start Game</span>
+            <i class="bi bi-play-fill"></i> <span id="confirmBtnText">Start Game</span>
         </button>
         <p class="text-center text-muted mt-1 mb-0" style="font-size:0.78rem;" id="confirmBtnHint">Select a pitcher above to continue</p>
     </div>
@@ -519,6 +542,15 @@ let _selectedTeam        = null;
 let _changingFromGame    = false;
 let _pendingPitcherChange = null;
 let _sessionShuffleOverrides = {}; // pitcher._id → { strikeChancePct, pitchWeights }
+
+/** Reset CSS variables and navbar color to default navy when returning to the team screen. */
+function resetTeamColors() {
+    const navy = '#1a2e4a';
+    document.documentElement.style.setProperty('--ps-navy',       navy);
+    document.documentElement.style.setProperty('--ps-navy-dark',  '#0f1e30');
+    document.documentElement.style.setProperty('--accent-text',   '#ffffff');
+    document.querySelectorAll('.ps-navbar').forEach(el => el.style.background = navy);
+}
 
 function renderTeams() {
     if (!offlineData || !offlineData.teams || !offlineData.teams.length) {
@@ -757,66 +789,149 @@ function buildCurrentPitcherCard(pitcher, prefs, container) {
 /** Render the pitcher selection screen. currentPitcher is set when changing mid-game. */
 function renderPitcherScreen(team, currentPitcher, prefs) {
     _pendingPitcherChange = null;
-    document.getElementById('pitcherScreenTitle').textContent = team.name;
 
-    // Reset "Save & Return" — hidden until a slider actually moves
-    document.getElementById('btnSaveReturn').style.display = 'none';
+    // ── Header: title + back button label ──────────────────────────────────────
+    const titleEl     = document.getElementById('pitcherPageTitle');
+    const backLabelEl = document.getElementById('backBtnLabel');
+    if (_changingFromGame) {
+        titleEl.innerHTML     = '<i class="bi bi-arrow-left-right me-1"></i> Change Pitcher';
+        if (backLabelEl) backLabelEl.textContent = 'Cancel';
+    } else {
+        titleEl.innerHTML     = '<i class="bi bi-play-fill me-1"></i> New Game';
+        if (backLabelEl) backLabelEl.textContent = 'Teams';
+    }
 
+    // Subtitle: Step 2 of 2
+    const hintEl = document.getElementById('pitcherSelectHint');
+    if (hintEl) hintEl.innerHTML = _changingFromGame
+        ? '<strong>Change Pitcher</strong> — Select a new pitcher'
+        : '<strong>Step 2 of 2</strong> — Select a pitcher';
+
+    // ── Team info row: logo + name ──────────────────────────────────────────────
+    const teamInfoRow = document.getElementById('teamInfoRow');
+    if (teamInfoRow) {
+        const navy    = (team.primaryColor || '#1a2e4a');
+        const logoHtml = team.logo
+            ? `<img src="${escapeHtml(team.logo)}" alt="" style="width:24px;height:24px;object-fit:contain;border-radius:4px;background:${navy};">`
+            : `<span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:4px;background:${navy};font-size:0.85rem;">${sportEmojiFor(team.sport)}</span>`;
+        teamInfoRow.innerHTML = `${logoHtml} <strong>${escapeHtml(team.name)}</strong>`;
+    }
+
+    // ── Sort bar ────────────────────────────────────────────────────────────────
+    const sortBar = document.getElementById('sortBar');
+    if (sortBar) sortBar.style.display = '';
+
+    let currentSort = 'lastName';
+    try { currentSort = localStorage.getItem('ps_pitcher_sort') || 'lastName'; } catch(e) {}
+
+    function updateSortButtons() {
+        sortBar.querySelectorAll('.sort-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.sort === currentSort);
+        });
+    }
+    updateSortButtons();
+
+    sortBar.querySelectorAll('.sort-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            currentSort = btn.dataset.sort;
+            try { localStorage.setItem('ps_pitcher_sort', currentSort); } catch(e) {}
+            updateSortButtons();
+            renderPitcherCards();
+        });
+    });
+
+    // ── Reset "Save & Return" ───────────────────────────────────────────────────
+    const saveReturnBtn = document.getElementById('btnSaveReturn');
+    if (saveReturnBtn) saveReturnBtn.style.display = 'none';
+
+    // ── Currently pitching section ──────────────────────────────────────────────
     const currentSection = document.getElementById('currentPitcherSection');
-    const hint           = document.getElementById('pitcherSelectHint');
     const confirmBtn     = document.getElementById('btnConfirmChange');
     const confirmHint    = document.getElementById('confirmBtnHint');
     const confirmBtnText = document.getElementById('confirmBtnText');
 
     confirmBtn.classList.add('disabled');
     confirmBtn.setAttribute('aria-disabled', 'true');
-    confirmHint.style.display = '';
+    if (confirmHint) confirmHint.style.display = '';
 
     if (currentPitcher) {
         currentSection.style.display = '';
         buildCurrentPitcherCard(currentPitcher, prefs, document.getElementById('currentPitcherCard'));
-        hint.textContent        = 'Select a pitcher coming in, then tap Change Pitcher.';
-        confirmBtnText.textContent = 'Change Pitcher';
+        if (confirmBtnText) confirmBtnText.textContent = 'Change Pitcher';
     } else {
         currentSection.style.display = 'none';
-        hint.textContent        = 'Select a pitcher to start the game.';
-        confirmBtnText.textContent = 'Start Game';
+        if (confirmBtnText) confirmBtnText.textContent = 'Start Game';
     }
 
-    // Build selectable pitcher cards
-    const listEl  = document.getElementById('pitcherList');
-    listEl.innerHTML = '';
-    const toShow = currentPitcher
-        ? team.pitchers.filter(p => String(p._id) !== String(currentPitcher._id))
-        : team.pitchers;
+    // ── Pitcher cards ───────────────────────────────────────────────────────────
+    const listEl = document.getElementById('pitcherList');
 
-    toShow.forEach(pitcher => {
-        const card = document.createElement('div');
-        card.className = 'pitcher-select-card';
-        card.innerHTML = `
-            <div class="pitcher-number">#${escapeHtml(String(pitcher.number || '?'))}</div>
-            <div class="flex-grow-1">
-                <div class="fw-bold" style="font-size:0.95rem;">${escapeHtml(pitcher.name)}</div>
-                <div class="text-muted" style="font-size:0.78rem;">
-                    ${pitcher.throws === 'R' ? 'RHP' : 'LHP'} · ${pitcher.zone ? escapeHtml(pitcher.zone.name) : 'No Zone'}
-                </div>
-            </div>
-            <i class="bi bi-circle ps-select-check"></i>`;
-        card.addEventListener('click', () => {
-            listEl.querySelectorAll('.pitcher-select-card').forEach(c => c.classList.remove('selected'));
-            card.classList.add('selected');
-            _pendingPitcherChange = pitcher;
-            confirmBtn.classList.remove('disabled');
-            confirmBtn.setAttribute('aria-disabled', 'false');
-            confirmHint.style.display = 'none';
+    function sortedPitchers(list) {
+        return [...list].sort((a, b) => {
+            if (currentSort === 'number') {
+                return (parseInt(a.number) || 0) - (parseInt(b.number) || 0);
+            } else if (currentSort === 'firstName') {
+                const af = (a.name || '').trim().split(' ');
+                const bf = (b.name || '').trim().split(' ');
+                return (af[0] || '').localeCompare(bf[0] || '');
+            } else { // lastName
+                const al = (a.name || '').trim().split(' ');
+                const bl = (b.name || '').trim().split(' ');
+                return (al[al.length - 1] || '').localeCompare(bl[bl.length - 1] || '');
+            }
         });
-        listEl.appendChild(card);
-    });
+    }
+
+    function renderPitcherCards() {
+        listEl.innerHTML = '';
+        const toShow = currentPitcher
+            ? team.pitchers.filter(p => String(p._id) !== String(currentPitcher._id))
+            : team.pitchers;
+
+        sortedPitchers(toShow).forEach(pitcher => {
+            const pitchCount = (pitcher.pitchTypes || []).length;
+            const hand       = pitcher.throws === 'R' ? 'RHP' : 'LHP';
+            const num        = pitcher.number != null ? `#${pitcher.number}` : '#?';
+            const col        = document.createElement('div');
+            col.className    = 'col pitcher-col';
+            col.dataset.lastname  = (pitcher.name || '').trim().split(' ').pop() || '';
+            col.dataset.firstname = (pitcher.name || '').trim().split(' ')[0]  || '';
+            col.dataset.number    = pitcher.number || 0;
+            col.innerHTML = `
+                <button class="select-card w-100" style="background:var(--ps-card-bg,#fff);">
+                    <div class="pitcher-badge">${escapeHtml(num)}</div>
+                    <div class="select-card-info flex-grow-1">
+                        <div class="fw-bold fs-6">${escapeHtml(pitcher.name)}</div>
+                        <div class="text-muted" style="font-size:0.8rem;">${hand} · ${pitchCount} pitch type${pitchCount !== 1 ? 's' : ''}</div>
+                    </div>
+                    <i class="bi bi-circle select-check"></i>
+                </button>`;
+            const btn = col.querySelector('.select-card');
+            btn.addEventListener('click', () => {
+                listEl.querySelectorAll('.select-card').forEach(c => {
+                    c.classList.remove('selected');
+                    const ic = c.querySelector('.select-check');
+                    if (ic) { ic.className = 'bi bi-circle select-check'; }
+                });
+                btn.classList.add('selected');
+                const ic = btn.querySelector('.select-check');
+                if (ic) ic.className = 'bi bi-check-circle-fill select-check';
+                _pendingPitcherChange = pitcher;
+                confirmBtn.classList.remove('disabled');
+                confirmBtn.setAttribute('aria-disabled', 'false');
+                if (confirmHint) confirmHint.style.display = 'none';
+            });
+            listEl.appendChild(col);
+        });
+    }
+
+    renderPitcherCards();
 }
 
 function escapeHtml(str) {
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+function sportEmojiFor(sport) { return sport === 'softball' ? '🥎' : '⚾'; }
 
 // ══════════════════════════════════════════════════════════════════════════════
 // GAME STATE  (set fresh each time a pitcher is selected)
@@ -1296,7 +1411,13 @@ document.getElementById('btnBackToTeams').addEventListener('click', () => {
         document.getElementById('gameScreen').style.display = 'block';
         document.body.style.height   = '100%';
         document.body.style.overflow = 'hidden';
+        // Reapply team colors (may have been browsed away from)
+        if (_selectedTeam) {
+            const prefs = (offlineData && offlineData.preferences) || {};
+            applyTeamColors(_selectedTeam, prefs);
+        }
     } else {
+        resetTeamColors();
         document.getElementById('teamScreen').style.display = '';
     }
 });
@@ -1322,6 +1443,7 @@ document.getElementById('btnSaveReturn').addEventListener('click', () => {
 document.getElementById('btnBack').addEventListener('click', () => {
     window.speechSynthesis && window.speechSynthesis.cancel();
     document.getElementById('gameScreen').style.display = 'none';
+    resetTeamColors();
     document.getElementById('teamScreen').style.display = '';
     document.body.style.height   = '';
     document.body.style.overflow = '';
