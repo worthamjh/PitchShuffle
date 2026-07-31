@@ -659,11 +659,28 @@ function buildCurrentPitcherCard(pitcher, prefs, container) {
     const saveReturnBtn = document.getElementById('btnSaveReturn');
     let _saveTimer;
 
+    /** Update percentage labels while dragging (does NOT move other thumbs). */
     function updatePcts() {
         const vals  = weightSliders.map(s => parseInt(s.value));
         const total = vals.reduce((a, b) => a + b, 0);
         weightSliders.forEach((s, i) => {
             const pct = total > 0 ? Math.round((vals[i] / total) * 100) : 0;
+            const lbl = container.querySelector(`#${s.dataset.pctId}`);
+            if (lbl) lbl.textContent = pct + '%';
+        });
+    }
+
+    /**
+     * Snap all slider thumb positions to their computed percentages.
+     * Called on drag-release (change event) and after +/- button clicks,
+     * so slider position always matches the displayed percentage label.
+     */
+    function normalizeSlidersToPercent() {
+        const vals  = weightSliders.map(s => parseInt(s.value));
+        const total = vals.reduce((a, b) => a + b, 0);
+        weightSliders.forEach((s, i) => {
+            const pct = total > 0 ? Math.round((vals[i] / total) * 100) : 0;
+            s.value = pct;                                          // snap thumb
             const lbl = container.querySelector(`#${s.dataset.pctId}`);
             if (lbl) lbl.textContent = pct + '%';
         });
@@ -718,14 +735,22 @@ function buildCurrentPitcherCard(pitcher, prefs, container) {
         container.querySelector('#cpChaseLabel').textContent  = 100 - this.value;
         scheduleShuffleSave();
     });
-    weightSliders.forEach(s => s.addEventListener('input', () => { updatePcts(); scheduleShuffleSave(); }));
+
+    weightSliders.forEach(s => {
+        // input: update labels live while dragging
+        s.addEventListener('input', () => { updatePcts(); scheduleShuffleSave(); });
+        // change: snap all thumb positions to percentages on drag release
+        s.addEventListener('change', () => { normalizeSlidersToPercent(); scheduleShuffleSave(); });
+    });
+
     container.addEventListener('click', e => {
         const btn = e.target.closest('.freq-minus, .freq-plus');
         if (!btn) return;
         const slider = container.querySelector(`.cp-weight-slider[data-pitch="${btn.dataset.pitch}"]`);
         if (!slider) return;
         slider.value = Math.max(0, Math.min(100, parseInt(slider.value) + (btn.classList.contains('freq-plus') ? 5 : -5)));
-        updatePcts(); scheduleShuffleSave();
+        normalizeSlidersToPercent();  // snap immediately for button presses
+        scheduleShuffleSave();
     });
 }
 
