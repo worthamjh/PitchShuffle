@@ -6,6 +6,15 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>PitchShuffle</title>
+    <!-- Apply saved theme IMMEDIATELY to prevent flash of wrong theme -->
+    <script>
+        try {
+            var _d = JSON.parse(localStorage.getItem('ps_offline_data') || 'null');
+            if (_d && _d.preferences && _d.preferences.theme) {
+                document.documentElement.setAttribute('data-theme', _d.preferences.theme);
+            }
+        } catch(e) {}
+    </script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="/stylesheets/style.css">
@@ -51,15 +60,20 @@
         .select-card-icon img { width: 48px; height: 48px; object-fit: contain; }
         .select-card-info { flex: 1; min-width: 0; }
         .select-card-name { font-weight: 700; font-size: 1.05rem; color: #1a2e4a; }
+        [data-theme='dark'] .select-card-name { color: #ddeeff; }
         .select-card-meta { font-size: 0.82rem; color: #6c757d; }
 
         .team-grid { display: grid; grid-template-columns: 1fr; gap: 0.75rem; }
         @media (min-width: 580px) { .team-grid { grid-template-columns: 1fr 1fr; } }
 
+        /* Give selector screens their own light background so dark game body doesn't bleed through */
+        #teamScreen, #pitcherScreen { background: #f5f7fa; min-height: 100%; }
+
         [data-theme='dark'] .select-card { background: #1a2535; border-color: #2a3f5a; }
         [data-theme='dark'] .select-card:hover { background: #1e3050; border-color: #4a7fa5; }
         [data-theme='dark'] .select-card-name { color: #e8edf2; }
         [data-theme='dark'] .select-card-meta { color: #8fa8c8; }
+        [data-theme='dark'] #teamScreen, [data-theme='dark'] #pitcherScreen { background: #111827; }
 
         /* ── Pitcher selector screen ── */
         .pitcher-select-btn {
@@ -261,7 +275,24 @@
         [data-theme='dark'] .current-pitcher-card { background: #1a2535; border-color: #4a7fa5; }
         [data-theme='dark'] .sticky-pitcher-bar { background: #0f1923; border-color: #2a3f5a; }
 
-        /* Dark mode */
+        /* ── Dark mode: root variables ─────────────────────────────────────────
+           Setting --ps-card-bg here flips ALL elements that use
+           var(--ps-card-bg, #fff) — pitcher cards, sticky bar, game surface, etc.
+        ── */
+        [data-theme='dark'] {
+            --ps-card-bg: #1e2d3d;
+            color-scheme: dark;
+        }
+        /* Text colors */
+        [data-theme='dark'] body { color: #c8d8e8; }
+        [data-theme='dark'] .text-muted   { color: #7a9bbf !important; }
+        [data-theme='dark'] .form-label   { color: #b0c8e0; }
+        [data-theme='dark'] strong        { color: #ddeeff; }
+        [data-theme='dark'] .pitcher-select-name  { color: #ddeeff; }
+        [data-theme='dark'] .shuffle-row-label     { color: #c8d8e8; }
+        [data-theme='dark'] .pitch-pct-label       { color: #7a9bbf; }
+
+        /* Dark mode (game screen) */
         [data-theme='dark'] body { color-scheme: dark; }
         [data-theme='dark'] .pitch-row, [data-theme='dark'] .action-row { background: #1a2535; border-color: #2a3f5a; }
         [data-theme='dark'] .pitch-btn  { background: #243350; border-color: #2a3f5a; color: #8fa8c8; }
@@ -466,7 +497,7 @@ function applyTeamColors(team, prefs) {
 
     const theme = prefs.theme || 'light';
     document.documentElement.setAttribute('data-theme', theme);
-    document.querySelector('.ps-navbar').style.background = navy;
+    document.querySelectorAll('.ps-navbar').forEach(el => el.style.background = navy);
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -538,6 +569,7 @@ function renderTeams() {
 function selectTeam(team, prefs) {
     _selectedTeam     = team;
     _changingFromGame = false;
+    applyTeamColors(team, prefs);           // apply team colors before showing pitcher screen
     renderPitcherScreen(team, null, prefs);
     document.getElementById('teamScreen').style.display    = 'none';
     document.getElementById('pitcherScreen').style.display = '';
