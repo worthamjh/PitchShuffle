@@ -67,13 +67,13 @@
         @media (min-width: 580px) { .team-grid { grid-template-columns: 1fr 1fr; } }
 
         /* Give selector screens their own light background so dark game body doesn't bleed through */
-        #teamScreen, #pitcherScreen { background: #f5f7fa; min-height: 100%; }
+        #teamScreen, #pitcherScreen { background: #f5f7fa; min-height: 100dvh; }
 
         [data-theme='dark'] .select-card { background: #1a2535; border-color: #2a3f5a; }
         [data-theme='dark'] .select-card:hover { background: #1e3050; border-color: #4a7fa5; }
         [data-theme='dark'] .select-card-name { color: #e8edf2; }
         [data-theme='dark'] .select-card-meta { color: #8fa8c8; }
-        [data-theme='dark'] #teamScreen, [data-theme='dark'] #pitcherScreen { background: #111827; }
+        [data-theme='dark'] #teamScreen, [data-theme='dark'] #pitcherScreen { background: #111827; min-height: 100dvh; }
 
         /* ── Pitcher selector screen ── */
         .pitcher-select-btn {
