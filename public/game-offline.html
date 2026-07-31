@@ -373,6 +373,10 @@
 
     <!-- Sticky confirm button -->
     <div id="changePitcherBar" class="sticky-pitcher-bar">
+        <!-- "Save & Return" — only shown mid-game when sliders are adjusted without selecting a new pitcher -->
+        <button id="btnSaveReturn" class="btn btn-success btn-lg w-100 mb-2" style="display:none;">
+            <i class="bi bi-arrow-left"></i> Save &amp; Return to Game
+        </button>
         <button id="btnConfirmChange" class="btn btn-primary btn-lg w-100 disabled" aria-disabled="true">
             <i class="bi bi-arrow-repeat"></i> <span id="confirmBtnText">Start Game</span>
         </button>
@@ -633,22 +637,27 @@ function buildCurrentPitcherCard(pitcher, prefs, container) {
                     <span class="pitch-pct-label" id="cpPct_${i}">${pcts[i]}%</span>
                 </div>
                 <div class="d-flex align-items-center gap-2">
-                    <button type="button" class="btn btn-outline-secondary btn-sm freq-adj-btn"
+                    <button type="button" class="btn btn-outline-secondary btn-sm freq-adj-btn freq-minus"
                             data-pitch="${escapeHtml(pt.name)}" data-action="minus">−</button>
-                    <input type="range" class="form-range flex-grow-1 cp-weight-slider"
+                    <input type="range" class="form-range flex-grow-1 cp-weight-slider pitch-weight-slider"
                            min="0" max="100" step="5"
                            data-pitch="${escapeHtml(pt.name)}"
                            data-pct-id="cpPct_${i}"
                            value="${pcts[i]}">
-                    <button type="button" class="btn btn-outline-secondary btn-sm freq-adj-btn"
+                    <button type="button" class="btn btn-outline-secondary btn-sm freq-adj-btn freq-plus"
                             data-pitch="${escapeHtml(pt.name)}" data-action="plus">+</button>
                 </div>
             </div>`).join('')}
         ` : ''}
+
+        <div id="cpSaveStatus" style="font-size:0.82rem;min-height:1.2em;margin-top:0.25rem;"></div>
     `;
 
     const strikeSlider  = container.querySelector('#cpStrikeSlider');
     const weightSliders = [...container.querySelectorAll('.cp-weight-slider')];
+    const saveStatus    = container.querySelector('#cpSaveStatus');
+    const saveReturnBtn = document.getElementById('btnSaveReturn');
+    let _saveTimer;
 
     function updatePcts() {
         const vals  = weightSliders.map(s => parseInt(s.value));
@@ -659,46 +668,64 @@ function buildCurrentPitcherCard(pitcher, prefs, container) {
             if (lbl) lbl.textContent = pct + '%';
         });
     }
-    function saveToSession() {
+
+    function getPitchWeights() {
         const weights = {};
         weightSliders.forEach(s => { weights[s.dataset.pitch] = parseInt(s.value); });
-        const settings = {
-            strikeChancePct: parseInt(strikeSlider.value),
-            pitchWeights:    weights,
-        };
+        return weights;
+    }
 
-        // 1. In-memory: used by getShuffleSettings() for the current session
-        _sessionShuffleOverrides[String(pitcher._id)] = settings;
+    function scheduleShuffleSave() {
+        // Show the "Save & Return" button as soon as a slider moves (matches online behavior)
+        if (_changingFromGame && saveReturnBtn) saveReturnBtn.style.display = '';
+        if (saveStatus) saveStatus.textContent = '';
 
-        // 2. Sync queue: persisted so boilerplate.ejs can flush to server when back online
-        try {
-            const pending = JSON.parse(localStorage.getItem('ps_shuffle_pending') || '{}');
-            pending[String(pitcher._id)] = {
-                teamId:         String(_selectedTeam._id),
-                strikeChancePct: settings.strikeChancePct,
-                pitchWeights:    settings.pitchWeights,
-                savedAt:         Date.now(),
+        clearTimeout(_saveTimer);
+        _saveTimer = setTimeout(() => {
+            const settings = {
+                strikeChancePct: parseInt(strikeSlider.value),
+                pitchWeights:    getPitchWeights(),
             };
-            localStorage.setItem('ps_shuffle_pending', JSON.stringify(pending));
-        } catch(e) {}
 
-        // 3. Update ps_offline_data so the NEXT offline session starts with these values
-        updateOfflineDataSettings(String(pitcher._id), settings);
+            // 1. In-memory: used by getShuffleSettings() for the current session
+            _sessionShuffleOverrides[String(pitcher._id)] = settings;
+
+            // 2. Sync queue: flush to server when back online
+            try {
+                const pending = JSON.parse(localStorage.getItem('ps_shuffle_pending') || '{}');
+                pending[String(pitcher._id)] = {
+                    teamId:          String(_selectedTeam._id),
+                    strikeChancePct: settings.strikeChancePct,
+                    pitchWeights:    settings.pitchWeights,
+                    savedAt:         Date.now(),
+                };
+                localStorage.setItem('ps_shuffle_pending', JSON.stringify(pending));
+            } catch(e) {}
+
+            // 3. Update ps_offline_data so the next offline session starts with these values
+            updateOfflineDataSettings(String(pitcher._id), settings);
+
+            // Confirm feedback (matches online "✓ Saved")
+            if (saveStatus) {
+                saveStatus.innerHTML = '<span class="text-success"><i class="bi bi-check-circle-fill"></i> Saved</span>';
+                setTimeout(() => { if (saveStatus) saveStatus.textContent = ''; }, 2000);
+            }
+        }, 800);
     }
 
     strikeSlider.addEventListener('input', function () {
         container.querySelector('#cpStrikeLabel').textContent = this.value;
         container.querySelector('#cpChaseLabel').textContent  = 100 - this.value;
-        saveToSession();
+        scheduleShuffleSave();
     });
-    weightSliders.forEach(s => s.addEventListener('input', () => { updatePcts(); saveToSession(); }));
+    weightSliders.forEach(s => s.addEventListener('input', () => { updatePcts(); scheduleShuffleSave(); }));
     container.addEventListener('click', e => {
-        const btn = e.target.closest('.freq-adj-btn');
+        const btn = e.target.closest('.freq-minus, .freq-plus');
         if (!btn) return;
         const slider = container.querySelector(`.cp-weight-slider[data-pitch="${btn.dataset.pitch}"]`);
         if (!slider) return;
-        slider.value = Math.max(0, Math.min(100, parseInt(slider.value) + (btn.dataset.action === 'plus' ? 5 : -5)));
-        updatePcts(); saveToSession();
+        slider.value = Math.max(0, Math.min(100, parseInt(slider.value) + (btn.classList.contains('freq-plus') ? 5 : -5)));
+        updatePcts(); scheduleShuffleSave();
     });
 }
 
@@ -706,6 +733,9 @@ function buildCurrentPitcherCard(pitcher, prefs, container) {
 function renderPitcherScreen(team, currentPitcher, prefs) {
     _pendingPitcherChange = null;
     document.getElementById('pitcherScreenTitle').textContent = team.name;
+
+    // Reset "Save & Return" — hidden until a slider actually moves
+    document.getElementById('btnSaveReturn').style.display = 'none';
 
     const currentSection = document.getElementById('currentPitcherSection');
     const hint           = document.getElementById('pitcherSelectHint');
@@ -1252,6 +1282,15 @@ document.getElementById('btnConfirmChange').addEventListener('click', () => {
     const prefs = (offlineData && offlineData.preferences) || {};
     document.getElementById('pitcherScreen').style.display = 'none';
     startGame(_selectedTeam, _pendingPitcherChange, prefs);
+});
+
+// "Save & Return to Game" — appears when sliders are adjusted mid-game without switching pitchers
+document.getElementById('btnSaveReturn').addEventListener('click', () => {
+    document.getElementById('pitcherScreen').style.display = 'none';
+    document.getElementById('btnSaveReturn').style.display = 'none';
+    document.getElementById('gameScreen').style.display = 'block';
+    document.body.style.height   = '100%';
+    document.body.style.overflow = 'hidden';
 });
 
 // Back to teams (from game header ← button — exits game entirely)
