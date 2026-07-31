@@ -192,6 +192,45 @@
         .pickoff-diamond .btn-cancel-pickoff { padding: 0.75rem 0.5rem; border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer; border: 2px solid #adb5bd; background: #f8f9fa; color: #495057; }
         .pickoff-diamond .btn-cancel-pickoff:hover { background: #dee2e6; }
 
+        /* ── Pitcher select screen — enhanced ── */
+        .pitcher-select-card {
+            display: flex; align-items: center; gap: 1rem;
+            padding: 0.85rem 1rem;
+            border: 2px solid #dee2e6; border-radius: 12px;
+            background: var(--ps-card-bg, #fff); cursor: pointer;
+            transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+            user-select: none; margin-bottom: 0.6rem;
+        }
+        .pitcher-select-card:hover { border-color: #8fa8c8; }
+        .pitcher-select-card.selected {
+            border-color: var(--ps-navy); background: #eef2f7;
+            box-shadow: 0 0 0 3px rgba(26,46,74,0.12);
+        }
+        .ps-select-check { font-size: 1.2rem; color: #dee2e6; transition: color 0.15s; margin-left: auto; flex-shrink: 0; }
+        .pitcher-select-card.selected .ps-select-check::before { content: "\f270"; color: var(--ps-navy); }
+
+        .current-pitcher-card {
+            border: 2px solid var(--ps-navy); border-radius: 12px;
+            padding: 1rem; background: #eef2f7; margin-bottom: 1rem;
+        }
+        .shuffle-row-label { font-size: 0.78rem; font-weight: 700; }
+        .pitch-pct-label { font-weight: 400; color: #6c757d; }
+
+        .sticky-pitcher-bar {
+            position: sticky; bottom: 0;
+            padding: 0.6rem 1rem calc(0.6rem + env(safe-area-inset-bottom));
+            background: var(--ps-card-bg, #fff); border-top: 1px solid #dee2e6; z-index: 10;
+        }
+        .freq-adj-btn { width: 36px; height: 36px; padding: 0; font-size: 1.1rem; flex-shrink: 0; line-height: 1; cursor: pointer; }
+        input.form-range { height: 36px; cursor: pointer; }
+        input.form-range::-webkit-slider-thumb { width: 28px; height: 28px; }
+        input.form-range::-moz-range-thumb { width: 28px; height: 28px; }
+
+        [data-theme='dark'] .pitcher-select-card { background: #1a2535; border-color: #2a3f5a; }
+        [data-theme='dark'] .pitcher-select-card.selected { background: #1e3050; border-color: #4a7fa5; }
+        [data-theme='dark'] .current-pitcher-card { background: #1a2535; border-color: #4a7fa5; }
+        [data-theme='dark'] .sticky-pitcher-bar { background: #0f1923; border-color: #2a3f5a; }
+
         /* Dark mode */
         [data-theme='dark'] body { color-scheme: dark; }
         [data-theme='dark'] .pitch-row, [data-theme='dark'] .action-row { background: #1a2535; border-color: #2a3f5a; }
@@ -244,16 +283,32 @@
 <div id="pitcherScreen" style="display:none;">
     <nav class="navbar ps-navbar">
         <div class="container-fluid d-flex align-items-center gap-2">
-            <button id="btnBackToTeams" class="btn btn-sm btn-outline-light" aria-label="Back to team select">
+            <button id="btnBackToTeams" class="btn btn-sm btn-outline-light" aria-label="Back">
                 <i class="bi bi-arrow-left"></i>
             </button>
             <span class="navbar-brand mb-0" id="pitcherScreenTitle">Select Pitcher</span>
         </div>
     </nav>
 
-    <div class="container mt-3">
-        <p class="text-muted mb-3" style="font-size:0.85rem;">Select a pitcher to start the game.</p>
+    <div class="container mt-3 pb-5">
+        <!-- Current pitcher section — only visible when changing mid-game -->
+        <div id="currentPitcherSection" style="display:none;">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="badge" style="background:var(--ps-navy);color:var(--accent-text,#fff);">Currently Pitching</span>
+            </div>
+            <div class="current-pitcher-card" id="currentPitcherCard"></div>
+        </div>
+
+        <p class="text-muted mb-3" id="pitcherSelectHint" style="font-size:0.85rem;"></p>
         <div id="pitcherList"></div>
+    </div>
+
+    <!-- Sticky confirm button -->
+    <div id="changePitcherBar" class="sticky-pitcher-bar">
+        <button id="btnConfirmChange" class="btn btn-primary btn-lg w-100 disabled" aria-disabled="true">
+            <i class="bi bi-arrow-repeat"></i> <span id="confirmBtnText">Start Game</span>
+        </button>
+        <p class="text-center text-muted mt-1 mb-0" style="font-size:0.78rem;" id="confirmBtnHint">Select a pitcher above to continue</p>
     </div>
 </div>
 
@@ -388,7 +443,10 @@ const offlineData = (function () {
 // ══════════════════════════════════════════════════════════════════════════════
 // TEAM SELECTOR
 // ══════════════════════════════════════════════════════════════════════════════
-let _selectedTeam = null;
+let _selectedTeam        = null;
+let _changingFromGame    = false;
+let _pendingPitcherChange = null;
+let _sessionShuffleOverrides = {}; // pitcher._id → { strikeChancePct, pitchWeights }
 
 function renderTeams() {
     if (!offlineData || !offlineData.teams || !offlineData.teams.length) {
@@ -396,12 +454,10 @@ function renderTeams() {
         return;
     }
     const prefs = offlineData.preferences || {};
-    const theme = prefs.theme || 'light';
-    document.documentElement.setAttribute('data-theme', theme);
+    document.documentElement.setAttribute('data-theme', prefs.theme || 'light');
 
     const list = document.getElementById('teamList');
     list.innerHTML = '';
-
     offlineData.teams.forEach(team => {
         if (!team.pitchers || !team.pitchers.length) return;
         const btn = document.createElement('button');
@@ -421,31 +477,176 @@ function renderTeams() {
 }
 
 function selectTeam(team, prefs) {
-    _selectedTeam = team;
-    renderPitchers(team, prefs);
+    _selectedTeam     = team;
+    _changingFromGame = false;
+    renderPitcherScreen(team, null, prefs);
     document.getElementById('teamScreen').style.display    = 'none';
     document.getElementById('pitcherScreen').style.display = '';
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// PITCHER SELECTOR
+// PITCHER SELECTOR  (handles both initial select and mid-game change)
 // ══════════════════════════════════════════════════════════════════════════════
-function renderPitchers(team, prefs) {
-    document.getElementById('pitcherScreenTitle').textContent = team.name;
-    const list = document.getElementById('pitcherList');
-    list.innerHTML = '';
-    (team.pitchers || []).forEach(pitcher => {
-        const btn = document.createElement('button');
-        btn.className = 'pitcher-select-btn';
-        btn.innerHTML = `
-            <div class="pitcher-number">${escapeHtml(String(pitcher.number || '?'))}</div>
+
+/** Returns effective shuffle settings for a pitcher, layering session overrides on top. */
+function getShuffleSettings(pitcher, prefs) {
+    const id       = String(pitcher._id);
+    const override = _sessionShuffleOverrides[id] || {};
+    const ss       = pitcher.shuffleSettings || {};
+    const savedPW  = ss.pitchWeights instanceof Map ? Object.fromEntries(ss.pitchWeights) : (ss.pitchWeights || {});
+    return {
+        strikeChancePct: override.strikeChancePct != null ? override.strikeChancePct
+            : (ss.strikeChancePct != null ? ss.strikeChancePct
+            : (prefs && prefs.strikeChancePct != null ? prefs.strikeChancePct : 70)),
+        pitchWeights: override.pitchWeights || savedPW,
+    };
+}
+
+/** Build the current-pitcher card with strike/chase and pitch-weight sliders. */
+function buildCurrentPitcherCard(pitcher, prefs, container) {
+    const { strikeChancePct, pitchWeights } = getShuffleSettings(pitcher, prefs);
+    const pitchTypes = pitcher.pitchTypes || [];
+    const rawWeights = pitchTypes.map(pt => {
+        const w = pitchWeights[pt.name]; return (w != null && !isNaN(w)) ? parseInt(w) : 1;
+    });
+    const totalW = rawWeights.reduce((a, b) => a + b, 0);
+    const pcts   = rawWeights.map(w => totalW > 0 ? Math.round((w / totalW) * 100) : 0);
+
+    container.innerHTML = `
+        <div class="d-flex align-items-center gap-3 mb-3">
+            <div class="pitcher-number">#${escapeHtml(String(pitcher.number || '?'))}</div>
             <div>
-                <div class="pitcher-select-name">${escapeHtml(pitcher.name)}</div>
-                <div class="pitcher-select-meta">${pitcher.throws === 'R' ? 'RHP' : 'LHP'} · ${pitcher.zone ? escapeHtml(pitcher.zone.name) : 'No Zone'}</div>
+                <div class="fw-bold">${escapeHtml(pitcher.name)}</div>
+                <div class="text-muted" style="font-size:0.78rem;">
+                    ${pitcher.throws === 'R' ? 'RHP' : 'LHP'} · ${pitcher.zone ? escapeHtml(pitcher.zone.name) : 'No Zone'}
+                </div>
             </div>
-            <i class="bi bi-chevron-right ms-auto text-muted"></i>`;
-        btn.addEventListener('click', () => startGame(team, pitcher, prefs));
-        list.appendChild(btn);
+        </div>
+
+        <div class="mb-3">
+            <div class="d-flex justify-content-between mb-1">
+                <span class="shuffle-row-label text-success">Strike: <span id="cpStrikeLabel">${strikeChancePct}</span>%</span>
+                <span class="shuffle-row-label text-warning">Chase: <span id="cpChaseLabel">${100 - strikeChancePct}</span>%</span>
+            </div>
+            <input type="range" class="form-range w-100" min="0" max="100" step="5"
+                   id="cpStrikeSlider" value="${strikeChancePct}">
+        </div>
+
+        ${pitchTypes.length > 0 ? `
+            <div class="shuffle-row-label text-muted mb-2">Pitch Frequency</div>
+            ${pitchTypes.map((pt, i) => `
+            <div class="mb-3">
+                <div style="font-size:0.82rem;font-weight:700;margin-bottom:4px;">
+                    ${escapeHtml(pt.name)}
+                    ${pt.abbreviation ? `<span class="text-muted fw-normal">(${escapeHtml(pt.abbreviation)})</span>` : ''}
+                    <span class="pitch-pct-label" id="cpPct_${i}">${pcts[i]}%</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm freq-adj-btn"
+                            data-pitch="${escapeHtml(pt.name)}" data-action="minus">−</button>
+                    <input type="range" class="form-range flex-grow-1 cp-weight-slider"
+                           min="0" max="100" step="5"
+                           data-pitch="${escapeHtml(pt.name)}"
+                           data-pct-id="cpPct_${i}"
+                           value="${pcts[i]}">
+                    <button type="button" class="btn btn-outline-secondary btn-sm freq-adj-btn"
+                            data-pitch="${escapeHtml(pt.name)}" data-action="plus">+</button>
+                </div>
+            </div>`).join('')}
+        ` : ''}
+    `;
+
+    const strikeSlider  = container.querySelector('#cpStrikeSlider');
+    const weightSliders = [...container.querySelectorAll('.cp-weight-slider')];
+
+    function updatePcts() {
+        const vals  = weightSliders.map(s => parseInt(s.value));
+        const total = vals.reduce((a, b) => a + b, 0);
+        weightSliders.forEach((s, i) => {
+            const pct = total > 0 ? Math.round((vals[i] / total) * 100) : 0;
+            const lbl = container.querySelector(`#${s.dataset.pctId}`);
+            if (lbl) lbl.textContent = pct + '%';
+        });
+    }
+    function saveToSession() {
+        const weights = {};
+        weightSliders.forEach(s => { weights[s.dataset.pitch] = parseInt(s.value); });
+        _sessionShuffleOverrides[String(pitcher._id)] = {
+            strikeChancePct: parseInt(strikeSlider.value),
+            pitchWeights: weights,
+        };
+    }
+
+    strikeSlider.addEventListener('input', function () {
+        container.querySelector('#cpStrikeLabel').textContent = this.value;
+        container.querySelector('#cpChaseLabel').textContent  = 100 - this.value;
+        saveToSession();
+    });
+    weightSliders.forEach(s => s.addEventListener('input', () => { updatePcts(); saveToSession(); }));
+    container.addEventListener('click', e => {
+        const btn = e.target.closest('.freq-adj-btn');
+        if (!btn) return;
+        const slider = container.querySelector(`.cp-weight-slider[data-pitch="${btn.dataset.pitch}"]`);
+        if (!slider) return;
+        slider.value = Math.max(0, Math.min(100, parseInt(slider.value) + (btn.dataset.action === 'plus' ? 5 : -5)));
+        updatePcts(); saveToSession();
+    });
+}
+
+/** Render the pitcher selection screen. currentPitcher is set when changing mid-game. */
+function renderPitcherScreen(team, currentPitcher, prefs) {
+    _pendingPitcherChange = null;
+    document.getElementById('pitcherScreenTitle').textContent = team.name;
+
+    const currentSection = document.getElementById('currentPitcherSection');
+    const hint           = document.getElementById('pitcherSelectHint');
+    const confirmBtn     = document.getElementById('btnConfirmChange');
+    const confirmHint    = document.getElementById('confirmBtnHint');
+    const confirmBtnText = document.getElementById('confirmBtnText');
+
+    confirmBtn.classList.add('disabled');
+    confirmBtn.setAttribute('aria-disabled', 'true');
+    confirmHint.style.display = '';
+
+    if (currentPitcher) {
+        currentSection.style.display = '';
+        buildCurrentPitcherCard(currentPitcher, prefs, document.getElementById('currentPitcherCard'));
+        hint.textContent        = 'Select a pitcher coming in, then tap Change Pitcher.';
+        confirmBtnText.textContent = 'Change Pitcher';
+    } else {
+        currentSection.style.display = 'none';
+        hint.textContent        = 'Select a pitcher to start the game.';
+        confirmBtnText.textContent = 'Start Game';
+    }
+
+    // Build selectable pitcher cards
+    const listEl  = document.getElementById('pitcherList');
+    listEl.innerHTML = '';
+    const toShow = currentPitcher
+        ? team.pitchers.filter(p => String(p._id) !== String(currentPitcher._id))
+        : team.pitchers;
+
+    toShow.forEach(pitcher => {
+        const card = document.createElement('div');
+        card.className = 'pitcher-select-card';
+        card.innerHTML = `
+            <div class="pitcher-number">#${escapeHtml(String(pitcher.number || '?'))}</div>
+            <div class="flex-grow-1">
+                <div class="fw-bold" style="font-size:0.95rem;">${escapeHtml(pitcher.name)}</div>
+                <div class="text-muted" style="font-size:0.78rem;">
+                    ${pitcher.throws === 'R' ? 'RHP' : 'LHP'} · ${pitcher.zone ? escapeHtml(pitcher.zone.name) : 'No Zone'}
+                </div>
+            </div>
+            <i class="bi bi-circle ps-select-check"></i>`;
+        card.addEventListener('click', () => {
+            listEl.querySelectorAll('.pitcher-select-card').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            _pendingPitcherChange = pitcher;
+            confirmBtn.classList.remove('disabled');
+            confirmBtn.setAttribute('aria-disabled', 'false');
+            confirmHint.style.display = 'none';
+        });
+        listEl.appendChild(card);
     });
 }
 
@@ -923,13 +1124,28 @@ function startGame(team, pitcher, prefs) {
 // EVENT LISTENERS
 // ══════════════════════════════════════════════════════════════════════════════
 
-// Back to teams (from pitcher screen)
+// Back button on pitcher screen — context-aware
 document.getElementById('btnBackToTeams').addEventListener('click', () => {
     document.getElementById('pitcherScreen').style.display = 'none';
-    document.getElementById('teamScreen').style.display    = '';
+    if (_changingFromGame) {
+        // Return to game with any adjusted shuffle settings already saved to session
+        document.getElementById('gameScreen').style.display = 'block';
+        document.body.style.height   = '100%';
+        document.body.style.overflow = 'hidden';
+    } else {
+        document.getElementById('teamScreen').style.display = '';
+    }
 });
 
-// Back to teams (from game header ← button)
+// Confirm button on pitcher screen (Start Game / Change Pitcher)
+document.getElementById('btnConfirmChange').addEventListener('click', () => {
+    if (!_pendingPitcherChange) return;
+    const prefs = (offlineData && offlineData.preferences) || {};
+    document.getElementById('pitcherScreen').style.display = 'none';
+    startGame(_selectedTeam, _pendingPitcherChange, prefs);
+});
+
+// Back to teams (from game header ← button — exits game entirely)
 document.getElementById('btnBack').addEventListener('click', () => {
     window.speechSynthesis && window.speechSynthesis.cancel();
     document.getElementById('gameScreen').style.display = 'none';
@@ -938,11 +1154,12 @@ document.getElementById('btnBack').addEventListener('click', () => {
     document.body.style.overflow = '';
 });
 
-// Change Pitcher (from game header — goes to pitcher list for current team)
+// Change Pitcher (from game header — opens pitcher screen in mid-game context)
 document.getElementById('btnChangePitcher').addEventListener('click', () => {
     window.speechSynthesis && window.speechSynthesis.cancel();
     const prefs = (offlineData && offlineData.preferences) || {};
-    if (_selectedTeam) renderPitchers(_selectedTeam, prefs);
+    _changingFromGame = true;
+    if (_selectedTeam) renderPitcherScreen(_selectedTeam, _pitcherData, prefs);
     document.getElementById('gameScreen').style.display    = 'none';
     document.getElementById('pitcherScreen').style.display = '';
     document.body.style.height   = '';
@@ -971,11 +1188,8 @@ document.getElementById('zoneWrapper').addEventListener('keydown', e => {
 document.getElementById('btnRandom').addEventListener('click', () => {
     const eligible = _pitchTypes.filter(pt => pt.locations?.some(l => l.enabled));
     if (!eligible.length) return;
-    const ss = _pitcherData.shuffleSettings || {};
-    const pitchWeights    = ss.pitchWeights || {};
-    const strikeChancePct = ss.strikeChancePct != null
-        ? ss.strikeChancePct
-        : ((_currentPrefs && _currentPrefs.strikeChancePct != null) ? _currentPrefs.strikeChancePct : 70);
+    // Use session overrides (slider adjustments) if set, otherwise fall back to saved settings
+    const { strikeChancePct, pitchWeights } = getShuffleSettings(_pitcherData, _currentPrefs);
 
     const weights    = eligible.map(pt => { const w = pitchWeights[pt.name]; return (w != null && !isNaN(w)) ? parseInt(w) : 1; });
     const totalWeight = weights.reduce((a, b) => a + b, 0);
