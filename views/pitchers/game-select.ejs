@@ -119,9 +119,9 @@
     <% } %>
 
     <!-- Other pitchers -->
-    <div class="row row-cols-1 row-cols-md-2 g-3 mb-4" id="pitcherList">
+    <div class="pitcher-col-list mb-4" id="pitcherList">
         <% for (let pitcher of otherPitchers) { %>
-            <div class="col pitcher-col"
+            <div class="pitcher-col"
                  data-lastname="<%= (pitcher.lastName || '').toLowerCase() %>"
                  data-firstname="<%= (pitcher.firstName || '').toLowerCase() %>"
                  data-number="<%= pitcher.number || 0 %>">
@@ -217,14 +217,19 @@
         width: 28px;
         height: 28px;
     }
+
+    /* Column-major (top→bottom) two-column layout */
+    .pitcher-col-list { column-count: 1; column-gap: 0.75rem; }
+    @media (min-width: 540px) { .pitcher-col-list { column-count: 2; } }
+    .pitcher-col { break-inside: avoid; display: inline-block; width: 100%; margin-bottom: 0.75rem; }
 </style>
 
 <script>
     const teamId = '<%= team._id %>';
     const list   = document.getElementById('pitcherList');
 
-        // ── Selection ─────────────────────────────────────────────
-         list.addEventListener('click', e => {
+    // ── Selection ─────────────────────────────────────────────
+    list.addEventListener('click', e => {
         const card = e.target.closest('.pitcher-select-card');
         if (!card) return;
         document.querySelectorAll('.pitcher-select-card').forEach(c => c.classList.remove('selected'));
@@ -234,6 +239,7 @@
         btn.classList.remove('disabled');
         document.getElementById('selectHint').style.display = 'none';
     });
+
     // ── Shuffle settings AJAX save ────────────────────────────
     const teamId2    = '<%= team._id %>';
     const cpId       = '<%= currentPitcherId %>';
@@ -281,6 +287,7 @@
             }
         }, 800);
     }
+
     const backBtn = document.getElementById('backBtn');
     if (backBtn && strikeSlider) {
         backBtn.addEventListener('click', async (e) => {
@@ -300,6 +307,7 @@
             window.location.href = backBtn.href;
         });
     }
+
     const saveAndReturnBtn = document.getElementById('saveAndReturnBtn');
     if (saveAndReturnBtn && strikeSlider) {
         saveAndReturnBtn.addEventListener('click', async (e) => {
@@ -319,6 +327,7 @@
             window.location.href = saveAndReturnBtn.href;
         });
     }
+
     const freqContainer2 = document.querySelector('.current-pitcher-card');
     if (freqContainer2) {
         freqContainer2.addEventListener('click', (e) => {
@@ -333,6 +342,7 @@
             scheduleShuffleSave();
         });
     }
+
     if (strikeSlider) {
         strikeSlider.addEventListener('input', function() {
             document.getElementById('strikeLabel').textContent = this.value;
@@ -340,12 +350,14 @@
             scheduleShuffleSave();
         });
     }
+
     pitchSliders.forEach(s => {
         s.addEventListener('input', () => {
             updatePitchPcts();
             scheduleShuffleSave();
         });
     });
+
     // ── Auto-sort to match team page preference ───────────────
     (function () {
         const mode = localStorage.getItem('ps_pitcher_sort') || 'lastName';

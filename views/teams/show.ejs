@@ -74,6 +74,11 @@
     }
     .sort-btn:hover { border-color: #8fa8c8; color: #1a2e4a; }
     .sort-btn.active { background: var(--ps-navy, #1a2e4a); border-color: var(--ps-navy, #1a2e4a); color: #fff; }
+
+    /* Column-major (top→bottom) two-column layout */
+    .pitcher-col-list { column-count: 1; column-gap: 0.75rem; }
+    @media (min-width: 540px) { .pitcher-col-list { column-count: 2; } }
+    .pitcher-col { break-inside: avoid; display: inline-block; width: 100%; margin-bottom: 0.75rem; }
 </style>
 
 <div class="page-header">
@@ -152,9 +157,9 @@
         <span class="ms-auto text-muted" style="font-size:0.78rem;"><%= team.pitchers.length %>/20 pitchers</span>
     </div>
 
-    <div class="row row-cols-1 row-cols-md-2 g-3" id="pitcherGrid">
+    <div class="pitcher-col-list" id="pitcherGrid">
         <% for (let pitcher of team.pitchers) { %>
-            <div class="col pitcher-col"
+            <div class="pitcher-col"
                  data-lastname="<%= (pitcher.lastName || '').toLowerCase() %>"
                  data-firstname="<%= (pitcher.firstName || '').toLowerCase() %>"
                  data-number="<%= pitcher.number || 0 %>"
