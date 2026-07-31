@@ -662,10 +662,28 @@ function buildCurrentPitcherCard(pitcher, prefs, container) {
     function saveToSession() {
         const weights = {};
         weightSliders.forEach(s => { weights[s.dataset.pitch] = parseInt(s.value); });
-        _sessionShuffleOverrides[String(pitcher._id)] = {
+        const settings = {
             strikeChancePct: parseInt(strikeSlider.value),
-            pitchWeights: weights,
+            pitchWeights:    weights,
         };
+
+        // 1. In-memory: used by getShuffleSettings() for the current session
+        _sessionShuffleOverrides[String(pitcher._id)] = settings;
+
+        // 2. Sync queue: persisted so boilerplate.ejs can flush to server when back online
+        try {
+            const pending = JSON.parse(localStorage.getItem('ps_shuffle_pending') || '{}');
+            pending[String(pitcher._id)] = {
+                teamId:         String(_selectedTeam._id),
+                strikeChancePct: settings.strikeChancePct,
+                pitchWeights:    settings.pitchWeights,
+                savedAt:         Date.now(),
+            };
+            localStorage.setItem('ps_shuffle_pending', JSON.stringify(pending));
+        } catch(e) {}
+
+        // 3. Update ps_offline_data so the NEXT offline session starts with these values
+        updateOfflineDataSettings(String(pitcher._id), settings);
     }
 
     strikeSlider.addEventListener('input', function () {
@@ -1366,6 +1384,71 @@ document.getElementById('btnPitchout').addEventListener('click', () => {
 // Resize
 let resizeTimer;
 window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(buildGrid, 100); });
+
+// ══════════════════════════════════════════════════════════════════════════════
+// OFFLINE SHUFFLE SYNC
+// Persists slider changes to localStorage and POSTs them to the server
+// when connectivity returns — either mid-session or on the next normal page load.
+// ══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Immediately write updated shuffleSettings into ps_offline_data so that if the
+ * coach reopens the offline page before going online, they see their latest values.
+ */
+function updateOfflineDataSettings(pitcherId, settings) {
+    try {
+        const data = JSON.parse(localStorage.getItem('ps_offline_data') || 'null');
+        if (!data) return;
+        for (const team of data.teams) {
+            for (const p of team.pitchers) {
+                if (String(p._id) === pitcherId) {
+                    p.shuffleSettings = p.shuffleSettings || {};
+                    p.shuffleSettings.strikeChancePct = settings.strikeChancePct;
+                    p.shuffleSettings.pitchWeights    = settings.pitchWeights;
+                }
+            }
+        }
+        localStorage.setItem('ps_offline_data', JSON.stringify(data));
+    } catch(e) {}
+}
+
+/**
+ * Try to flush ps_shuffle_pending to the server.
+ * Called when the 'online' event fires, or on page load if somehow connected.
+ * Each entry is POSTed to POST /teams/:teamId/pitchers/:pitcherId/shuffle-settings.
+ * Successfully synced entries are removed from the queue.
+ */
+async function syncPendingSettings() {
+    let pending;
+    try { pending = JSON.parse(localStorage.getItem('ps_shuffle_pending') || '{}'); }
+    catch(e) { return; }
+
+    const ids = Object.keys(pending);
+    if (!ids.length) return;
+
+    const results = await Promise.allSettled(ids.map(async pitcherId => {
+        const { teamId, strikeChancePct, pitchWeights } = pending[pitcherId];
+        const res = await fetch(
+            `/teams/${teamId}/pitchers/${pitcherId}/shuffle-settings`,
+            {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({ strikeChancePct, pitchWeights }),
+            }
+        );
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return pitcherId;
+    }));
+
+    // Remove the entries that synced successfully
+    results.forEach((r, i) => {
+        if (r.status === 'fulfilled') delete pending[ids[i]];
+    });
+    try { localStorage.setItem('ps_shuffle_pending', JSON.stringify(pending)); } catch(e) {}
+}
+
+// Sync immediately if signal returns while the coach is still on this page
+window.addEventListener('online', syncPendingSettings);
 
 // ══════════════════════════════════════════════════════════════════════════════
 // INIT

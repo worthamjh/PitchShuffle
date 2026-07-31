@@ -442,6 +442,37 @@
         document.getElementById('psRatingLater').addEventListener('click', () => dismiss(false));
     })();
 </script>
+<script>
+(function flushOfflineShuffleQueue() {
+    let pending;
+    try { pending = JSON.parse(localStorage.getItem('ps_shuffle_pending') || '{}'); }
+    catch(e) { return; }
+
+    const ids = Object.keys(pending);
+    if (!ids.length) return;
+
+    Promise.allSettled(ids.map(async pitcherId => {
+        const { teamId, strikeChancePct, pitchWeights } = pending[pitcherId];
+        const res = await fetch(
+            `/teams/${teamId}/pitchers/${pitcherId}/shuffle-settings`,
+            {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({ strikeChancePct, pitchWeights }),
+            }
+        );
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return pitcherId;
+    })).then(results => {
+        // Remove successfully synced entries from the queue
+        results.forEach((r, i) => {
+            if (r.status === 'fulfilled') delete pending[ids[i]];
+        });
+        try { localStorage.setItem('ps_shuffle_pending', JSON.stringify(pending)); }
+        catch(e) {}
+    });
+})();
+</script>
 </body>
 
 </html>
