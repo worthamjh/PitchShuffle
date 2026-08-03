@@ -24,57 +24,65 @@
 
     <% if (currentUser) { %>
     <%
-        const p           = currentUser.preferences || {};
-        const isDark      = p.theme === 'dark';
-        const fontSizeMap = { sm: '0.65rem', md: '0.75rem', lg: '0.88rem' };
-        const gameFont    = fontSizeMap[p.gameFontSize] || '0.75rem';
+        // NOTE: these use `var` (not `const`/`function`) deliberately so they
+        // stay accessible later in this template at the <body> tag, where we
+        // apply them as an inline style attribute. Turbo only guarantees a
+        // clean swap of <body> on every navigation — its <head> merge logic
+        // doesn't reliably replace per-request inline <style> blocks, which
+        // previously caused stale team colors to bleed across pages after a
+        // Turbo soft-visit. Setting these as CSS custom properties directly
+        // on <body> sidesteps that entirely.
+        var p           = currentUser.preferences || {};
+        var isDark      = p.theme === 'dark';
+        var fontSizeMap = { sm: '0.65rem', md: '0.75rem', lg: '0.88rem' };
+        var gameFont    = fontSizeMap[p.gameFontSize] || '0.75rem';
 
-        function luminance(hex) {
-            const h = hex.replace('#', '');
-            const toLinear = c => {
-                const v = parseInt(h.substring(c, c + 2), 16) / 255;
+        var luminance = function (hex) {
+            var h = hex.replace('#', '');
+            var toLinear = function (c) {
+                var v = parseInt(h.substring(c, c + 2), 16) / 255;
                 return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
             };
             return 0.2126 * toLinear(0) + 0.7152 * toLinear(2) + 0.0722 * toLinear(4);
-        }
+        };
 
-        function contrastText(hex) {
-            const L = luminance(hex);
+        var contrastText = function (hex) {
+            var L = luminance(hex);
             return (1.05 / (L + 0.05)) >= ((L + 0.05) / 0.05) ? '#ffffff' : '#000000';
-        }
+        };
 
-        function shift(hex, amount) {
-            const h = hex.replace('#', '');
-            const lighten = luminance(hex) < 0.18;
-            const channels = [0, 2, 4].map(i => {
-                const v = parseInt(h.substring(i, i + 2), 16);
+        var shift = function (hex, amount) {
+            var h = hex.replace('#', '');
+            var lighten = luminance(hex) < 0.18;
+            var channels = [0, 2, 4].map(function (i) {
+                var v = parseInt(h.substring(i, i + 2), 16);
                 return lighten
                     ? Math.min(255, Math.round(v + (255 - v) * amount))
                     : Math.max(0,   Math.round(v * (1 - amount)));
             });
-            return '#' + channels.map(v => v.toString(16).padStart(2, '0')).join('');
-        }
+            return '#' + channels.map(function (v) { return v.toString(16).padStart(2, '0'); }).join('');
+        };
 
         // When a team is in context, use team colors.
         // Otherwise fall back to brand navy and user strike/chase prefs.
-        const navyHex       = (typeof teamColor !== 'undefined' && teamColor)
+        var navyHex       = (typeof teamColor !== 'undefined' && teamColor)
                                 ? teamColor : '#1a2e4a';
-        const secondaryHex  = (typeof teamSecondaryColor !== 'undefined' && teamSecondaryColor)
+        var secondaryHex  = (typeof teamSecondaryColor !== 'undefined' && teamSecondaryColor)
                                 ? teamSecondaryColor : navyHex;
-        const strikeHex     = (typeof teamStrikeColor !== 'undefined' && teamStrikeColor)
+        var strikeHex     = (typeof teamStrikeColor !== 'undefined' && teamStrikeColor)
                                 ? teamStrikeColor : (p.strikeColor || '#c8ecd4');
-        const chaseHex      = (typeof teamChaseColor !== 'undefined' && teamChaseColor)
+        var chaseHex      = (typeof teamChaseColor !== 'undefined' && teamChaseColor)
                                 ? teamChaseColor  : (p.chaseColor  || '#fef3cd');
 
-        const navyText      = contrastText(navyHex);
-        const secondaryText = contrastText(secondaryHex);
-        const strikeText    = contrastText(strikeHex);
-        const chaseText     = contrastText(chaseHex);
+        var navyText      = contrastText(navyHex);
+        var secondaryText = contrastText(secondaryHex);
+        var strikeText    = contrastText(strikeHex);
+        var chaseText     = contrastText(chaseHex);
 
-        const strikeBorder = shift(strikeHex, 0.30);
-        const strikeHover  = shift(strikeHex, 0.12);
-        const chaseBorder  = shift(chaseHex,  0.30);
-        const chaseHover   = shift(chaseHex,  0.12);
+        var strikeBorder = shift(strikeHex, 0.30);
+        var strikeHover  = shift(strikeHex, 0.12);
+        var chaseBorder  = shift(chaseHex,  0.30);
+        var chaseHover   = shift(chaseHex,  0.12);
     %>
     <style>
         /* ── iOS safe area insets (notch / Dynamic Island) ── */
@@ -85,53 +93,14 @@
             padding-bottom: env(safe-area-inset-bottom);
         }
 
-        :root {
-            --ps-navy:        <%= navyHex %>;
-            --ps-navy-dark:   <%= shift(navyHex, 0.20) %>;
-            --ps-navy-hover:  <%= shift(navyHex, 0.10) %>;
-            --ps-navy-muted:  <%= shift(navyHex, 0.35) %>;
-            --accent-text:    <%= navyText %>;
-
-            --ps-secondary:      <%= secondaryHex %>;
-            --ps-secondary-text: <%= secondaryText %>;
-
-            --strike-bg:      <%= strikeHex %>;
-            --strike-border:  <%= strikeBorder %>;
-            --strike-text:    <%= strikeText %>;
-            --strike-hover:   <%= strikeHover %>;
-
-            --chase-bg:       <%= chaseHex %>;
-            --chase-border:   <%= chaseBorder %>;
-            --chase-text:     <%= chaseText %>;
-            --chase-hover:    <%= chaseHover %>;
-            --chase-hover-border: <%= shift(chaseHex, 0.4) %>;
-
-            --game-font-size: <%= gameFont %>;
-            <% if (isDark) { %>
-            --ps-bg:      #0f1923;
-            --ps-card-bg: #1a2535;
-            --ps-text:    #e8edf2;
-            --ps-muted:   #8fa8c8;
-            <% } %>
-        }
-
-        .card-header,
-        .btn-primary,
-        .btn-primary:hover,
-        .page-header,
-        .page-header h1 {
-            color: <%= navyText %> !important;
-        }
-
-        .navbar-brand,
-        .nav-link,
-        .nav-link:hover {
-            color: <%= navyText %> !important;
-        }
-        .navbar .nav-link:hover {
-            background-color: <%= shift(navyHex, 0.15) %>;
-            border-radius: 6px;
-        }
+        /* Team/theme CSS custom properties (--ps-navy, --accent-text, etc.)
+           are applied as an inline style attribute on <body> instead of a
+           :root rule here — see the note above and the <body> tag below.
+           This block used to also hard-code .navbar-brand/.card-header/etc.
+           colors directly from <%= navyText %>, which was fully redundant
+           with the var(--accent-text) rules already in style.css and was
+           the cause of team colors occasionally bleeding across Turbo
+           navigations; removed rather than duplicated. */
 
         <% if (isDark) { %>
         body { color-scheme: dark; }
@@ -210,28 +179,20 @@
     </style>
 </head>
 
-<body>
+<body<% if (currentUser) { %> style="--ps-navy:<%= navyHex %>; --ps-navy-dark:<%= shift(navyHex, 0.20) %>; --ps-navy-hover:<%= shift(navyHex, 0.10) %>; --ps-navy-muted:<%= shift(navyHex, 0.35) %>; --accent-text:<%= navyText %>; --ps-secondary:<%= secondaryHex %>; --ps-secondary-text:<%= secondaryText %>; --strike-bg:<%= strikeHex %>; --strike-border:<%= strikeBorder %>; --strike-text:<%= strikeText %>; --strike-hover:<%= strikeHover %>; --chase-bg:<%= chaseHex %>; --chase-border:<%= chaseBorder %>; --chase-text:<%= chaseText %>; --chase-hover:<%= chaseHover %>; --chase-hover-border:<%= shift(chaseHex, 0.4) %>; --game-font-size:<%= gameFont %>;<% if (isDark) { %> --ps-bg:#0f1923; --ps-card-bg:#1a2535; --ps-text:#e8edf2; --ps-muted:#8fa8c8;<% } %>"<% } %>>
     <div id="ps-turbo-loader"><div class="spinner-border" role="status"></div></div>
     <script>
-        // ── Turbo navigation loading overlay ──
-        // Turbo Drive is supposed to keep the outgoing page visible until the
-        // new one is ready, but on this app (native WKWebView, remote server,
-        // per-request <head> content) we've observed a blank frame during
-        // transitions. This overlay guarantees the user always sees *something*
-        // (a spinner on the app's navy background) instead of a blank screen,
-        // and the console logs let us tell whether Turbo is doing a normal
-        // soft visit or silently falling back to a full/hard page reload.
+        // ── Turbo navigation loading overlay (safety net) ──
+        // Shows a brief spinner on slow navigations instead of a blank frame.
+        // Delayed slightly so fast/cached navigations never see it flash.
         (function () {
             if (window.__psTurboLoaderReady) return;
             window.__psTurboLoaderReady = true;
 
             var loader = document.getElementById('ps-turbo-loader');
             var showTimer = null;
-            var pageId = Math.random().toString(36).slice(2, 8);
-            console.debug('[ps-turbo] page instance', pageId, 'loaded at', new Date().toISOString());
 
             function show() {
-                // Small delay so instant/cached navigations don't flash the spinner
                 showTimer = setTimeout(function () {
                     if (loader) loader.classList.add('ps-visible');
                 }, 60);
@@ -241,66 +202,10 @@
                 if (loader) loader.classList.remove('ps-visible');
             }
 
-            document.addEventListener('turbo:before-visit', function (e) {
-                console.debug('[ps-turbo] before-visit ->', e.detail && e.detail.url);
-                show();
-            });
-            document.addEventListener('turbo:visit', function (e) {
-                console.debug('[ps-turbo] visit (action:', e.detail && e.detail.action, ')');
-            });
-            document.addEventListener('turbo:before-fetch-request', function () {
-                console.debug('[ps-turbo] before-fetch-request', performance.now());
-            });
-            document.addEventListener('turbo:before-fetch-response', function () {
-                console.debug('[ps-turbo] before-fetch-response', performance.now());
-            });
-            document.addEventListener('turbo:before-render', function () {
-                console.debug('[ps-turbo] before-render', performance.now());
-            });
-            document.addEventListener('turbo:render', function () {
-                console.debug('[ps-turbo] render', performance.now());
-            });
-            document.addEventListener('turbo:load', function () {
-                console.debug('[ps-turbo] load (page fully ready)', performance.now());
-                hide();
-            });
-            // Safety net: if something goes wrong and turbo:load never fires
-            // (e.g. a hard navigation genuinely reload the document), the new
-            // document's own script re-runs this IIFE fresh anyway, so no
-            // stuck spinner survives across a real reload. This timeout just
-            // guards against a swallowed/failed soft visit on the same doc.
+            document.addEventListener('turbo:before-visit', show);
+            document.addEventListener('turbo:load', hide);
             document.addEventListener('turbo:before-cache', hide);
             window.addEventListener('pageshow', hide);
-        })();
-    </script>
-    <!-- ── TEMP DEBUG BADGE — remove once black/blank-screen bug is fixed ──
-         Shows whether Turbo is actually loaded/intercepting navigation on
-         this device, with no cable/Web Inspector required. -->
-    <div id="ps-debug-badge" style="position:fixed;bottom:6px;left:6px;z-index:99999;
-         background:rgba(0,0,0,0.75);color:#0f0;font:10px monospace;
-         padding:3px 6px;border-radius:4px;pointer-events:none;">…</div>
-    <script>
-        (function () {
-            var badge = document.getElementById('ps-debug-badge');
-            if (!badge) return;
-            var navCount = parseInt(sessionStorage.getItem('ps_nav_count') || '0', 10);
-            function render() {
-                var turboOk = typeof window.Turbo !== 'undefined';
-                badge.textContent = 'turbo:' + (turboOk ? 'yes' : 'NO') +
-                    ' nav:' + navCount +
-                    ' native:' + (!!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()));
-            }
-            render();
-            document.addEventListener('turbo:before-visit', function () {
-                navCount++;
-                sessionStorage.setItem('ps_nav_count', navCount);
-                render();
-                badge.style.color = '#ff0';
-            });
-            document.addEventListener('turbo:load', function () {
-                badge.style.color = '#0f0';
-                render();
-            });
         })();
     </script>
     <div id="offlineBanner" class="d-none text-center py-2 small fw-semibold" 
