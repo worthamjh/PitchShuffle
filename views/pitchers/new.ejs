@@ -153,6 +153,11 @@
 <script type="application/json" id="allZoneDataJson"><%- JSON.stringify(zones.map(z => ({ id: z._id.toString(), locations: z.availableLocations }))) %></script>
 
 <script>
+(function () {
+    // Turbo now does real soft-navigation, so this script can re-run in the
+    // same still-alive JS global scope if the user navigates back to this
+    // page. Wrap in an IIFE so the top-level const/let below don't throw
+    // "already declared" on a second visit.
     let isRHP = true;
     document.getElementById('throws').addEventListener('change', (e) => { isRHP = e.target.value === 'R'; rebuildAllGrids(); });
 
@@ -496,4 +501,5 @@ document.getElementById('newPitcherForm').addEventListener('submit', function(e)
             showError(`Duplicate pitch name: ${unique}. Each pitch type must have a unique name.`);
         }
     });
+})();
 </script>

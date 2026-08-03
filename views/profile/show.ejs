@@ -259,6 +259,11 @@
 </div>
 
 <script>
+// ── Turbo does real soft-navigation now, so this script can re-run in
+// the same still-alive JS global scope if the user navigates back to
+// this page. Wrap everything in an IIFE so top-level const/let below
+// don't throw "already declared" on a second visit. ─────────────────
+(function () {
 // ── iOS: hide subscribe/purchase language, app-wide ─────────────
 // Capacitor injects window.Capacitor only inside the native iOS app.
 // Apple Guideline 3.1.1: no plan names, prices, "Subscribe", or
@@ -332,6 +337,7 @@ document.getElementById('testVoiceBtn').addEventListener('click', () => {
     utter.rate    = 0.95;
     window.speechSynthesis.speak(utter);
 });
+})();
 </script>
 
 <!-- ── Update Email ───────────────────────────────────────────── -->

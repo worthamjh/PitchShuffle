@@ -249,6 +249,12 @@
 
 <script type="application/json" id="pitcherJson"><%- JSON.stringify(pitcher) %></script>
 <script>
+(function () {
+    // Wrapped in an IIFE — same reasoning as game-select.ejs: Turbo now does
+    // real soft-navigation, and this screen is visited every time a game
+    // starts, so without this wrapper, the second game of a session would
+    // redeclare these consts in the same JS context and throw, silently
+    // breaking every pitch/zone button on this page from then on.
     const pitcherData   = JSON.parse(document.getElementById('pitcherJson').textContent);
     const isRHP         = pitcherData.throws === 'R';
     const pitchTypes    = pitcherData.pitchTypes || [];
@@ -839,4 +845,5 @@
         speak(pitchName, selectedLocation); updateButtons();
     }
     document.getElementById('btnCall').addEventListener('click', normalCallHandler);
+})();
 </script>

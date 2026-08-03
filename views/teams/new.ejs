@@ -99,6 +99,11 @@
 
         </form>
         <script>
+        // Turbo now does real soft-navigation, so this script can re-run in
+        // the same still-alive JS global scope if the user navigates back
+        // here. Wrap in an IIFE so the top-level const below doesn't throw
+        // "already declared" on a second visit.
+        (function () {
             const primaryColor   = document.getElementById('primaryColor');
             const secondaryColor = document.getElementById('secondaryColor');
             const strikeColor    = document.getElementById('strikeColor');
@@ -127,6 +132,7 @@
             );
 
             checkColors(); // run on load in case colors are already matching
+        })();
         </script>
     </div>
 </div>

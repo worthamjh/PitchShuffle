@@ -314,6 +314,11 @@
     <script type="application/json" id="pitchDataJson"><%- JSON.stringify(pitcher.pitchTypes || []) %></script>
     <script type="application/json" id="zoneDataJson"><%- JSON.stringify(pitcher.zone ? pitcher.zone.availableLocations : []) %></script>
     <script>
+    // Turbo now does real soft-navigation, so this script can re-run in the
+    // same still-alive JS global scope if the user navigates back to this
+    // page. Wrap in an IIFE so the top-level const/let below don't throw
+    // "already declared" on a second visit.
+    (function () {
         const throws = '<%= pitcher.throws %>';
         const isRHP = throws === 'R';
 
@@ -765,6 +770,7 @@
                 showError(`Duplicate pitch name: ${unique}. Each pitch type must have a unique name.`);
             }
         });
+    })();
     </script>
 
     <script>

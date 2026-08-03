@@ -225,6 +225,14 @@
 </style>
 
 <script>
+(function () {
+    // Wrapped in an IIFE so top-level const/let declarations don't leak into
+    // the global scope. Turbo now does real soft-navigation (not full page
+    // reloads), so if this screen is visited more than once per session,
+    // this script tag runs again in the same still-alive JS context —
+    // without this wrapper, redeclaring these consts would throw and
+    // silently kill every listener below (that's what caused the sliders to
+    // stop responding after visiting "Change Pitcher" more than once).
     const teamId = '<%= team._id %>';
     const list   = document.getElementById('pitcherList');
 
@@ -372,4 +380,5 @@
         });
         cols.forEach(col => grid.appendChild(col));
     }());
+})();
 </script>

@@ -172,7 +172,14 @@
 
         <a href="/teams/<%= team._id %>" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Back to Team</a>
 
+    <script type="application/json" id="pitchDataJson"><%- JSON.stringify(pitcher.pitchTypes || []) %></script>
     <script>
+    // Turbo now does real soft-navigation, so this script can re-run in the
+    // same still-alive JS global scope if the user navigates back to this
+    // page. Wrap in an IIFE so the top-level const/let below don't throw
+    // "already declared" on a second visit. (This used to be two separate
+    // <script> tags sharing globals — merged into one IIFE for that reason.)
+    (function () {
         const throws = '<%= pitcher.throws %>';
         const isRHP = throws === 'R';
 
@@ -231,10 +238,7 @@
         }
         const usesOverlays = locations => { const names = new Set(locations.map(l => l.name)); return names.has('glove-up') || names.has('inside-up') || names.has('away-up'); };
         const isZoneD = locations => { const names = new Set(locations.map(l => l.name)); return (names.has('glove-up') || names.has('away-up')) && !names.has('mid-up'); };
-    </script>
 
-    <script type="application/json" id="pitchDataJson"><%- JSON.stringify(pitcher.pitchTypes || []) %></script>
-    <script>
         const pitchData = JSON.parse(document.getElementById('pitchDataJson').textContent);
 
         function getBoxClass(loc) { if (!loc.enabled) return 'disabled'; if (loc.type === 'chase') return 'chase'; return 'strike'; }
@@ -388,4 +392,5 @@
             document.querySelectorAll('.visual-view').forEach(el => el.style.display = 'none');
             document.querySelectorAll('.list-view').forEach(el => el.style.display = 'block');
         });
+    })();
     </script>

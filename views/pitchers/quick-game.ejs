@@ -424,6 +424,11 @@
 <script type="application/json" id="pitcherJson"><%- JSON.stringify(pitcher) %></script>
 
 <script>
+(function () {
+    // Turbo now does real soft-navigation, so this script can re-run in the
+    // same still-alive JS global scope if the user navigates back to this
+    // page. Wrap in an IIFE so the top-level const/let below don't throw
+    // "already declared" on a second visit.
     const pitcherData   = JSON.parse(document.getElementById('pitcherJson').textContent);
     const isRHP         = true;
     const pitchTypes    = [
@@ -804,4 +809,5 @@ console.log('zoneLocations:', JSON.stringify(zoneLocations)); // ← add this
         updateButtons();
     }
     document.getElementById('btnCall').addEventListener('click', normalCallHandler);
+})();
 </script>
