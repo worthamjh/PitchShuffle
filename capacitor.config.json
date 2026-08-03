@@ -6,5 +6,14 @@
   "server": {
     "url": "https://www.pitchshuffle.com",
     "cleartext": false
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchAutoHide": false,
+      "backgroundColor": "#1a2e4a",
+      "showSpinner": false,
+      "splashFullScreen": true,
+      "splashImmersive": true
+    }
   }
 }

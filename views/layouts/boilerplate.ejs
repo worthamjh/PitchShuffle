@@ -208,7 +208,38 @@
             window.addEventListener('pageshow', hide);
         })();
     </script>
-    <div id="offlineBanner" class="d-none text-center py-2 small fw-semibold" 
+    <script>
+        // ── Native launch splash screen ──
+        // capacitor.config.json sets SplashScreen.launchAutoHide=false, so the
+        // native splash (logo on navy) stays up from process launch until we
+        // explicitly hide it here, once this first page has actually rendered.
+        // That covers the whole cold-start gap, not just the sub-second native
+        // storyboard flash — no more flat color flash before login appears.
+        (function () {
+            if (window.__psSplashHidden) return;
+
+            function hideSplash() {
+                if (window.__psSplashHidden) return;
+                window.__psSplashHidden = true;
+                try {
+                    var isNative = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+                    var SplashScreen = isNative && window.Capacitor.Plugins && window.Capacitor.Plugins.SplashScreen;
+                    if (SplashScreen) SplashScreen.hide();
+                } catch (err) {
+                    console.warn('SplashScreen hide failed:', err);
+                }
+            }
+
+            // turbo:load covers the normal case (Turbo processes the initial
+            // document just like any other visit). window 'load' is a fallback
+            // in case Turbo isn't ready yet for some reason on this page.
+            document.addEventListener('turbo:load', hideSplash, { once: true });
+            window.addEventListener('load', function () {
+                setTimeout(hideSplash, 150);
+            });
+        })();
+    </script>
+    <div id="offlineBanner" class="d-none text-center py-2 small fw-semibold"
      style="background:#c0392b; color:white; position:sticky; top:56px; z-index:999;">
     📵 You're offline — using saved data
 </div>
