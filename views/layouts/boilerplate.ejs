@@ -185,9 +185,94 @@
     </script>
     <% } %>
     <script src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.12/dist/turbo.es2017.umd.js"></script>
+    <style>
+        #ps-turbo-loader {
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            background-color: var(--ps-navy, #1a2e4a);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.12s ease-out;
+        }
+        #ps-turbo-loader.ps-visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        #ps-turbo-loader .spinner-border {
+            width: 2.5rem;
+            height: 2.5rem;
+            color: rgba(255, 255, 255, 0.85);
+        }
+    </style>
 </head>
 
 <body>
+    <div id="ps-turbo-loader"><div class="spinner-border" role="status"></div></div>
+    <script>
+        // ── Turbo navigation loading overlay ──
+        // Turbo Drive is supposed to keep the outgoing page visible until the
+        // new one is ready, but on this app (native WKWebView, remote server,
+        // per-request <head> content) we've observed a blank frame during
+        // transitions. This overlay guarantees the user always sees *something*
+        // (a spinner on the app's navy background) instead of a blank screen,
+        // and the console logs let us tell whether Turbo is doing a normal
+        // soft visit or silently falling back to a full/hard page reload.
+        (function () {
+            if (window.__psTurboLoaderReady) return;
+            window.__psTurboLoaderReady = true;
+
+            var loader = document.getElementById('ps-turbo-loader');
+            var showTimer = null;
+            var pageId = Math.random().toString(36).slice(2, 8);
+            console.debug('[ps-turbo] page instance', pageId, 'loaded at', new Date().toISOString());
+
+            function show() {
+                // Small delay so instant/cached navigations don't flash the spinner
+                showTimer = setTimeout(function () {
+                    if (loader) loader.classList.add('ps-visible');
+                }, 60);
+            }
+            function hide() {
+                clearTimeout(showTimer);
+                if (loader) loader.classList.remove('ps-visible');
+            }
+
+            document.addEventListener('turbo:before-visit', function (e) {
+                console.debug('[ps-turbo] before-visit ->', e.detail && e.detail.url);
+                show();
+            });
+            document.addEventListener('turbo:visit', function (e) {
+                console.debug('[ps-turbo] visit (action:', e.detail && e.detail.action, ')');
+            });
+            document.addEventListener('turbo:before-fetch-request', function () {
+                console.debug('[ps-turbo] before-fetch-request', performance.now());
+            });
+            document.addEventListener('turbo:before-fetch-response', function () {
+                console.debug('[ps-turbo] before-fetch-response', performance.now());
+            });
+            document.addEventListener('turbo:before-render', function () {
+                console.debug('[ps-turbo] before-render', performance.now());
+            });
+            document.addEventListener('turbo:render', function () {
+                console.debug('[ps-turbo] render', performance.now());
+            });
+            document.addEventListener('turbo:load', function () {
+                console.debug('[ps-turbo] load (page fully ready)', performance.now());
+                hide();
+            });
+            // Safety net: if something goes wrong and turbo:load never fires
+            // (e.g. a hard navigation genuinely reload the document), the new
+            // document's own script re-runs this IIFE fresh anyway, so no
+            // stuck spinner survives across a real reload. This timeout just
+            // guards against a swallowed/failed soft visit on the same doc.
+            document.addEventListener('turbo:before-cache', hide);
+            window.addEventListener('pageshow', hide);
+        })();
+    </script>
     <div id="offlineBanner" class="d-none text-center py-2 small fw-semibold" 
      style="background:#c0392b; color:white; position:sticky; top:56px; z-index:999;">
     📵 You're offline — using saved data
