@@ -152,6 +152,11 @@
 </style>
 
 <script>
+(function () {
+    // Turbo now does real soft-navigation, so this script can re-run in the
+    // same still-alive JS global scope if the user navigates back to this
+    // page. Wrap in an IIFE so the top-level const below don't throw
+    // "already declared" on a second visit.
     const teamId   = '<%= team._id %>';
     const SORT_KEY = 'ps_pitcher_sort';
     const list     = document.getElementById('pitcherList');
@@ -185,5 +190,6 @@
         btn.classList.remove('disabled');
         document.getElementById('selectHint').style.display = 'none';
     });
+})();
 </script>
 <!-- deploy -->

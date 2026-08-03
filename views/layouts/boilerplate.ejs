@@ -341,7 +341,7 @@
  
     <div class="container mt-3">
         <% if (success && success.length) { %>
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <div class="alert alert-success alert-dismissible fade show ps-auto-dismiss" role="alert">
                 <i class="bi bi-check-circle-fill"></i> <%= success %>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
@@ -354,13 +354,36 @@
         <% } %>
         <% if (warning && warning.length) { %>
             <% for (let msg of warning) { %>
-            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <div class="alert alert-warning alert-dismissible fade show ps-auto-dismiss" role="alert">
                 <i class="bi bi-exclamation-triangle"></i> <%= msg %>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
             <% } %>
         <% } %>
     </div>
+    <script>
+        // ── Auto-dismiss flash banners (success/warning) after a few seconds ──
+        // Errors are left alone since those usually need the user to actually
+        // read/act on them. Re-runs on every Turbo navigation since the
+        // banners are freshly rendered server-side on each page load.
+        (function () {
+            function autoDismiss() {
+                document.querySelectorAll('.ps-auto-dismiss').forEach(function (el) {
+                    setTimeout(function () {
+                        if (window.bootstrap && window.bootstrap.Alert) {
+                            var alert = window.bootstrap.Alert.getOrCreateInstance(el);
+                            alert.close();
+                        } else {
+                            el.remove();
+                        }
+                    }, 3500);
+                });
+            }
+            // turbo:load fires for both the initial page load and every
+            // subsequent soft-navigation, so this alone covers all cases.
+            document.addEventListener('turbo:load', autoDismiss);
+        })();
+    </script>
 
     <main>
         <%- body %>
