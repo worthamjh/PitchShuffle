@@ -273,6 +273,36 @@
             window.addEventListener('pageshow', hide);
         })();
     </script>
+    <!-- ── TEMP DEBUG BADGE — remove once black/blank-screen bug is fixed ──
+         Shows whether Turbo is actually loaded/intercepting navigation on
+         this device, with no cable/Web Inspector required. -->
+    <div id="ps-debug-badge" style="position:fixed;bottom:6px;left:6px;z-index:99999;
+         background:rgba(0,0,0,0.75);color:#0f0;font:10px monospace;
+         padding:3px 6px;border-radius:4px;pointer-events:none;">…</div>
+    <script>
+        (function () {
+            var badge = document.getElementById('ps-debug-badge');
+            if (!badge) return;
+            var navCount = parseInt(sessionStorage.getItem('ps_nav_count') || '0', 10);
+            function render() {
+                var turboOk = typeof window.Turbo !== 'undefined';
+                badge.textContent = 'turbo:' + (turboOk ? 'yes' : 'NO') +
+                    ' nav:' + navCount +
+                    ' native:' + (!!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()));
+            }
+            render();
+            document.addEventListener('turbo:before-visit', function () {
+                navCount++;
+                sessionStorage.setItem('ps_nav_count', navCount);
+                render();
+                badge.style.color = '#ff0';
+            });
+            document.addEventListener('turbo:load', function () {
+                badge.style.color = '#0f0';
+                render();
+            });
+        })();
+    </script>
     <div id="offlineBanner" class="d-none text-center py-2 small fw-semibold" 
      style="background:#c0392b; color:white; position:sticky; top:56px; z-index:999;">
     📵 You're offline — using saved data
