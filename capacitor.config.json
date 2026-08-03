@@ -2,6 +2,7 @@
   "appId": "com.pitchshuffle.app",
   "appName": "PitchShuffle",
   "webDir": "www",
+  "backgroundColor": "#1a2e4a",
   "server": {
     "url": "https://www.pitchshuffle.com",
     "cleartext": false

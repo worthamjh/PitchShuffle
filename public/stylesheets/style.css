@@ -42,10 +42,14 @@
 }
 
 /* ── 2. Base ───────────────────────────────────────────────── */
+html {
+    background-color: var(--ps-bg, #f4f6f9);
+}
 body {
-    background-color: var(--ps-bg);
+    background-color: var(--ps-bg, #f4f6f9);
     color: var(--ps-text);
     font-family: 'Segoe UI', sans-serif;
+    min-height: 100vh;
 }
 
 /* ── 3. Navbar ─────────────────────────────────────────────── */
