@@ -3,7 +3,7 @@ const router = express.Router();
 const passport = require('passport');
 const User = require('../models/user');
 const Team = require('../models/team');
-const { isLoggedIn } = require('../middleware');
+const { isLoggedIn, blockNativeSignup, isNativeApp } = require('../middleware');
 const appleSignin = require('apple-signin-auth');
 const { sendWelcomeEmail } = require('../utilities/email');
 
@@ -97,9 +97,9 @@ router.get('/game/:teamId', isLoggedIn, async (req, res, next) => {
 });
 
 // ── Auth ──────────────────────────────────────────────────────
-router.get('/register', (req, res) => res.render('auth/register'));
+router.get('/register', blockNativeSignup, (req, res) => res.render('auth/register'));
 
-router.post('/register', async (req, res, next) => {
+router.post('/register', blockNativeSignup, async (req, res, next) => {
     try {
         const { email, username, password, zoneTerminology } = req.body;
         if (!username || !username.trim()) {
@@ -221,6 +221,12 @@ router.post('/auth/apple/callback', async (req, res) => {
         }
 
         if (!user) {
+            // Apple Guideline 3.1.1 / 3.1.3(a): existing users may log in
+            // with Apple on native, but new accounts can't be created there.
+            if (isNativeApp(req)) {
+                req.flash('error', 'No account found for that Apple ID. Please sign up at pitchshuffle.com.');
+                return res.redirect('/login');
+            }
             req.session.appleSignup = { appleId, email: email || '', firstName, lastName };
             return res.redirect('/auth/choose-username');
         }
@@ -245,14 +251,14 @@ router.post('/auth/apple/callback', async (req, res) => {
 });
 
 // ── Apple Choose Username ─────────────────────────────────────
-router.get('/auth/choose-username', (req, res) => {
+router.get('/auth/choose-username', blockNativeSignup, (req, res) => {
     if (!req.session.appleSignup) return res.redirect('/login');
     const { firstName, lastName } = req.session.appleSignup;
     const suggested = (firstName || '').toLowerCase().replace(/\s+/g, '') || '';
     res.render('auth/choose-username', { suggested });
 });
 
-router.post('/auth/choose-username', async (req, res, next) => {
+router.post('/auth/choose-username', blockNativeSignup, async (req, res, next) => {
     try {
         if (!req.session.appleSignup) return res.redirect('/login');
         const { appleId, email } = req.session.appleSignup;

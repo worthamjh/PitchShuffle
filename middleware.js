@@ -55,3 +55,23 @@ module.exports.isSubscribed = (req, res, next) => {
     res.redirect('/subscription');
 };
 
+// True when the request is coming from the native iOS app shell
+// (Capacitor is configured with ios.appendUserAgent = "PitchShuffleNativeApp").
+module.exports.isNativeApp = (req) => {
+    const ua = req.headers['user-agent'] || '';
+    return ua.includes('PitchShuffleNativeApp');
+};
+
+// Apple Guideline 3.1.1 / 3.1.3(a): the native app must not allow creating
+// new accounts that can access paid content. Block registration and OAuth
+// sign-up entry points server-side when the request comes from the app —
+// hiding the UI with client-side JS alone is not sufficient, since the
+// routes themselves remain reachable. Existing users may still log in.
+module.exports.blockNativeSignup = (req, res, next) => {
+    const ua = req.headers['user-agent'] || '';
+    if (ua.includes('PitchShuffleNativeApp')) {
+        req.flash('error', 'New accounts are created at pitchshuffle.com. Please log in below if you already have an account.');
+        return res.redirect('/login');
+    }
+    next();
+};
