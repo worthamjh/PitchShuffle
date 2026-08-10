@@ -266,6 +266,36 @@
                 input.value = '';
             }
         });
+
+        // Native Google/Apple sign-in return handler. login.ejs opens those
+        // flows in an in-app browser sheet (Capacitor Browser plugin)
+        // rather than a plain link, since the OAuth screens get handed off
+        // to the system browser otherwise with no way back into the app.
+        // The server's final redirect there is the pitchshuffle:// custom
+        // URL scheme, which iOS routes back to us as an appUrlOpen event —
+        // that's our signal to close the sheet and load the now-logged-in
+        // page (cookies are shared between the sheet and this WebView).
+        (function () {
+            var isNative = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+            if (!isNative || !window.Capacitor.Plugins) return;
+            var CapApp = window.Capacitor.Plugins.App;
+            var CapacitorBrowser = window.Capacitor.Plugins.Browser;
+            if (!CapApp) return;
+            CapApp.addListener('appUrlOpen', function (data) {
+                var url = data && data.url;
+                if (!url || url.indexOf('pitchshuffle://') !== 0) return;
+                if (CapacitorBrowser) CapacitorBrowser.close().catch(function () {});
+                var isFailure = url.indexOf('auth-failed') !== -1;
+                var next = '/login';
+                if (!isFailure) {
+                    try {
+                        var parsed = new URL(url.replace('pitchshuffle://', 'https://placeholder/'));
+                        next = parsed.searchParams.get('next') || '/';
+                    } catch (e) { next = '/'; }
+                }
+                window.location.href = next;
+            });
+        })();
     }
     // Run on every Turbo navigation (banner element is re-rendered each time)
     window.__psUpdateOnlineStatus();

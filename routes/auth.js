@@ -153,40 +153,68 @@ router.post('/logout', (req, res, next) => {
 });
 
 // ── Google OAuth ──────────────────────────────────────────────
+// The OAuth handshake leaves our WebView entirely (Google refuses to run
+// inside an embedded webview and forces a handoff to system Safari), so
+// the native User-Agent tag doesn't survive the round trip. We carry the
+// "this came from the native app" signal through OAuth's `state` param
+// instead, which Google echoes back on /auth/google/callback.
 router.get('/auth/google',
-    passport.authenticate('google', { scope: ['profile', 'email'] })
-);
-
-router.get('/auth/google/callback',
-    passport.authenticate('google', {
-        failureRedirect: '/login',
-        failureFlash:    true,
-        keepSessionInfo: true,
-    }),
-    async (req, res) => {
-        req.flash('success', `Welcome, ${req.user.username}!`);
-        try {
-            const teams = await Team.find({ owner: req.user._id });
-            if (teams.length === 0) return res.redirect('/teams/new?onboarding=1');
-        } catch (e) {}
-        res.redirect('/');
+    (req, res, next) => {
+        const state = req.query.native === '1' ? 'native' : undefined;
+        passport.authenticate('google', { scope: ['profile', 'email'], state })(req, res, next);
     }
 );
 
+router.get('/auth/google/callback', (req, res, next) => {
+    // Custom callback (rather than the failureRedirect/failureFlash
+    // shorthand) so we can send native sessions back through the
+    // pitchshuffle:// URL scheme instead of a plain https redirect. The
+    // OAuth screen ran in system Safari, so this response is what closes
+    // that sheet and hands control back to the app (see the appUrlOpen
+    // listener in boilerplate.ejs).
+    const isNative = req.query.state === 'native';
+    passport.authenticate('google', { keepSessionInfo: true }, (err, user, info) => {
+        if (err || !user) {
+            req.flash('error', (info && info.message) || 'Google sign-in failed. Please try again.');
+            return res.redirect(isNative ? 'pitchshuffle://auth-failed' : '/login');
+        }
+        req.login(user, async loginErr => {
+            if (loginErr) {
+                req.flash('error', 'Login failed. Please try again.');
+                return res.redirect(isNative ? 'pitchshuffle://auth-failed' : '/login');
+            }
+            req.flash('success', `Welcome, ${user.username}!`);
+            let next = '/';
+            try {
+                const teams = await Team.find({ owner: user._id });
+                if (teams.length === 0) next = '/teams/new?onboarding=1';
+            } catch (e) {}
+            if (isNative) {
+                return res.redirect(`pitchshuffle://auth-success?next=${encodeURIComponent(next)}`);
+            }
+            res.redirect(next);
+        });
+    })(req, res, next);
+});
+
 // ── Apple Sign In ─────────────────────────────────────────────
 router.get('/auth/apple', (req, res) => {
+    // Same cross-domain-redirect issue as Google: carry native-ness via
+    // Apple's `state` param, which comes back in the callback's POST body.
+    const state = req.query.native === '1' ? 'native' : 'web';
     const params = new URLSearchParams({
         client_id:     process.env.APPLE_CLIENT_ID,
         redirect_uri:  process.env.APPLE_CALLBACK_URL,
         response_type: 'code id_token',
         response_mode: 'form_post',
         scope:         'name email',
-        state:         'state',
+        state,
     });
     res.redirect(`https://appleid.apple.com/auth/authorize?${params}`);
 });
 
 router.post('/auth/apple/callback', async (req, res) => {
+    const isNative = req.body.state === 'native';
     try {
         const { id_token, user: userJson } = req.body;
         const clientSecret = appleSignin.getClientSecret({
@@ -223,9 +251,12 @@ router.post('/auth/apple/callback', async (req, res) => {
         if (!user) {
             // Apple Guideline 3.1.1 / 3.1.3(a): existing users may log in
             // with Apple on native, but new accounts can't be created there.
-            if (isNativeApp(req)) {
+            // isNativeApp(req) won't see the native UA tag here (Apple's
+            // consent screen runs in system Safari, not our WebView), so
+            // rely on the state param that made the round trip instead.
+            if (isNative || isNativeApp(req)) {
                 req.flash('error', 'No account found for that Apple ID. Please sign up at pitchshuffle.com.');
-                return res.redirect('/login');
+                return res.redirect(isNative ? 'pitchshuffle://auth-failed' : '/login');
             }
             req.session.appleSignup = { appleId, email: email || '', firstName, lastName };
             return res.redirect('/auth/choose-username');
@@ -234,19 +265,23 @@ router.post('/auth/apple/callback', async (req, res) => {
         req.login(user, async err => {
             if (err) {
                 req.flash('error', 'Login failed. Please try again.');
-                return res.redirect('/login');
+                return res.redirect(isNative ? 'pitchshuffle://auth-failed' : '/login');
             }
             req.flash('success', `Welcome, ${user.username}!`);
+            let next = '/';
             try {
                 const teams = await Team.find({ owner: user._id });
-                if (teams.length === 0) return res.redirect('/teams/new?onboarding=1');
+                if (teams.length === 0) next = '/teams/new?onboarding=1';
             } catch (_) {}
-            res.redirect('/');
+            if (isNative) {
+                return res.redirect(`pitchshuffle://auth-success?next=${encodeURIComponent(next)}`);
+            }
+            res.redirect(next);
         });
     } catch (e) {
         console.error('Apple Sign In error:', e);
         req.flash('error', 'Apple Sign In failed. Please try again.');
-        res.redirect('/login');
+        res.redirect(isNative ? 'pitchshuffle://auth-failed' : '/login');
     }
 });
 
