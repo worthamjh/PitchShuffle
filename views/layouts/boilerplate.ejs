@@ -286,14 +286,30 @@
                 if (!url || url.indexOf('pitchshuffle://') !== 0) return;
                 if (CapacitorBrowser) CapacitorBrowser.close().catch(function () {});
                 var isFailure = url.indexOf('auth-failed') !== -1;
-                var next = '/login';
-                if (!isFailure) {
-                    try {
-                        var parsed = new URL(url.replace('pitchshuffle://', 'https://placeholder/'));
-                        next = parsed.searchParams.get('next') || '/';
-                    } catch (e) { next = '/'; }
-                }
-                window.location.href = next;
+                var dest = '/login';
+                try {
+                    var parsed = new URL(url.replace('pitchshuffle://', 'https://placeholder/'));
+                    if (isFailure) {
+                        var message = parsed.searchParams.get('message');
+                        // Carry the error message along as a query param
+                        // rather than relying solely on server-side session
+                        // flash, in case that response's session cookie
+                        // isn't reliably visible yet to this WebView's next
+                        // request. login.ejs reads and displays ?oauthError=.
+                        dest = '/login' + (message ? '?oauthError=' + encodeURIComponent(message) : '');
+                    } else {
+                        // Success: exchange the one-time token for a real
+                        // login session in this WebView's own request,
+                        // rather than assuming the sheet's session cookie
+                        // carried over.
+                        var token = parsed.searchParams.get('token');
+                        var next = parsed.searchParams.get('next') || '/';
+                        dest = token
+                            ? '/auth/native-exchange?token=' + encodeURIComponent(token) + '&next=' + encodeURIComponent(next)
+                            : next;
+                    }
+                } catch (e) {}
+                window.location.href = dest;
             });
         })();
     }
