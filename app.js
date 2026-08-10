@@ -92,8 +92,11 @@ passport.use(new GoogleStrategy({
 
         // Apple Guideline 3.1.1 / 3.1.3(a): the native app may let existing
         // users log in with Google, but must not create new accounts. Web
-        // sign-up is unaffected.
-        if (isNativeApp(req)) {
+        // sign-up is unaffected. Google's consent screen runs in system
+        // Safari (it refuses to load inside an embedded webview), so the
+        // native User-Agent tag doesn't survive the redirect — the `state`
+        // param carried through the OAuth round trip is the reliable signal.
+        if (req.query.state === 'native' || isNativeApp(req)) {
             return done(null, false, { message: 'No account found for that Google sign-in. Please sign up at pitchshuffle.com.' });
         }
 

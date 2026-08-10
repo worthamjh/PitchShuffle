@@ -25,6 +25,17 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false />
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>pitchshuffle</string>
+			</array>
+			<key>CFBundleURLName</key>
+			<string>com.pitchshuffle.app</string>
+		</dict>
+	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true />
 	<key>UILaunchStoryboardName</key>
