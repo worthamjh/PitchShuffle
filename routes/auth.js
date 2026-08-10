@@ -4,6 +4,7 @@ const passport = require('passport');
 const User = require('../models/user');
 const Team = require('../models/team');
 const { isLoggedIn, blockNativeSignup, isNativeApp } = require('../middleware');
+const { createNativeAuthToken, verifyNativeAuthToken } = require('../utilities/nativeAuth');
 const appleSignin = require('apple-signin-auth');
 const { sendWelcomeEmail } = require('../utilities/email');
 
@@ -175,13 +176,20 @@ router.get('/auth/google/callback', (req, res, next) => {
     const isNative = req.query.state === 'native';
     passport.authenticate('google', { keepSessionInfo: true }, (err, user, info) => {
         if (err || !user) {
-            req.flash('error', (info && info.message) || 'Google sign-in failed. Please try again.');
-            return res.redirect(isNative ? 'pitchshuffle://auth-failed' : '/login');
+            const msg = (info && info.message) || 'Google sign-in failed. Please try again.';
+            req.flash('error', msg);
+            // The message is also passed as a query param on the custom
+            // scheme (not just via session flash) since the session cookie
+            // set by this response may not reliably be visible yet by the
+            // time the app's WebView makes its next request — belt and
+            // suspenders so the user always sees why they got bounced back.
+            return res.redirect(isNative ? `pitchshuffle://auth-failed?message=${encodeURIComponent(msg)}` : '/login');
         }
         req.login(user, async loginErr => {
             if (loginErr) {
-                req.flash('error', 'Login failed. Please try again.');
-                return res.redirect(isNative ? 'pitchshuffle://auth-failed' : '/login');
+                const msg = 'Login failed. Please try again.';
+                req.flash('error', msg);
+                return res.redirect(isNative ? `pitchshuffle://auth-failed?message=${encodeURIComponent(msg)}` : '/login');
             }
             req.flash('success', `Welcome, ${user.username}!`);
             let next = '/';
@@ -190,11 +198,49 @@ router.get('/auth/google/callback', (req, res, next) => {
                 if (teams.length === 0) next = '/teams/new?onboarding=1';
             } catch (e) {}
             if (isNative) {
-                return res.redirect(`pitchshuffle://auth-success?next=${encodeURIComponent(next)}`);
+                // Don't rely on the session cookie set on *this* response
+                // (made inside the OAuth sheet's browsing context) carrying
+                // over to the app's own WebView — hand off a one-time token
+                // instead and let the app's WebView establish its own
+                // session via /auth/native-exchange.
+                const token = createNativeAuthToken(user._id.toString());
+                return res.redirect(`pitchshuffle://auth-success?token=${token}&next=${encodeURIComponent(next)}`);
             }
             res.redirect(next);
         });
     })(req, res, next);
+});
+
+// ── Native auth token exchange ──────────────────────────────────
+// The app's own WebView hits this (not the OAuth sheet) to turn a
+// short-lived token from the pitchshuffle:// return into a real login
+// session, established directly in this request's own context.
+router.get('/auth/native-exchange', async (req, res) => {
+    const { token, next } = req.query;
+    const safeNext = (typeof next === 'string' && next.startsWith('/')) ? next : '/';
+    const userId = token && verifyNativeAuthToken(token);
+    if (!userId) {
+        req.flash('error', 'Sign-in expired. Please try again.');
+        return res.redirect('/login');
+    }
+    try {
+        const user = await User.findById(userId);
+        if (!user) {
+            req.flash('error', 'Account not found. Please try again.');
+            return res.redirect('/login');
+        }
+        req.login(user, err => {
+            if (err) {
+                req.flash('error', 'Login failed. Please try again.');
+                return res.redirect('/login');
+            }
+            res.redirect(safeNext);
+        });
+    } catch (e) {
+        console.error('Native auth exchange error:', e);
+        req.flash('error', 'Something went wrong. Please try again.');
+        res.redirect('/login');
+    }
 });
 
 // ── Apple Sign In ─────────────────────────────────────────────
@@ -255,8 +301,9 @@ router.post('/auth/apple/callback', async (req, res) => {
             // consent screen runs in system Safari, not our WebView), so
             // rely on the state param that made the round trip instead.
             if (isNative || isNativeApp(req)) {
-                req.flash('error', 'No account found for that Apple ID. Please sign up at pitchshuffle.com.');
-                return res.redirect(isNative ? 'pitchshuffle://auth-failed' : '/login');
+                const msg = 'No PitchShuffle account found for that Apple ID. Please sign up at pitchshuffle.com.';
+                req.flash('error', msg);
+                return res.redirect(isNative ? `pitchshuffle://auth-failed?message=${encodeURIComponent(msg)}` : '/login');
             }
             req.session.appleSignup = { appleId, email: email || '', firstName, lastName };
             return res.redirect('/auth/choose-username');
@@ -264,8 +311,9 @@ router.post('/auth/apple/callback', async (req, res) => {
 
         req.login(user, async err => {
             if (err) {
-                req.flash('error', 'Login failed. Please try again.');
-                return res.redirect(isNative ? 'pitchshuffle://auth-failed' : '/login');
+                const msg = 'Login failed. Please try again.';
+                req.flash('error', msg);
+                return res.redirect(isNative ? `pitchshuffle://auth-failed?message=${encodeURIComponent(msg)}` : '/login');
             }
             req.flash('success', `Welcome, ${user.username}!`);
             let next = '/';
@@ -274,14 +322,19 @@ router.post('/auth/apple/callback', async (req, res) => {
                 if (teams.length === 0) next = '/teams/new?onboarding=1';
             } catch (_) {}
             if (isNative) {
-                return res.redirect(`pitchshuffle://auth-success?next=${encodeURIComponent(next)}`);
+                // Same cross-context cookie caveat as Google: hand off a
+                // one-time token rather than relying on this response's
+                // session cookie reaching the app's own WebView.
+                const token = createNativeAuthToken(user._id.toString());
+                return res.redirect(`pitchshuffle://auth-success?token=${token}&next=${encodeURIComponent(next)}`);
             }
             res.redirect(next);
         });
     } catch (e) {
         console.error('Apple Sign In error:', e);
-        req.flash('error', 'Apple Sign In failed. Please try again.');
-        res.redirect(isNative ? 'pitchshuffle://auth-failed' : '/login');
+        const msg = 'Apple Sign In failed. Please try again.';
+        req.flash('error', msg);
+        res.redirect(isNative ? `pitchshuffle://auth-failed?message=${encodeURIComponent(msg)}` : '/login');
     }
 });
 

@@ -97,7 +97,7 @@ passport.use(new GoogleStrategy({
         // native User-Agent tag doesn't survive the redirect — the `state`
         // param carried through the OAuth round trip is the reliable signal.
         if (req.query.state === 'native' || isNativeApp(req)) {
-            return done(null, false, { message: 'No account found for that Google sign-in. Please sign up at pitchshuffle.com.' });
+            return done(null, false, { message: 'No PitchShuffle account found for that Google sign-in. Please sign up at pitchshuffle.com.' });
         }
 
         // Create new user
