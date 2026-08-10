@@ -77,15 +77,31 @@
                     // redirects back to the pitchshuffle:// URL scheme when
                     // it's done (see the appUrlOpen listener below), which
                     // closes the sheet and returns control to the app.
-                    var CapacitorBrowser = (window.Capacitor.Plugins && window.Capacitor.Plugins.Browser) || null;
                     ['ps-google-signin', 'ps-apple-signin'].forEach(function (id) {
                         var link = document.getElementById(id);
                         if (!link) return;
                         link.addEventListener('click', function (e) {
-                            if (!CapacitorBrowser) return; // fall back to plain navigation
                             e.preventDefault();
                             var url = link.href + (link.href.indexOf('?') === -1 ? '?' : '&') + 'native=1';
-                            CapacitorBrowser.open({ url: url });
+                            // Look up the plugin fresh on every click rather than
+                            // capturing it once at page-load time — capturing it
+                            // early risks a race where Capacitor's plugin bridge
+                            // isn't fully ready yet, which silently and
+                            // permanently breaks the in-app sheet for that page
+                            // load (falls back to a full external browser switch
+                            // with no way back).
+                            var Browser = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Browser;
+                            if (Browser) {
+                                Browser.open({ url: url });
+                            } else {
+                                // Last-resort fallback: still tag the request as
+                                // native so the server correctly blocks new-account
+                                // creation and redirects via pitchshuffle:// rather
+                                // than a plain https URL, even though this path
+                                // hands off to the full system browser instead of
+                                // an in-app sheet.
+                                window.location.href = url;
+                            }
                         });
                     });
                 }
