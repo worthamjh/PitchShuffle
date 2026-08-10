@@ -13,6 +13,7 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const User = require('./models/user');
+const { isNativeApp } = require('./middleware');
 const MongoStore = require('connect-mongo');
 const authRoutes         = require('./routes/auth');
 const teamRoutes         = require('./routes/teams');
@@ -66,7 +67,8 @@ passport.use(new GoogleStrategy({
     clientID:     process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     callbackURL:  process.env.GOOGLE_CALLBACK_URL,
-}, async (accessToken, refreshToken, profile, done) => {
+    passReqToCallback: true,
+}, async (req, accessToken, refreshToken, profile, done) => {
     try {
         console.log('Google profile received:', profile.id, profile.emails?.[0]?.value);
         const email = profile.emails?.[0]?.value;
@@ -86,6 +88,13 @@ passport.use(new GoogleStrategy({
                 await user.save();
                 return done(null, user);
             }
+        }
+
+        // Apple Guideline 3.1.1 / 3.1.3(a): the native app may let existing
+        // users log in with Google, but must not create new accounts. Web
+        // sign-up is unaffected.
+        if (isNativeApp(req)) {
+            return done(null, false, { message: 'No account found for that Google sign-in. Please sign up at pitchshuffle.com.' });
         }
 
         // Create new user

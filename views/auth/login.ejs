@@ -22,6 +22,11 @@
                 </div>
             </form>
 
+            <!-- Google/Apple sign-in stay visible on native: they now only
+                 log in existing accounts (new-account creation is blocked
+                 server-side), which satisfies Apple Guideline 3.1.3(a)
+                 while keeping login working for users who signed up on the
+                 web with Google or Apple. -->
             <div id="ps-oauth-section">
                 <div class="d-flex align-items-center my-3">
                     <hr class="flex-grow-1">
@@ -49,16 +54,6 @@
                     </a>
                 </div>
             </div>
-
-            <script>
-            (function () {
-                var isNative = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
-                if (isNative) {
-                    var el = document.getElementById('ps-oauth-section');
-                    if (el) el.style.display = 'none';
-                }
-            })();
-            </script>
 
             <hr>
             <p class="text-center text-muted mb-0" id="ps-login-register-link">
