@@ -78,6 +78,9 @@
                         Sign in with Apple
                     </a>
                 </div>
+                <p class="text-center text-muted small mt-2 mb-0" id="ps-oauth-web-note">
+                    New here? Signing in with Google or Apple above creates your account automatically.
+                </p>
                 <p class="text-center text-muted small mt-2 mb-0 d-none" id="ps-oauth-native-note">
                     New here? Google and Apple sign-in above only work for accounts that already exist —
                     <a href="https://www.pitchshuffle.com/register" target="_blank" rel="noopener">create your account at pitchshuffle.com</a>
@@ -95,6 +98,9 @@
                 if (isNative) {
                     var el = document.getElementById('ps-login-register-link');
                     if (el) el.style.display = 'none';
+
+                    var webNoteEl = document.getElementById('ps-oauth-web-note');
+                    if (webNoteEl) webNoteEl.classList.add('d-none');
 
                     var noteEl = document.getElementById('ps-oauth-native-note');
                     if (noteEl) noteEl.classList.remove('d-none');
