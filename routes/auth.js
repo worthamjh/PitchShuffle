@@ -301,7 +301,7 @@ router.post('/auth/apple/callback', async (req, res) => {
             // consent screen runs in system Safari, not our WebView), so
             // rely on the state param that made the round trip instead.
             if (isNative || isNativeApp(req)) {
-                const msg = 'No PitchShuffle account found for that Apple ID. Please sign up at pitchshuffle.com.';
+                const msg = 'No PitchShuffle account found for that Apple ID. Create one at pitchshuffle.com, then come back and sign in here.';
                 req.flash('error', msg);
                 return res.redirect(isNative ? `pitchshuffle://auth-failed?message=${encodeURIComponent(msg)}` : '/login');
             }
