@@ -21,6 +21,7 @@ const pitcherRoutes      = require('./routes/pitchers');
 const profileRoutes      = require('./routes/profile');
 const subscriptionRoutes = require('./routes/subscription');
 const webhookRoutes      = require('./routes/webhook');
+const revenueCatWebhookRoutes = require('./routes/revenuecat-webhook');
 const { sendWelcomeEmail } = require('./utilities/email');
 const apiRoutes = require('./routes/api');
 
@@ -33,8 +34,9 @@ app.engine('ejs', ejsMate);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
-// !! Webhook route MUST be mounted before express.urlencoded so it gets the raw body
+// !! Webhook routes MUST be mounted before express.urlencoded so they get the raw body
 app.use('/webhook/stripe', webhookRoutes);
+app.use('/webhook/revenuecat', revenueCatWebhookRoutes);
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
