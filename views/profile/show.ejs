@@ -109,9 +109,9 @@
                 <p class="text-muted small mb-0" id="ps-start-trial-msg">Start your 7-day free trial today.</p>
             <% } %>
         </div>
-        <!-- Web-only: these link to the pricing/checkout page. On iOS this
-             whole block is replaced with a neutral "Manage on web" link
-             that contains no plan names, prices, or purchase language. -->
+        <!-- Links to /subscription, which self-detects native vs. web and
+             shows the right purchase flow (RevenueCat/StoreKit on iOS,
+             Stripe Checkout on web). Same buttons work everywhere. -->
         <div class="d-flex flex-column gap-2 flex-shrink-0" id="ps-subscription-actions">
             <a href="/subscription" class="btn btn-primary fw-bold">
                 <i class="bi bi-credit-card me-1"></i>
@@ -119,12 +119,6 @@
             </a>
             <a href="/subscription" class="btn btn-outline-secondary btn-sm text-center">
                 <i class="bi bi-list-ul me-1"></i> View Plans
-            </a>
-        </div>
-        <div class="d-none flex-shrink-0" id="ps-subscription-actions-ios">
-            <a href="/subscription"
-               class="btn btn-outline-secondary btn-sm text-center">
-                <i class="bi bi-box-arrow-up-right me-1"></i> Manage on Web
             </a>
         </div>
     </div>
@@ -264,27 +258,9 @@
 // this page. Wrap everything in an IIFE so top-level const/let below
 // don't throw "already declared" on a second visit. ─────────────────
 (function () {
-// ── iOS: hide subscribe/purchase language, app-wide ─────────────
-// Capacitor injects window.Capacitor only inside the native iOS app.
-// Apple Guideline 3.1.1: no plan names, prices, "Subscribe", or
-// "Start your free trial" language may appear in the native app.
-(function () {
-    var isNative = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
-    if (!isNative) return;
-
-    var subCard     = document.getElementById('ps-subscription-card');  // ← ADD THIS
-    var webActions  = document.getElementById('ps-subscription-actions');
-    var iosActions  = document.getElementById('ps-subscription-actions-ios');
-    var trialMsg    = document.getElementById('ps-start-trial-msg');
-    var resubMsg    = document.getElementById('ps-resubscribe-msg');
-
-    if (subCard)    subCard.style.display = 'none';                     // ← ADD THIS
-    if (webActions) webActions.classList.add('d-none');
-    if (iosActions) iosActions.classList.remove('d-none');
-    if (trialMsg) trialMsg.textContent = 'Visit pitchshuffle.com to subscribe.';
-    if (resubMsg) resubMsg.textContent = 'Visit pitchshuffle.com to manage your subscription.';
-}());
-
+// ── Subscription card now behaves identically on native and web:
+// /subscription self-detects platform and shows RevenueCat/StoreKit
+// purchase UI on iOS, Stripe Checkout on web. No hiding needed. ────
 // ── Restore defaults ──────────────────────────────────────────
 document.getElementById('restoreDefaultsBtn').addEventListener('click', () => {
     document.getElementById('termArmGlove').checked  = true;
