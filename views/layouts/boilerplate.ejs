@@ -239,6 +239,35 @@
             });
         })();
     </script>
+    <script>
+        // ── RevenueCat (Apple In-App Purchase) SDK configuration ──
+        // Native-only. Ties purchases to our own Mongo user _id as the
+        // RevenueCat appUserID, so the RevenueCat webhook (server-side)
+        // can find the right user document directly via User.findById()
+        // with no separate id-mapping table. Re-checked on every
+        // turbo:load (not just once) so it correctly (re)configures after
+        // a fresh login, and reconfigures if a different user logs in on
+        // the same device — but skips the actual native SDK call when
+        // already configured for the current user, since that call has
+        // real (if small) overhead and doesn't need to repeat on every
+        // page navigation.
+        (function () {
+            var isNative = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+            if (!isNative) return;
+
+            var currentUserId = <%- currentUser ? JSON.stringify(String(currentUser._id)) : 'null' %>;
+            if (!currentUserId) return;
+            if (window.__psRevenueCatUserId === currentUserId) return;
+
+            var Purchases = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Purchases;
+            var apiKey = <%- JSON.stringify(process.env.REVENUECAT_IOS_API_KEY || '') %>;
+            if (!Purchases || !apiKey) return;
+
+            Purchases.configure({ apiKey: apiKey, appUserID: currentUserId })
+                .then(function () { window.__psRevenueCatUserId = currentUserId; })
+                .catch(function (err) { console.warn('RevenueCat configure failed:', err); });
+        })();
+    </script>
     <div id="offlineBanner" class="d-none text-center py-2 small fw-semibold"
      style="background:#c0392b; color:white; position:sticky; top:56px; z-index:999;">
     📵 You're offline — using saved data

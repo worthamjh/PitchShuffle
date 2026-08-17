@@ -87,12 +87,15 @@
     </div>
 
     <!-- ===================================================================
-         WEB-ONLY PRICING / CHECKOUT BLOCK
-         Hidden entirely on iOS (Capacitor native) per Apple Guideline 3.1.1.
-         No pricing, plan names, or purchase CTAs may appear in the native
-         app. Subscriptions can only be started on the website. The portal
-         / "Manage Subscription" buttons further down stay visible on iOS
-         since they don't initiate a new purchase.
+         WEB-ONLY PRICING / CHECKOUT BLOCK (Stripe)
+         Hidden on iOS (Capacitor native) and replaced with the native
+         In-App Purchase block below (#ps-native-iap-pricing), per Apple
+         Guideline 3.1.1 — paid content/subscriptions offered in the app
+         must be purchasable via In-App Purchase, not an external payment
+         flow like Stripe Checkout. The portal / "Manage Subscription"
+         buttons further down stay visible on iOS since they don't
+         initiate a new purchase (they just open Stripe's customer portal
+         for users who originally subscribed on the web).
          =================================================================== -->
     <div id="ps-web-only-pricing">
 
@@ -194,12 +197,41 @@
     </div>
     <!-- ============== END WEB-ONLY PRICING / CHECKOUT BLOCK ============== -->
 
-    <!-- iOS fallback message shown in place of the pricing block above -->
-    <div class="d-none text-center mb-4" id="ps-ios-no-pricing-message">
-        <p class="text-muted">
-            Subscriptions are managed on the web. Visit
-            <a href="https://www.pitchshuffle.com/subscription" target="_blank" rel="noopener">pitchshuffle.com</a>
-            from a browser to start or change your plan.
+    <!-- ===================================================================
+         NATIVE IN-APP PURCHASE BLOCK (RevenueCat / StoreKit)
+         Hidden on web, shown on iOS in place of the Stripe block above.
+         Prices are intentionally NOT hardcoded here — they're filled in
+         from the actual StoreKit product data returned by
+         Purchases.getOfferings(), since Apple requires displaying the
+         real, localized App Store price rather than an assumed USD
+         figure. Package identifiers are expected to be "monthly",
+         "annual", and "season" in the RevenueCat "default" offering,
+         matching the plan names used by the Stripe side above.
+         =================================================================== -->
+    <div class="d-none" id="ps-native-iap-pricing">
+
+        <div class="text-center text-muted small mb-3 d-none" id="ps-iap-loading">
+            <div class="spinner-border spinner-border-sm me-1" role="status"></div>
+            Loading plans…
+        </div>
+
+        <div class="alert alert-warning d-none" id="ps-iap-load-error">
+            Couldn't load plans right now. Please check your connection and try again.
+        </div>
+
+        <div id="ps-iap-plans"></div>
+
+        <div class="d-grid mb-4">
+            <button type="button" class="btn btn-outline-secondary" id="ps-iap-restore">
+                <i class="bi bi-arrow-clockwise me-1"></i> Restore Purchases
+            </button>
+        </div>
+
+        <p class="text-center text-muted small">
+            Payment will be charged to your Apple ID account. Subscriptions renew
+            automatically unless cancelled at least 24 hours before the end of the
+            current period. Manage or cancel anytime in your device's
+            Settings &gt; Apple ID &gt; Subscriptions.
         </p>
     </div>
 
@@ -244,18 +276,143 @@
     var isNative         = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
     var CapacitorBrowser = (isNative && window.Capacitor.Plugins && window.Capacitor.Plugins.Browser) ? window.Capacitor.Plugins.Browser : null;
 
-    // Apple Guideline 3.1.1: no pricing, plan info, or purchase CTAs may
-    // appear in the native iOS app. Hide the entire pricing/checkout block
-    // and the "Secured by Stripe" footer, and show a short message pointing
-    // users to the website instead. Portal/manage buttons are left alone.
+    // Apple Guideline 3.1.1: paid content in the app must be purchasable
+    // via In-App Purchase. Hide the Stripe pricing/checkout block and its
+    // footer, and show the native RevenueCat/StoreKit purchase block
+    // instead. Portal/manage buttons (further below) are left alone —
+    // they don't start a new purchase.
     if (isNative) {
-        var pricingBlock = document.getElementById('ps-web-only-pricing');
-        var iosMessage    = document.getElementById('ps-ios-no-pricing-message');
+        var pricingBlock  = document.getElementById('ps-web-only-pricing');
         var stripeFooter  = document.getElementById('ps-secured-by-stripe');
+        var iapBlock      = document.getElementById('ps-native-iap-pricing');
 
         if (pricingBlock) pricingBlock.remove();
         if (stripeFooter) stripeFooter.remove();
-        if (iosMessage) iosMessage.classList.remove('d-none');
+        if (iapBlock) iapBlock.classList.remove('d-none');
+
+        initNativeIAP();
+    }
+
+    // ── Native In-App Purchase (RevenueCat) ─────────────────────────────
+    function initNativeIAP() {
+        var Purchases = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Purchases;
+        var plansEl    = document.getElementById('ps-iap-plans');
+        var loadingEl  = document.getElementById('ps-iap-loading');
+        var errorEl    = document.getElementById('ps-iap-load-error');
+        var restoreBtn = document.getElementById('ps-iap-restore');
+
+        // Display copy only — the actual price shown to the user comes
+        // from StoreKit via the offering package below, never from here.
+        var PLAN_META = {
+            monthly: { title: 'Monthly',     badge: null,      note: 'Includes 7-day free trial. Cancel anytime.',            suffix: '/mo' },
+            season:  { title: 'Season Pass', badge: '90 days', note: 'One-time payment. Perfect for a single season.',        suffix: ' once' },
+            annual:  { title: 'Annual',      badge: null,      note: 'Includes 7-day free trial. Best value.',                suffix: '/yr' },
+        };
+        var PLAN_ORDER = ['monthly', 'season', 'annual'];
+
+        function renderError() {
+            if (loadingEl) loadingEl.classList.add('d-none');
+            if (errorEl) errorEl.classList.remove('d-none');
+        }
+
+        function renderPlans(packagesById) {
+            if (loadingEl) loadingEl.classList.add('d-none');
+            if (!plansEl) return;
+            plansEl.innerHTML = '';
+
+            PLAN_ORDER.forEach(function (planId) {
+                var pkg  = packagesById[planId];
+                var meta = PLAN_META[planId];
+                if (!pkg || !meta) return; // skip plans not configured in RevenueCat yet
+
+                var price = pkg.product && pkg.product.priceString ? pkg.product.priceString : '—';
+
+                var card = document.createElement('div');
+                card.className = 'card border-0 shadow-sm mb-3';
+                card.innerHTML =
+                    '<div class="card-body p-4">' +
+                        '<div class="d-flex justify-content-between align-items-center mb-1">' +
+                            '<div>' +
+                                '<h5 class="fw-bold mb-0">' + meta.title + '</h5>' +
+                                (meta.badge ? '<span class="badge bg-info text-dark">' + meta.badge + '</span>' : '') +
+                            '</div>' +
+                            '<span class="fs-4 fw-bold">' + price + '<span class="text-muted fs-6 fw-normal">' + meta.suffix + '</span></span>' +
+                        '</div>' +
+                        '<p class="text-muted small mb-3">' + meta.note + '</p>' +
+                        '<button type="button" class="btn btn-primary w-100 fw-bold js-iap-buy" data-plan="' + planId + '">' +
+                            '<i class="bi bi-play-fill me-1"></i> <span class="btn-label">Subscribe</span>' +
+                        '</button>' +
+                    '</div>';
+                plansEl.appendChild(card);
+
+                card.querySelector('.js-iap-buy').addEventListener('click', function () {
+                    buyPackage(pkg, this);
+                });
+            });
+        }
+
+        function buyPackage(pkg, btn) {
+            var labelEl = btn.querySelector('.btn-label');
+            var originalLabel = labelEl ? labelEl.textContent : null;
+            btn.disabled = true;
+            if (labelEl) labelEl.textContent = 'Processing…';
+
+            Purchases.purchasePackage({ aPackage: pkg })
+                .then(function () {
+                    // Authoritative access state is synced server-side via
+                    // the RevenueCat webhook, which normally arrives within
+                    // a second or two. Reload so the page picks up the
+                    // updated subscription status once it lands.
+                    if (labelEl) labelEl.textContent = 'Success!';
+                    setTimeout(function () { window.location.reload(); }, 1500);
+                })
+                .catch(function (err) {
+                    btn.disabled = false;
+                    if (labelEl && originalLabel) labelEl.textContent = originalLabel;
+                    // RevenueCat reports user-initiated cancellation as an
+                    // error too — don't show a scary alert for that case.
+                    if (!err || !err.userCancelled) {
+                        alert((err && err.message) || 'Purchase failed. Please try again.');
+                    }
+                });
+        }
+
+        if (restoreBtn) {
+            restoreBtn.addEventListener('click', function () {
+                var labelText = restoreBtn.textContent;
+                restoreBtn.disabled = true;
+                restoreBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Restoring…';
+                Purchases.restorePurchases()
+                    .then(function () { window.location.reload(); })
+                    .catch(function (err) {
+                        restoreBtn.disabled = false;
+                        restoreBtn.textContent = labelText;
+                        alert((err && err.message) || 'Restore failed. Please try again.');
+                    });
+            });
+        }
+
+        if (!Purchases) {
+            renderError();
+            return;
+        }
+
+        if (loadingEl) loadingEl.classList.remove('d-none');
+
+        Purchases.getOfferings()
+            .then(function (result) {
+                var current = result && result.offerings && result.offerings.current;
+                var available = (current && current.availablePackages) || [];
+                var packagesById = {};
+                available.forEach(function (pkg) {
+                    if (pkg && pkg.identifier) packagesById[pkg.identifier] = pkg;
+                });
+                renderPlans(packagesById);
+            })
+            .catch(function (err) {
+                console.error('RevenueCat getOfferings failed:', err);
+                renderError();
+            });
     }
 
     document.querySelectorAll('.js-stripe-form').forEach(function (form) {

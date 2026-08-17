@@ -17,6 +17,18 @@ const UserSchema = new mongoose.Schema({
         trialEndsAt:       { type: Date,   default: null },
         currentPeriodEnds: { type: Date,   default: null },
         seasonEndsAt:      { type: Date,   default: null },
+
+        // ── Apple In-App Purchase (via RevenueCat) ──────────────
+        // Kept separate from the Stripe fields above rather than reusing
+        // `status`/`currentPeriodEnds`, since a user could in theory have
+        // history on both sides (e.g. subscribed on web, later renews via
+        // the app) and we don't want a RevenueCat webhook to accidentally
+        // stomp on Stripe state or vice versa. isActive() below is the
+        // single source of truth that considers both.
+        iapStatus:        { type: String, enum: ['active', 'expired', 'none'], default: 'none' },
+        iapExpiresAt:      { type: Date,   default: null },
+        iapProductId:      { type: String, default: null },
+        revenueCatAppUserId: { type: String, default: null },
     },
     avatar: { type: String, default: '' },
     preferences: {
@@ -34,6 +46,10 @@ UserSchema.methods.isActive = function () {
     if (s.status === 'active') return true;
     if (s.status === 'trialing' && s.trialEndsAt && s.trialEndsAt > new Date()) return true;
     if (s.seasonEndsAt && s.seasonEndsAt > new Date()) return true;
+    // Apple In-App Purchase entitlement (RevenueCat webhook-fed) — checked
+    // independently of Stripe status so a purchase made in the iOS app
+    // grants access the same way a Stripe subscription does.
+    if (s.iapStatus === 'active' && s.iapExpiresAt && s.iapExpiresAt > new Date()) return true;
     return false;
 };
 

@@ -19,6 +19,7 @@
     "@capacitor/ios": "^8.4.0",
     "@capacitor/splash-screen": "^8.0.2",
     "@resvg/resvg-js": "^2.6.2",
+    "@revenuecat/purchases-capacitor": "^13.4.0",
     "apple-signin-auth": "^2.0.0",
     "bcrypt": "^6.0.0",
     "cloudinary": "^2.9.0",
