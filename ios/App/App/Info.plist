@@ -61,5 +61,11 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true />
+	<key>NSCameraUsageDescription</key>
+	<string>PitchShuffle uses the camera so you can take a profile picture.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>PitchShuffle uses your photo library so you can choose a profile picture.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>PitchShuffle saves photos you choose so you can use them as your profile picture.</string>
 </dict>
 </plist>
