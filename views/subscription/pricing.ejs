@@ -17,6 +17,17 @@
     const seasonDaysLeft = seasonEnd
         ? Math.max(0, Math.ceil((seasonEnd - new Date()) / (1000 * 60 * 60 * 24)))
         : null;
+
+    // Apple In-App Purchase (RevenueCat-fed) state for auto-renewing plans
+    // (monthly/annual). Kept separate from the Stripe `status` field above
+    // -- a purchase made in the iOS app doesn't touch `status` at all, so
+    // the banner below must check these fields independently or an IAP
+    // subscriber sees a stale/incorrect "cancelled" banner from before
+    // they ever subscribed via the app.
+    const iapExpiresAt = sub.iapExpiresAt ? new Date(sub.iapExpiresAt) : null;
+    const iapActive    = sub.iapStatus === 'active' && iapExpiresAt && iapExpiresAt > new Date();
+    const IAP_PLAN_NAMES = { monthly: 'Monthly', annual: 'Annual', season: 'Season Pass' };
+    const iapPlanName = IAP_PLAN_NAMES[sub.iapProductId] || 'App Store';
 %>
 
 <div class="container py-4" style="max-width: 520px;">
@@ -52,6 +63,14 @@
             <div>
                 <strong>Subscription active</strong>
                 <% if (periodEnd) { %>— renews <%= periodEnd.toLocaleDateString() %><% } %>
+            </div>
+        </div>
+    <% } else if (iapActive) { %>
+        <div class="alert alert-success d-flex align-items-center gap-2 mb-4">
+            <i class="bi bi-check-circle-fill fs-5 flex-shrink-0"></i>
+            <div>
+                <strong>Subscription active</strong> — <%= iapPlanName %> (via App Store)
+                <span class="text-muted small">renews <%= iapExpiresAt.toLocaleDateString() %></span>
             </div>
         </div>
     <% } else if (status === 'past_due') { %>

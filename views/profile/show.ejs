@@ -92,6 +92,13 @@
                     <p class="text-muted small mb-0">
                         Expires <%= new Date(user.subscription.seasonEndsAt).toLocaleDateString() %>
                     </p>
+                <% } else if (user.subscription.iapStatus === 'active' && user.subscription.iapExpiresAt && new Date(user.subscription.iapExpiresAt) > new Date()) { %>
+                    <%
+                        const iapPlanNames = { monthly: 'Monthly', annual: 'Annual', season: 'Season Pass' };
+                        const iapPlanLabel = iapPlanNames[user.subscription.iapProductId] || 'App Store';
+                    %>
+                    <p class="fw-semibold mb-1">Subscription Active — <%= iapPlanLabel %></p>
+                    <p class="text-muted small mb-0">Renews <%= new Date(user.subscription.iapExpiresAt).toLocaleDateString() %> (via App Store)</p>
                 <% } else { %>
                     <p class="fw-semibold mb-1">Subscription Active</p>
                     <% if (user.subscription.currentPeriodEnds) { %>
