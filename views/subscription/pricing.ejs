@@ -399,7 +399,15 @@
 
         if (loadingEl) loadingEl.classList.remove('d-none');
 
-        Purchases.getOfferings()
+        // The layout kicks off Purchases.configure() earlier on this same
+        // page load, but that's an async native bridge call -- calling
+        // getOfferings() before it resolves can silently return an empty
+        // offering instead of throwing. Wait for the layout's readiness
+        // promise (if present) before asking for offerings.
+        var ready = window.__psRevenueCatReady || Promise.resolve();
+
+        ready
+            .then(function () { return Purchases.getOfferings(); })
             .then(function (result) {
                 var current = result && result.offerings && result.offerings.current;
                 var available = (current && current.availablePackages) || [];
