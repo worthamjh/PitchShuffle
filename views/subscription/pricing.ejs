@@ -430,12 +430,21 @@
             })
             .then(function (result) {
                 debugLog('getOfferings() raw result: ' + JSON.stringify(result));
-                var current = result && result.offerings && result.offerings.current;
+                var offerings = result && result.offerings;
+                // Some SDK/bridge versions don't populate `current` even
+                // though the "default" offering is correctly configured as
+                // the account's current offering in the RevenueCat
+                // dashboard -- fall back to offerings.all.default so we
+                // still render real packages/pricing in that case.
+                var current = (offerings && offerings.current)
+                    || (offerings && offerings.all && offerings.all['default'])
+                    || null;
                 var available = (current && current.availablePackages) || [];
                 var packagesById = {};
                 available.forEach(function (pkg) {
                     if (pkg && pkg.identifier) packagesById[pkg.identifier] = pkg;
                 });
+                debugLog('current offering resolved via: ' + (offerings && offerings.current ? 'offerings.current' : (offerings && offerings.all && offerings.all['default'] ? 'offerings.all.default (fallback)' : 'none')));
                 debugLog('Package ids found: ' + Object.keys(packagesById).join(', '));
                 renderPlans(packagesById);
             })
