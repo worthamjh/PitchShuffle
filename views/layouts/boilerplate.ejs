@@ -252,18 +252,27 @@
         // real (if small) overhead and doesn't need to repeat on every
         // page navigation.
         (function () {
+            // Other scripts on this page (e.g. the native IAP pricing UI)
+            // need to know once RevenueCat is actually configured before
+            // they call SDK methods like getOfferings() -- calling those
+            // before configure() resolves can silently return empty/cached
+            // data instead of throwing, which is worse than an error.
+            // window.__psRevenueCatReady is a promise those scripts can
+            // await; it always resolves (never rejects) so a configure
+            // failure doesn't hang callers -- they just proceed and let the
+            // subsequent SDK call surface its own error.
             var isNative = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
-            if (!isNative) return;
+            if (!isNative) { window.__psRevenueCatReady = Promise.resolve(); return; }
 
             var currentUserId = <%- currentUser ? JSON.stringify(String(currentUser._id)) : 'null' %>;
-            if (!currentUserId) return;
-            if (window.__psRevenueCatUserId === currentUserId) return;
+            if (!currentUserId) { window.__psRevenueCatReady = Promise.resolve(); return; }
+            if (window.__psRevenueCatUserId === currentUserId) { window.__psRevenueCatReady = Promise.resolve(); return; }
 
             var Purchases = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Purchases;
             var apiKey = <%- JSON.stringify(process.env.REVENUECAT_IOS_API_KEY || '') %>;
-            if (!Purchases || !apiKey) return;
+            if (!Purchases || !apiKey) { window.__psRevenueCatReady = Promise.resolve(); return; }
 
-            Purchases.configure({ apiKey: apiKey, appUserID: currentUserId })
+            window.__psRevenueCatReady = Purchases.configure({ apiKey: apiKey, appUserID: currentUserId })
                 .then(function () { window.__psRevenueCatUserId = currentUserId; })
                 .catch(function (err) { console.warn('RevenueCat configure failed:', err); });
         })();
