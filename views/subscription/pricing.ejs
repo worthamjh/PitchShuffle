@@ -219,6 +219,12 @@
             Couldn't load plans right now. Please check your connection and try again.
         </div>
 
+        <!-- TEMPORARY diagnostics while we track down why offerings aren't
+             loading on-device. Safe to remove once resolved -- shows plugin
+             presence and the raw configure()/getOfferings() outcome so we
+             don't need Xcode/Safari Web Inspector to see what's failing. -->
+        <div class="small text-muted mb-3" id="ps-iap-debug" style="white-space:pre-wrap; font-family: monospace; font-size: 0.75rem; border: 1px dashed #ccc; padding: 6px; border-radius: 4px;"></div>
+
         <div id="ps-iap-plans"></div>
 
         <div class="d-grid mb-4">
@@ -300,6 +306,16 @@
         var loadingEl  = document.getElementById('ps-iap-loading');
         var errorEl    = document.getElementById('ps-iap-load-error');
         var restoreBtn = document.getElementById('ps-iap-restore');
+        var debugEl    = document.getElementById('ps-iap-debug');
+
+        // TEMPORARY diagnostics -- see note on #ps-iap-debug above.
+        function debugLog(line) {
+            if (!debugEl) return;
+            debugEl.textContent += (debugEl.textContent ? '\n' : '') + line;
+        }
+        debugLog('Purchases plugin present: ' + !!Purchases);
+        debugLog('window.__psRevenueCatReady present: ' + !!window.__psRevenueCatReady);
+        debugLog('window.__psRevenueCatUserId: ' + window.__psRevenueCatUserId);
 
         // Display copy only — the actual price shown to the user comes
         // from StoreKit via the offering package below, never from here.
@@ -406,19 +422,26 @@
         // promise (if present) before asking for offerings.
         var ready = window.__psRevenueCatReady || Promise.resolve();
 
+        debugLog('Waiting on __psRevenueCatReady...');
         ready
-            .then(function () { return Purchases.getOfferings(); })
+            .then(function () {
+                debugLog('__psRevenueCatReady resolved. Calling getOfferings()...');
+                return Purchases.getOfferings();
+            })
             .then(function (result) {
+                debugLog('getOfferings() raw result: ' + JSON.stringify(result));
                 var current = result && result.offerings && result.offerings.current;
                 var available = (current && current.availablePackages) || [];
                 var packagesById = {};
                 available.forEach(function (pkg) {
                     if (pkg && pkg.identifier) packagesById[pkg.identifier] = pkg;
                 });
+                debugLog('Package ids found: ' + Object.keys(packagesById).join(', '));
                 renderPlans(packagesById);
             })
             .catch(function (err) {
                 console.error('RevenueCat getOfferings failed:', err);
+                debugLog('ERROR: ' + JSON.stringify(err && (err.message || err)));
                 renderError();
             });
     }
