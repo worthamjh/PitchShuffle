@@ -322,10 +322,14 @@
 
         // Display copy only — the actual price shown to the user comes
         // from StoreKit via the offering package below, never from here.
+        // Note: no free-trial copy here, unlike the Stripe/web cards above.
+        // Apple's products for these plans don't currently have an
+        // introductory offer configured (StoreKit returns introPrice:
+        // null for both), so claiming a trial here would be inaccurate.
         var PLAN_META = {
-            monthly: { title: 'Monthly',     badge: null,      note: 'Includes 7-day free trial. Cancel anytime.',            suffix: '/mo' },
+            monthly: { title: 'Monthly',     badge: null,      note: 'Cancel anytime.',                                       suffix: '/mo' },
             season:  { title: 'Season Pass', badge: '90 days', note: 'One-time payment. Perfect for a single season.',        suffix: ' once' },
-            annual:  { title: 'Annual',      badge: null,      note: 'Includes 7-day free trial. Best value.',                suffix: '/yr' },
+            annual:  { title: 'Annual',      badge: null,      note: 'Best value.',                                           suffix: '/yr' },
         };
         var PLAN_ORDER = ['monthly', 'season', 'annual'];
 
