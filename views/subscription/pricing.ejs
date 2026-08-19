@@ -430,12 +430,13 @@
             })
             .then(function (result) {
                 debugLog('getOfferings() raw result: ' + JSON.stringify(result));
-                var offerings = result && result.offerings;
-                // Some SDK/bridge versions don't populate `current` even
-                // though the "default" offering is correctly configured as
-                // the account's current offering in the RevenueCat
-                // dashboard -- fall back to offerings.all.default so we
-                // still render real packages/pricing in that case.
+                // This SDK version resolves getOfferings() to { all, current }
+                // directly -- not wrapped in an "offerings" property like some
+                // versions/docs suggest. Support both shapes defensively, and
+                // fall back to all.default if current isn't populated (it's
+                // correctly configured as the account's current offering in
+                // the RevenueCat dashboard, so this should always have data).
+                var offerings = (result && result.offerings) || result;
                 var current = (offerings && offerings.current)
                     || (offerings && offerings.all && offerings.all['default'])
                     || null;
@@ -444,7 +445,7 @@
                 available.forEach(function (pkg) {
                     if (pkg && pkg.identifier) packagesById[pkg.identifier] = pkg;
                 });
-                debugLog('current offering resolved via: ' + (offerings && offerings.current ? 'offerings.current' : (offerings && offerings.all && offerings.all['default'] ? 'offerings.all.default (fallback)' : 'none')));
+                debugLog('current offering resolved via: ' + (offerings && offerings.current ? 'current' : (offerings && offerings.all && offerings.all['default'] ? 'all.default (fallback)' : 'none')));
                 debugLog('Package ids found: ' + Object.keys(packagesById).join(', '));
                 renderPlans(packagesById);
             })
