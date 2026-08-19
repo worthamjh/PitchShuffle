@@ -227,7 +227,7 @@
          "annual", and "season" in the RevenueCat "default" offering,
          matching the plan names used by the Stripe side above.
          =================================================================== -->
-    <div class="d-none" id="ps-native-iap-pricing">
+    <div class="d-none" id="ps-native-iap-pricing" data-iap-active="<%= iapActive ? 'true' : 'false' %>">
 
         <div class="text-center text-muted small mb-3 d-none" id="ps-iap-loading">
             <div class="spinner-border spinner-border-sm me-1" role="status"></div>
@@ -239,6 +239,18 @@
         </div>
 
         <div id="ps-iap-plans"></div>
+
+        <!-- Apple Guideline 3.1.2 requires a functional link to the App
+             Store subscription management page, not just instructional
+             text. Purchases.showManageSubscriptions() (RevenueCat) deep
+             links straight to this subscription in iOS Settings. Only
+             shown for users who currently have an active App Store
+             subscription (see data-iap-active above / JS below). -->
+        <div class="d-grid mb-3 d-none" id="ps-iap-manage-wrap">
+            <button type="button" class="btn btn-outline-secondary" id="ps-iap-manage">
+                <i class="bi bi-gear me-1"></i> Manage Subscription
+            </button>
+        </div>
 
         <div class="d-grid mb-4">
             <button type="button" class="btn btn-outline-secondary" id="ps-iap-restore">
@@ -310,6 +322,34 @@
         if (iapBlock) iapBlock.classList.remove('d-none');
 
         initNativeIAP();
+        initManageSubscription();
+    }
+
+    // ── Manage Subscription (Apple Guideline 3.1.2) ─────────────────────
+    // Users with an active App Store subscription need a functional link
+    // to Apple's subscription management page, not just instructional
+    // text. RevenueCat's showManageSubscriptions() deep-links directly to
+    // this subscription in iOS Settings.
+    function initManageSubscription() {
+        var Purchases  = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Purchases;
+        var iapBlock   = document.getElementById('ps-native-iap-pricing');
+        var manageWrap = document.getElementById('ps-iap-manage-wrap');
+        var manageBtn  = document.getElementById('ps-iap-manage');
+
+        if (!Purchases || !iapBlock || !manageWrap || !manageBtn) return;
+        if (iapBlock.dataset.iapActive !== 'true') return;
+
+        manageWrap.classList.remove('d-none');
+        manageBtn.addEventListener('click', function () {
+            manageBtn.disabled = true;
+            Purchases.showManageSubscriptions()
+                .catch(function (err) {
+                    console.warn('showManageSubscriptions failed:', err);
+                })
+                .finally(function () {
+                    manageBtn.disabled = false;
+                });
+        });
     }
 
     // ── Native In-App Purchase (RevenueCat) ─────────────────────────────
