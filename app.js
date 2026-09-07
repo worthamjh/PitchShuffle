@@ -13,7 +13,6 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const User = require('./models/user');
-const { isNativeApp } = require('./middleware');
 const MongoStore = require('connect-mongo');
 const authRoutes         = require('./routes/auth');
 const teamRoutes         = require('./routes/teams');
@@ -92,17 +91,9 @@ passport.use(new GoogleStrategy({
             }
         }
 
-        // Apple Guideline 3.1.1 / 3.1.3(a): the native app may let existing
-        // users log in with Google, but must not create new accounts. Web
-        // sign-up is unaffected. Google's consent screen runs in system
-        // Safari (it refuses to load inside an embedded webview), so the
-        // native User-Agent tag doesn't survive the redirect — the `state`
-        // param carried through the OAuth round trip is the reliable signal.
-        if (req.query.state === 'native' || isNativeApp(req)) {
-            return done(null, false, { message: 'No PitchShuffle account found for that Google sign-in. Create one at pitchshuffle.com, then come back and sign in here.' });
-        }
-
-        // Create new user
+        // Create new user. Allowed from both web and the native app: App
+        // Review requires in-app account creation, and with In-App Purchase
+        // now offered natively there is no 3.1.1 reason to block it.
         const username = profile.displayName.replace(/\s+/g, '').toLowerCase() +
             Math.floor(Math.random() * 1000);
         const newUser = new User({

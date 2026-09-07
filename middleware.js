@@ -62,16 +62,7 @@ module.exports.isNativeApp = (req) => {
     return ua.includes('PitchShuffleNativeApp');
 };
 
-// Apple Guideline 3.1.1 / 3.1.3(a): the native app must not allow creating
-// new accounts that can access paid content. Block registration and OAuth
-// sign-up entry points server-side when the request comes from the app —
-// hiding the UI with client-side JS alone is not sufficient, since the
-// routes themselves remain reachable. Existing users may still log in.
-module.exports.blockNativeSignup = (req, res, next) => {
-    const ua = req.headers['user-agent'] || '';
-    if (ua.includes('PitchShuffleNativeApp')) {
-        req.flash('error', 'New accounts are created at pitchshuffle.com. Please log in below if you already have an account.');
-        return res.redirect('/login');
-    }
-    next();
-};
+// Note: account creation is deliberately allowed from the native app.
+// App Review (Guideline 2.1(a), Aug 2026) rejected the earlier approach of
+// blocking native sign-up and pointing users to the website. With Apple
+// In-App Purchase offered natively, Guideline 3.1.1 no longer requires it.

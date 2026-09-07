@@ -3,7 +3,7 @@ const router = express.Router();
 const passport = require('passport');
 const User = require('../models/user');
 const Team = require('../models/team');
-const { isLoggedIn, blockNativeSignup, isNativeApp } = require('../middleware');
+const { isLoggedIn } = require('../middleware');
 const { createNativeAuthToken, verifyNativeAuthToken } = require('../utilities/nativeAuth');
 const appleSignin = require('apple-signin-auth');
 const { sendWelcomeEmail } = require('../utilities/email');
@@ -98,9 +98,9 @@ router.get('/game/:teamId', isLoggedIn, async (req, res, next) => {
 });
 
 // ── Auth ──────────────────────────────────────────────────────
-router.get('/register', blockNativeSignup, (req, res) => res.render('auth/register'));
+router.get('/register', (req, res) => res.render('auth/register'));
 
-router.post('/register', blockNativeSignup, async (req, res, next) => {
+router.post('/register', async (req, res, next) => {
     try {
         const { email, username, password, zoneTerminology } = req.body;
         if (!username || !username.trim()) {
@@ -295,17 +295,12 @@ router.post('/auth/apple/callback', async (req, res) => {
         }
 
         if (!user) {
-            // Apple Guideline 3.1.1 / 3.1.3(a): existing users may log in
-            // with Apple on native, but new accounts can't be created there.
-            // isNativeApp(req) won't see the native UA tag here (Apple's
-            // consent screen runs in system Safari, not our WebView), so
-            // rely on the state param that made the round trip instead.
-            if (isNative || isNativeApp(req)) {
-                const msg = 'No PitchShuffle account found for that Apple ID. Create one at pitchshuffle.com, then come back and sign in here.';
-                req.flash('error', msg);
-                return res.redirect(isNative ? `pitchshuffle://auth-failed?message=${encodeURIComponent(msg)}` : '/login');
-            }
-            req.session.appleSignup = { appleId, email: email || '', firstName, lastName };
+            // New account. The choose-username page renders inside the
+            // same browsing context as this callback (the in-app browser
+            // sheet on native), so the session cookie set here is visible
+            // there. Remember native-ness in the session so the final
+            // step can hand control back to the app via pitchshuffle://.
+            req.session.appleSignup = { appleId, email: email || '', firstName, lastName, native: isNative };
             return res.redirect('/auth/choose-username');
         }
 
@@ -339,17 +334,17 @@ router.post('/auth/apple/callback', async (req, res) => {
 });
 
 // ── Apple Choose Username ─────────────────────────────────────
-router.get('/auth/choose-username', blockNativeSignup, (req, res) => {
+router.get('/auth/choose-username', (req, res) => {
     if (!req.session.appleSignup) return res.redirect('/login');
     const { firstName, lastName } = req.session.appleSignup;
     const suggested = (firstName || '').toLowerCase().replace(/\s+/g, '') || '';
     res.render('auth/choose-username', { suggested });
 });
 
-router.post('/auth/choose-username', blockNativeSignup, async (req, res, next) => {
+router.post('/auth/choose-username', async (req, res, next) => {
     try {
         if (!req.session.appleSignup) return res.redirect('/login');
-        const { appleId, email } = req.session.appleSignup;
+        const { appleId, email, native: isNative } = req.session.appleSignup;
         const username = (req.body.username || '').trim();
         if (!username || username.length < 3) {
             req.flash('error', 'Username must be at least 3 characters.');
@@ -369,7 +364,16 @@ router.post('/auth/choose-username', blockNativeSignup, async (req, res, next) =
         req.login(user, async err => {
             if (err) return next(err);
             req.flash('success', `Welcome to PitchShuffle, ${user.username}!`);
-            res.redirect('/teams/new?onboarding=1');
+            const nextUrl = '/teams/new?onboarding=1';
+            if (isNative) {
+                // Same hand-off as the Google/Apple login paths: this
+                // response is inside the in-app browser sheet, so return
+                // to the app with a one-time token instead of relying on
+                // this session cookie reaching the app's own WebView.
+                const token = createNativeAuthToken(user._id.toString());
+                return res.redirect(`pitchshuffle://auth-success?token=${token}&next=${encodeURIComponent(nextUrl)}`);
+            }
+            res.redirect(nextUrl);
         });
     } catch (e) {
         req.flash('error', e.message || 'Something went wrong. Please try again.');

@@ -78,33 +78,19 @@
                         Sign in with Apple
                     </a>
                 </div>
-                <p class="text-center text-muted small mt-2 mb-0" id="ps-oauth-web-note">
+                <p class="text-center text-muted small mt-2 mb-0">
                     New here? Signing in with Google or Apple above creates your account automatically.
-                </p>
-                <p class="text-center text-muted small mt-2 mb-0 d-none" id="ps-oauth-native-note">
-                    New here? Google and Apple sign-in above only work for accounts that already exist —
-                    <a href="https://www.pitchshuffle.com/register" target="_blank" rel="noopener">create your account at pitchshuffle.com</a>
-                    first (Google and Apple sign-in work there too), then come back and use the buttons above.
                 </p>
             </div>
 
             <hr>
-            <p class="text-center text-muted mb-0" id="ps-login-register-link">
+            <p class="text-center text-muted mb-0">
                 Don't have an account? <a href="/register">Register here</a>
             </p>
             <script>
             (function () {
                 var isNative = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
                 if (isNative) {
-                    var el = document.getElementById('ps-login-register-link');
-                    if (el) el.style.display = 'none';
-
-                    var webNoteEl = document.getElementById('ps-oauth-web-note');
-                    if (webNoteEl) webNoteEl.classList.add('d-none');
-
-                    var noteEl = document.getElementById('ps-oauth-native-note');
-                    if (noteEl) noteEl.classList.remove('d-none');
-
                     // Google/Apple's OAuth screens refuse to load inside our
                     // embedded webview and, left to a plain link, get handed
                     // off to the system default browser as a full app
@@ -134,11 +120,10 @@
                                 Browser.open({ url: url });
                             } else {
                                 // Last-resort fallback: still tag the request as
-                                // native so the server correctly blocks new-account
-                                // creation and redirects via pitchshuffle:// rather
-                                // than a plain https URL, even though this path
-                                // hands off to the full system browser instead of
-                                // an in-app sheet.
+                                // native so the server returns via pitchshuffle://
+                                // rather than a plain https URL, even though this
+                                // path hands off to the full system browser
+                                // instead of an in-app sheet.
                                 window.location.href = url;
                             }
                         });
