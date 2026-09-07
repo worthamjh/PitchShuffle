@@ -7,7 +7,8 @@
 <div class="card">
     <div class="card-body p-4">
         <p class="text-muted mb-4">Pick a username for your PitchShuffle account. You can change this later in your profile settings.</p>
-        <form action="/auth/choose-username" method="POST" id="chooseUsernameForm">
+        <!-- data-turbo="false": on native this POST redirects to the pitchshuffle:// scheme to hand control back to the app. Turbo submits forms via fetch, which cannot follow a custom-scheme redirect, so force a full-page submission here. -->
+        <form action="/auth/choose-username" method="POST" id="chooseUsernameForm" data-turbo="false">
             <div class="mb-4">
                 <label for="username" class="form-label fw-bold">Username</label>
                 <input type="text" class="form-control form-control-lg" id="username" name="username"
