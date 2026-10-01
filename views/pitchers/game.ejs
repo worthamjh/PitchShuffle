@@ -18,7 +18,7 @@
 
     .game-page {
         display: flex; flex-direction: column;
-        height: calc(100dvh - 56px); width: 100%; max-width: 430px;
+        height: calc(100dvh - var(--ps-nav-h, 56px)); width: 100%; max-width: 430px;
         margin: 0 auto; background: var(--ps-card-bg);
         overflow: hidden; box-shadow: 0 0 40px rgba(0,0,0,0.4);
     }
@@ -255,6 +255,17 @@
     // starts, so without this wrapper, the second game of a session would
     // redeclare these consts in the same JS context and throw, silently
     // breaking every pitch/zone button on this page from then on.
+
+    // The navbar grows with the status-bar inset (notch / Dynamic Island),
+    // so measure it instead of assuming a fixed height — otherwise the
+    // call bar gets pushed off the bottom of the screen.
+    const navbarEl = document.querySelector('.navbar');
+    function syncNavHeight() {
+        if (!navbarEl || navbarEl.querySelector('.navbar-collapse.show')) return;
+        document.documentElement.style.setProperty('--ps-nav-h', navbarEl.getBoundingClientRect().height + 'px');
+    }
+    syncNavHeight();
+
     const pitcherData   = JSON.parse(document.getElementById('pitcherJson').textContent);
     const isRHP         = pitcherData.throws === 'R';
     const pitchTypes    = pitcherData.pitchTypes || [];
@@ -784,6 +795,7 @@
             window.removeEventListener('resize', window.__psGameResizeHandler);
         }
         window.__psGameResizeHandler = function () {
+            syncNavHeight();
             clearTimeout(resizeTimer);
             resizeTimer = setTimeout(buildGrid, 100);
         };

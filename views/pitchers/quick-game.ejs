@@ -18,7 +18,7 @@
     .game-page {
         display: flex;
         flex-direction: column;
-        height: calc(100vh - 56px);
+        height: calc(100dvh - var(--ps-nav-h, 56px));
         width: 100%;
         max-width: 100%;
         margin: 0 auto;
@@ -429,6 +429,17 @@
     // same still-alive JS global scope if the user navigates back to this
     // page. Wrap in an IIFE so the top-level const/let below don't throw
     // "already declared" on a second visit.
+
+    // The navbar grows with the status-bar inset (notch / Dynamic Island),
+    // so measure it instead of assuming a fixed height — otherwise the
+    // call bar gets pushed off the bottom of the screen.
+    const navbarEl = document.querySelector('.navbar');
+    function syncNavHeight() {
+        if (!navbarEl || navbarEl.querySelector('.navbar-collapse.show')) return;
+        document.documentElement.style.setProperty('--ps-nav-h', navbarEl.getBoundingClientRect().height + 'px');
+    }
+    syncNavHeight();
+
     const pitcherData   = JSON.parse(document.getElementById('pitcherJson').textContent);
     const isRHP         = true;
     const pitchTypes    = [
@@ -733,6 +744,7 @@ console.log('zoneLocations:', JSON.stringify(zoneLocations)); // ← add this
     let resizeTimer;
     requestAnimationFrame(buildGrid);
     window.addEventListener('resize', () => {
+        syncNavHeight();
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(buildGrid, 100);
     });
